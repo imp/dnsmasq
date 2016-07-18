@@ -210,6 +210,8 @@ static void dbus_read_servers(DBusMessage *message)
 	if (dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_STRING)
 	  {
 	    dbus_message_iter_get_basic(&iter, &domain);
+        if (strcmp(domain, "#") == 0)
+          *domain = 0;
 	    dbus_message_iter_next (&iter);
 	  }
 	else
@@ -404,11 +406,23 @@ static DBusMessage* dbus_read_servers_ex(DBusMessage *message, int strings)
 	  /* parse domains and add each server/domain pair to the list */
 	  do {
 	    str = NULL;
+        str_addr = NULL;
 	    if (dbus_message_iter_get_arg_type(&string_iter) == DBUS_TYPE_STRING)
 	      dbus_message_iter_get_basic(&string_iter, &str);
-	    dbus_message_iter_next (&string_iter);
-	    
-	    add_update_server(flags | SERV_FROM_DBUS, &addr, &source_addr, interface, str);
+			dbus_message_iter_next (&string_iter);
+        
+			if (str != NULL) {
+				if (dup)
+					free(dup);
+				if (!(dup = str_addr = whine_malloc(strlen(str)+1)))
+					break;
+				if (strcmp(str, "#") == 0)
+					*str_addr = 0;
+				else
+					strcpy(str_addr, str);
+			}
+			
+	    add_update_server(flags | SERV_FROM_DBUS, &addr, &source_addr, interface, str_addr);
 	  } while (dbus_message_iter_get_arg_type(&string_iter) == DBUS_TYPE_STRING);
 	}
 	 
