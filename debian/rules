@@ -105,6 +105,7 @@ binary-indep:	checkroot
 		-d debian/daemon/etc/dnsmasq.d \
 	        -d debian/daemon/etc/resolvconf/update.d \
 		-d debian/daemon/usr/lib/resolvconf/dpkg-event.d \
+		-d debian/daemon/usr/share/dnsmasq \
 	        -d debian/daemon/etc/default \
 		-d debian/daemon/lib/systemd/system \
                 -d debian/daemon/etc/insserv.conf.d
@@ -113,6 +114,7 @@ binary-indep:	checkroot
 	install -m 755 debian/init debian/daemon/etc/init.d/dnsmasq
 	install -m 755 debian/resolvconf debian/daemon/etc/resolvconf/update.d/dnsmasq
 	install -m 755 debian/resolvconf-package debian/daemon/usr/lib/resolvconf/dpkg-event.d/dnsmasq
+	install -m 644 debian/installed-marker debian/daemon/usr/share/dnsmasq
 	install -m 644 debian/default debian/daemon/etc/default/dnsmasq
 	install -m 644 dnsmasq.conf.example debian/daemon/etc/dnsmasq.conf
 	install -m 644 debian/readme.dnsmasq.d debian/daemon/etc/dnsmasq.d/README
