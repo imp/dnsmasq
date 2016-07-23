@@ -1209,6 +1209,11 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
   int nxdomain = 0, auth = 1, trunc = 0, sec_data = 1;
   struct mx_srv_record *rec;
   size_t len;
+
+  /* Clear buffer beyond request to avoid risk of
+     information disclosure. */
+  memset(((char *)header) + qlen, 0, 
+	 (limit - ((char *)header)) - qlen);
   
   if (ntohs(header->ancount) != 0 ||
       ntohs(header->nscount) != 0 ||

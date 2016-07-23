@@ -1471,6 +1471,7 @@ void log_relay(int family, struct dhcp_relay *relay);
 /* outpacket.c */
 #ifdef HAVE_DHCP6
 void end_opt6(int container);
+void reset_counter(void);
 int save_counter(int newval);
 void *expand(size_t headroom);
 int new_opt6(int opt);
