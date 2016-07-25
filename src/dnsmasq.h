@@ -340,6 +340,7 @@ struct auth_zone {
     struct auth_name_list *next;
   } *interface_names;
   struct addrlist *subnet;
+  struct addrlist *exclude;
   struct auth_zone *next;
 };
 

@@ -1906,6 +1906,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	new = opt_malloc(sizeof(struct auth_zone));
 	new->domain = opt_string_alloc(arg);
 	new->subnet = NULL;
+	new->exclude = NULL;
 	new->interface_names = NULL;
 	new->next = daemon->auth_zones;
 	daemon->auth_zones = new;
@@ -1913,6 +1914,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	while ((arg = comma))
 	  {
 	    int prefixlen = 0;
+	    int is_exclude = 0;
 	    char *prefix;
 	    struct addrlist *subnet =  NULL;
 	    struct all_addr addr;
@@ -1923,6 +1925,12 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	    if (prefix && !atoi_check(prefix, &prefixlen))
 	      ret_err(gen_err);
 	    
+	    if (strstr(arg, "exclude:") == arg)
+	      {
+		    is_exclude = 1;
+		    arg = arg+8;
+	      }
+
 	    if (inet_pton(AF_INET, arg, &addr.addr.addr4))
 	      {
 		subnet = opt_malloc(sizeof(struct addrlist));
@@ -1960,8 +1968,17 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	    if (subnet)
 	      {
 		subnet->addr = addr;
-		subnet->next = new->subnet;
-		new->subnet = subnet;
+
+		if (is_exclude)
+		  {
+		    subnet->next = new->exclude;
+		    new->exclude = subnet;
+		  }
+		else
+		  {
+		    subnet->next = new->subnet;
+		    new->subnet = subnet;
+		  }
 	      }
 	  }
 	break;

@@ -739,7 +739,7 @@ a return code of SERVFAIL. Note that
 setting this may affect DNS behaviour in bad ways, it is not an
 extra-logging flag and should not be set in production.
 .TP
-.B --auth-zone=<domain>[,<subnet>[/<prefix length>][,<subnet>[/<prefix length>].....]]
+.B --auth-zone=<domain>[,<subnet>[/<prefix length>][,<subnet>[/<prefix length>].....][,exclude:<subnet>[/<prefix length>]].....]
 Define a DNS zone for which dnsmasq acts as authoritative server. Locally defined DNS records which are in the domain
 will be served. If subnet(s) are given, A and AAAA records must be in one of the
 specified subnets.
@@ -755,6 +755,10 @@ an interface has dynamically determined global IPv6 addresses which should
 appear in the zone, but RFC1918 IPv4 addresses which should not.
 Interface-name and address-literal subnet specifications may be used
 freely in the same --auth-zone declaration.
+
+It's possible to exclude certain IP addresses from responses. It can be
+used, to make sure that answers contain only global routeable IP
+addresses (by excluding loopback, RFC1918 and ULA addresses).
 
 The subnet(s) are also used to define in-addr.arpa and
 ip6.arpa domains which are served for reverse-DNS queries. If not

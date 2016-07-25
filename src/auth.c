@@ -18,36 +18,53 @@
 
 #ifdef HAVE_AUTH
 
+static struct addrlist *find_addrlist(struct addrlist *list, int flag, struct all_addr *addr_u)
+{
+  do {
+    if (!(list->flags & ADDRLIST_IPV6))
+      {
+	struct in_addr netmask, addr = addr_u->addr.addr4;
+	
+	if (!(flag & F_IPV4))
+	  continue;
+	
+	netmask.s_addr = htonl(~(in_addr_t)0 << (32 - list->prefixlen));
+	
+	if  (is_same_net(addr, list->addr.addr.addr4, netmask))
+	  return list;
+      }
+#ifdef HAVE_IPV6
+    else if (is_same_net6(&(addr_u->addr.addr6), &list->addr.addr.addr6, list->prefixlen))
+      return list;
+#endif
+    
+  } while ((list = list->next));
+  
+  return NULL;
+}
+
 static struct addrlist *find_subnet(struct auth_zone *zone, int flag, struct all_addr *addr_u)
 {
-  struct addrlist *subnet;
+  if (!zone->subnet)
+    return NULL;
+  
+  return find_addrlist(zone->subnet, flag, addr_u);
+}
 
-  for (subnet = zone->subnet; subnet; subnet = subnet->next)
-    {
-      if (!(subnet->flags & ADDRLIST_IPV6))
-	{
-	  struct in_addr netmask, addr = addr_u->addr.addr4;
-
-	  if (!(flag & F_IPV4))
-	    continue;
-	  
-	  netmask.s_addr = htonl(~(in_addr_t)0 << (32 - subnet->prefixlen));
-	  
-	  if  (is_same_net(addr, subnet->addr.addr.addr4, netmask))
-	    return subnet;
-	}
-#ifdef HAVE_IPV6
-      else if (is_same_net6(&(addr_u->addr.addr6), &subnet->addr.addr.addr6, subnet->prefixlen))
-	return subnet;
-#endif
-
-    }
-  return NULL;
+static struct addrlist *find_exclude(struct auth_zone *zone, int flag, struct all_addr *addr_u)
+{
+  if (!zone->exclude)
+    return NULL;
+  
+  return find_addrlist(zone->exclude, flag, addr_u);
 }
 
 static int filter_zone(struct auth_zone *zone, int flag, struct all_addr *addr_u)
 {
-  /* No zones specified, no filter */
+  if (find_exclude(zone, flag, addr_u))
+    return 0;
+
+  /* No subnets specified, no filter */
   if (!zone->subnet)
     return 1;
   
