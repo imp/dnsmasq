@@ -20,7 +20,16 @@ version 2.77
  	    Fix problem with --dnssec-timestamp whereby receipt
             of SIGHUP would erroneously engage timestamp checking.
 	    Thanks to Kevin Darbyshire-Bryant for this work.
-	
+
+	    Bump zone serial on reloading /etc/hosts and friends
+	    when providing authoritative DNS. Thanks to Harrald
+	    Dunkel for spotting this.
+
+	    Handle v4-mapped IPv6 addresses sanely in --synth-domain.
+	    These have standard representation like ::ffff:1.2.3.4
+	    and are now converted to names like
+	    <prefix>--ffff-1-2-3-4.<domain>
+
 
 version 2.76
             Include 0.0.0.0/8 in DNS rebind checks. This range 

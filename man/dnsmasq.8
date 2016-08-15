@@ -619,6 +619,8 @@ but IPv6 addresses may start with '::'
 but DNS labels may not start with '-' so in this case if no prefix is
 configured a zero is added in front of the label. ::1 becomes 0--1.
 
+V4 mapped IPv6 addresses, which have a representation like ::ffff:1.2.3.4 are handled specially, and become like 0--ffff-1-2-3-4
+
 The address range can be of the form
 <ip address>,<ip address> or <ip address>/<netmask>
 .TP

@@ -2,7 +2,13 @@ dnsmasq (2.77-1) unstable; urgency=low
 
    * New upstream.
 
- -- Simon Kelley <simon@thekelleys.org.uk>  Sat, 16 Jul 2016 22:22:10 +0000
+ -- Simon Kelley <simon@thekelleys.org.uk>  Sat, 13 Aug 2016 21:48:10 +0000
+
+dnsmasq (2.76-3) unstable; urgency=medium
+
+   * Bump auth zone serial on SIGHUP. (closes: #833733)
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Sat, 13 Aug 2016 21:43:10 +0000
 
 dnsmasq (2.76-2) unstable; urgency=medium
 

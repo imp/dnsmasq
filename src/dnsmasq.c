@@ -1226,6 +1226,8 @@ static void async_event(int pipe, time_t now)
     switch (ev.event)
       {
       case EVENT_RELOAD:
+	daemon->soa_sn++; /* Bump zone serial, as it may have changed. */
+
 #ifdef HAVE_DNSSEC
 	if (daemon->dnssec_no_time_check && option_bool(OPT_DNSSEC_VALID) && option_bool(OPT_DNSSEC_TIME))
 	  {
