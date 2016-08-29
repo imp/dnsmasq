@@ -452,7 +452,7 @@ static struct {
   { LOPT_DHCP_FQDN, OPT_DHCP_FQDN, NULL, gettext_noop("Use only fully qualified domain names for DHCP clients."), NULL },
   { LOPT_GEN_NAMES, ARG_DUP, "[=tag:<tag>]", gettext_noop("Generate hostnames based on MAC address for nameless clients."), NULL},
   { LOPT_PROXY, ARG_DUP, "[=<ipaddr>]...", gettext_noop("Use these DHCP relays as full proxies."), NULL },
-  { LOPT_RELAY, ARG_DUP, "<local-addr>,<server>[,<interface>]", gettext_noop("Relay DHCP requests to a remote server"), NULL},
+  { LOPT_RELAY, ARG_DUP, "<local-addr>,<server>[,<iface>]", gettext_noop("Relay DHCP requests to a remote server"), NULL},
   { LOPT_CNAME, ARG_DUP, "<alias>,<target>[,<ttl>]", gettext_noop("Specify alias name for LOCAL DNS name."), NULL },
   { LOPT_PXE_PROMT, ARG_DUP, "<prompt>,[<timeout>]", gettext_noop("Prompt to send to PXE clients."), NULL },
   { LOPT_PXE_SERV, ARG_DUP, "<service>", gettext_noop("Boot service for PXE menu."), NULL },
@@ -475,7 +475,7 @@ static struct {
   { LOPT_AUTHSOA, ARG_ONE, "<serial>[,...]", gettext_noop("Set authoritive zone information"), NULL },
   { LOPT_AUTHSFS, ARG_DUP, "<NS>[,<NS>...]", gettext_noop("Secondary authoritative nameservers for forward domains"), NULL },
   { LOPT_AUTHPEER, ARG_DUP, "<ipaddr>[,<ipaddr>...]", gettext_noop("Peers which are allowed to do zone transfer"), NULL },
-  { LOPT_IPSET, ARG_DUP, "/<domain>/<ipset>[,<ipset>...]", gettext_noop("Specify ipsets to which matching domains should be added"), NULL },
+  { LOPT_IPSET, ARG_DUP, "/<domain>[/<domain>...]/<ipset>...", gettext_noop("Specify ipsets to which matching domains should be added"), NULL },
   { LOPT_SYNTH, ARG_DUP, "<domain>,<range>,[<prefix>]", gettext_noop("Specify a domain and address range for synthesised names"), NULL },
   { LOPT_SEC_VALID, OPT_DNSSEC_VALID, NULL, gettext_noop("Activate DNSSEC validation"), NULL },
   { LOPT_TRUST_ANCHOR, ARG_DUP, "<domain>,[<class>],...", gettext_noop("Specify trust anchor key digest."), NULL },
@@ -486,7 +486,7 @@ static struct {
 #ifdef OPTION6_PREFIX_CLASS 
   { LOPT_PREF_CLSS, ARG_DUP, "set:tag,<class>", gettext_noop("Specify DHCPv6 prefix class"), NULL },
 #endif
-  { LOPT_RA_PARAM, ARG_DUP, "<interface>,[high,|low,]<interval>[,<lifetime>]", gettext_noop("Set priority, resend-interval and router-lifetime"), NULL },
+  { LOPT_RA_PARAM, ARG_DUP, "<iface>,[<prio>,]<intval>[,<lifetime>]", gettext_noop("Set priority, resend-interval and router-lifetime"), NULL },
   { LOPT_QUIET_DHCP, OPT_QUIET_DHCP, NULL, gettext_noop("Do not log routine DHCP."), NULL },
   { LOPT_QUIET_DHCP6, OPT_QUIET_DHCP6, NULL, gettext_noop("Do not log routine DHCPv6."), NULL },
   { LOPT_QUIET_RA, OPT_QUIET_RA, NULL, gettext_noop("Do not log RA."), NULL },
@@ -721,7 +721,7 @@ static void do_usage(void)
 	sprintf(buff, "    ");
       
       sprintf(buff+4, "--%s%s%s", opts[j].name, eq, desc);
-      printf("%-40.40s", buff);
+      printf("%-55.55s", buff);
 	     
       if (usage[i].arg)
 	{

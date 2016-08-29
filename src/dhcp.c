@@ -280,7 +280,8 @@ void dhcp_packet(time_t now, int pxe_fd)
 	iface_addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
       else
 	{
-	  my_syslog(MS_DHCP | LOG_WARNING, _("DHCP packet received on %s which has no address"), ifr.ifr_name);
+	  if (iface_check(AF_INET, NULL, ifr.ifr_name, NULL))
+	    my_syslog(MS_DHCP | LOG_WARNING, _("DHCP packet received on %s which has no address"), ifr.ifr_name);
 	  return;
 	}
       

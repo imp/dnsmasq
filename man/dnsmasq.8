@@ -480,28 +480,36 @@ but provides some syntactic sugar to make specifying address-to-name queries eas
 is exactly equivalent to 
 .B --server=/3.2.1.in-addr.arpa/192.168.0.1
 .TP
-.B \-A, --address=/<domain>/[domain/][<ipaddr>]
+.B \-A, --address=/<domain>[/<domain>...]/[<ipaddr>]
 Specify an IP address to return for any host in the given domains.
 Queries in the domains are never forwarded and always replied to
 with the specified IP address which may be IPv4 or IPv6. To give
-both IPv4 and IPv6 addresses for a domain, use repeated -A flags.
+both IPv4 and IPv6 addresses for a domain, use repeated \fB-A\fP flags.
+To include multiple IP addresses for a single query, use
+\fB--addn-hosts=<path>\fP instead.
 Note that /etc/hosts and DHCP leases override this for individual
 names. A common use of this is to redirect the entire doubleclick.net
 domain to some friendly local web server to avoid banner ads. The
-domain specification works in the same was as for --server, with the
-additional facility that /#/ matches any domain. Thus
---address=/#/1.2.3.4 will always return 1.2.3.4 for any query not
-answered from /etc/hosts or DHCP and not sent to an upstream
-nameserver by a more specific --server directive. As for --server,
-one or more domains with no address returns a no-such-domain answer, so
---address=/example.com/ is equivalent to --server=/example.com/ and returns 
-NXDOMAIN for example.com and all its subdomains.
+domain specification works in the same was as for \fB--server\fP, with
+the additional facility that \fB/#/\fP matches any domain. Thus
+\fB--address=/#/1.2.3.4\fP will always return \fB1.2.3.4\fP for any
+query not answered from \fB/etc/hosts\fP or DHCP and not sent to an
+upstream nameserver by a more specific \fB--server\fP directive. As for
+\fB--server\fP, one or more domains with no address returns a
+no-such-domain answer, so \fB--address=/example.com/\fP is equivalent to
+\fB--server=/example.com/\fP and returns NXDOMAIN for example.com and
+all its subdomains.
 .TP
-.B --ipset=/<domain>/[domain/]<ipset>[,<ipset>]
-Places the resolved IP addresses of queries for the specified domains
-in the specified netfilter ip sets. Domains and subdomains are matched
-in the same way as --address. These ip sets must already exist. See
-ipset(8) for more details.
+.B --ipset=/<domain>[/<domain>...]/<ipset>[,<ipset>...]
+Places the resolved IP addresses of queries for one or more domains in
+the specified Netfilter IP set. If multiple setnames are given, then the
+addresses are placed in each of them, subject to the limitations of an
+IP set (IPv4 addresses cannot be stored in an IPv6 IP set and vice
+versa).  Domains and subdomains are matched in the same way as
+\fB--address\fP.
+These IP sets must already exist. See
+.BR ipset (8)
+for more details.
 .TP
 .B \-m, --mx-host=<mx name>[[,<hostname>],<preference>]
 Return an MX record named <mx name> pointing to the given hostname (if

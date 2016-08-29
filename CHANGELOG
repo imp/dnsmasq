@@ -30,6 +30,11 @@ version 2.77
 	    and are now converted to names like
 	    <prefix>--ffff-1-2-3-4.<domain>
 
+	    Handle binding upstream servers to an interface 
+	    (--server=1.2.3.4@eth0) when the named interface
+	    is destroyed and recreated in the kernel. Thanks to 
+	    Beniamino Galvani for the patch.
+
 
 version 2.76
             Include 0.0.0.0/8 in DNS rebind checks. This range 
