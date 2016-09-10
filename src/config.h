@@ -120,6 +120,8 @@ HAVE_LOOP
 HAVE_INOTIFY
    use the Linux inotify facility to efficiently re-read configuration files.
 
+NO_ID
+   Don't report *.bind CHAOS info to clients, forward such requests upstream instead.
 NO_IPV6
 NO_TFTP
 NO_DHCP
@@ -434,6 +436,9 @@ static char *compile_opts =
 "no-"
 #endif
 "DNSSEC "
+#ifdef NO_ID
+"no-ID "
+#endif
 #ifndef HAVE_LOOP
 "no-"
 #endif

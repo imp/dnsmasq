@@ -1269,6 +1269,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 		      unsigned long ttl = daemon->local_ttl;
 		      int ok = 1;
 		      log_query(F_CONFIG | F_RRNAME, name, NULL, "<TXT>");
+#ifndef NO_ID
 		      /* Dynamically generate stat record */
 		      if (t->stat != 0)
 			{
@@ -1276,7 +1277,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 			  if (!cache_make_stat(t))
 			    ok = 0;
 			}
-		      
+#endif
 		      if (ok && add_resource_record(header, limit, &trunc, nameoffset, &ansp, 
 						    ttl, NULL,
 						    T_TXT, t->class, "t", t->len, t->txt))

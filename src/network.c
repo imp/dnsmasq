@@ -1516,8 +1516,9 @@ void check_servers(void)
 	      serv->flags |= SERV_MARK;
 	      continue;
 	    }
-
-	  serv->sfd->used = 1;
+	  
+	  if (serv->sfd)
+	    serv->sfd->used = 1;
 	}
       
       if (!(serv->flags & SERV_NO_REBIND) && !(serv->flags & SERV_LITERAL_ADDRESS))

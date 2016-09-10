@@ -1290,6 +1290,7 @@ void cache_add_dhcp_entry(char *host_name, int prot,
 }
 #endif
 
+#ifndef NO_ID
 int cache_make_stat(struct txt_record *t)
 { 
   static char *buff = NULL;
@@ -1385,6 +1386,7 @@ int cache_make_stat(struct txt_record *t)
   *buff = len;
   return 1;
 }
+#endif
 
 /* There can be names in the cache containing control chars, don't 
    mess up logging or open security holes. */

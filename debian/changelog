@@ -2,7 +2,14 @@ dnsmasq (2.77-1) unstable; urgency=low
 
    * New upstream.
 
- -- Simon Kelley <simon@thekelleys.org.uk>  Sat, 13 Aug 2016 21:48:10 +0000
+ -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 31 Aug 2016 21:48:10 +0000
+
+dnsmasq (2.76-4) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Fix FTCBFS: Use triplet-prefixed tools. (closes: #836072)
+
+ -- Helmut Grohne <helmut@subdivi.de>  Tue, 30 Aug 2016 13:59:12 +0200
 
 dnsmasq (2.76-3) unstable; urgency=medium
 

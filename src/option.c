@@ -657,7 +657,8 @@ static int atoi_check8(char *a, int *res)
   return 1;
 }
 #endif
-	
+
+#ifndef NO_ID
 static void add_txt(char *name, char *txt, int stat)
 {
   struct txt_record *r = opt_malloc(sizeof(struct txt_record));
@@ -670,13 +671,14 @@ static void add_txt(char *name, char *txt, int stat)
       *(r->txt) = len;
       memcpy((r->txt)+1, txt, len);
     }
-  
+
   r->stat = stat;
   r->name = opt_string_alloc(name);
   r->next = daemon->txt;
   daemon->txt = r;
   r->class = C_CHAOS;
 }
+#endif
 
 static void do_usage(void)
 {
@@ -4532,6 +4534,7 @@ void read_opts(int argc, char **argv, char *compile_opts)
   daemon->soa_expiry = SOA_EXPIRY;
   daemon->max_port = MAX_PORT;
 
+#ifndef NO_ID
   add_txt("version.bind", "dnsmasq-" VERSION, 0 );
   add_txt("authors.bind", "Simon Kelley", 0);
   add_txt("copyright.bind", COPYRIGHT, 0);
@@ -4544,6 +4547,7 @@ void read_opts(int argc, char **argv, char *compile_opts)
   add_txt("auth.bind", NULL, TXT_STAT_AUTH);
 #endif
   add_txt("servers.bind", NULL, TXT_STAT_SERVERS);
+#endif
 
   while (1) 
     {
