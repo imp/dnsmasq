@@ -395,7 +395,7 @@ static DBusMessage* dbus_read_servers_ex(DBusMessage *message, int strings)
 	    else 
 	      p = NULL;
 	    
-	    add_update_server(flags | SERV_FROM_DBUS, &addr, &source_addr, interface, str_domain);
+	    add_update_server(flags | SERV_FROM_DBUS, &addr, &source_addr, NULL, str_domain);
 	  } while ((str_domain = p));
 	}
       else
@@ -422,7 +422,7 @@ static DBusMessage* dbus_read_servers_ex(DBusMessage *message, int strings)
 					strcpy(str_addr, str);
 			}
 			
-	    add_update_server(flags | SERV_FROM_DBUS, &addr, &source_addr, interface, str_addr);
+	    add_update_server(flags | SERV_FROM_DBUS, &addr, &source_addr, NULL, str_addr);
 	  } while (dbus_message_iter_get_arg_type(&string_iter) == DBUS_TYPE_STRING);
 	}
 	 
