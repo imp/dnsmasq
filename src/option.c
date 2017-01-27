@@ -3730,22 +3730,27 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
     case LOPT_CNAME: /* --cname */
       {
 	struct cname *new;
-	char *alias, *target, *ttls;
+	char *alias, *target, *last, *pen;
 	int ttl = -1;
 
-	if (!(comma = split(arg)))
-	  ret_err(gen_err);
-	
-	if ((ttls = split(comma)) && !atoi_check(ttls, &ttl))
-	  ret_err(_("bad TTL"));
-	
-	alias = canonicalise_opt(arg);
-	target = canonicalise_opt(comma);
-	    
-	if (!alias || !target)
-	  ret_err(_("bad CNAME"));
-	else
+	for (last = pen = NULL, comma = arg; comma; comma = split(comma))
 	  {
+	    pen = last;
+	    last = comma;
+	  }
+
+	if (!pen)
+	  ret_err(_("bad CNAME"));
+	
+	if (pen != arg && atoi_check(last, &ttl))
+	  last = pen;
+	  	
+    	target = canonicalise_opt(last);
+
+	while (arg != last)
+	  {
+	    alias = canonicalise_opt(arg);
+	    
 	    for (new = daemon->cnames; new; new = new->next)
 	      if (hostname_isequal(new->alias, arg))
 		ret_err(_("duplicate CNAME"));
@@ -3755,6 +3760,8 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	    new->alias = alias;
 	    new->target = target;
 	    new->ttl = ttl;
+
+	    arg += strlen(arg)+1;
 	  }
       
 	break;
@@ -4656,11 +4663,44 @@ void read_opts(int argc, char **argv, char *compile_opts)
 
   if (daemon->cnames)
     {
-      struct cname *cn;
-      
+      struct cname *cn, *cn2, *cn3;
+
+#define NOLOOP 1
+#define TESTLOOP 2      
+
+      /* Fill in TTL for CNAMES noe we have local_ttl.
+	 Also prepare to do loop detection. */
       for (cn = daemon->cnames; cn; cn = cn->next)
-	if (cn->ttl == -1)
-	  cn->ttl = daemon->local_ttl;
+	{
+	  if (cn->ttl == -1)
+	    cn->ttl = daemon->local_ttl;
+	  cn->flag = 0;
+	  cn->targetp = NULL;
+	  for (cn2 = daemon->cnames; cn2; cn2 = cn2->next)
+	    if (hostname_isequal(cn->target, cn2->alias))
+	      {
+		cn->targetp = cn2;
+		break;
+	      }
+	}
+      
+      /* Find any CNAME loops.*/
+      for (cn = daemon->cnames; cn; cn = cn->next)
+	{
+	  for (cn2 = cn->targetp; cn2; cn2 = cn2->targetp)
+	    {
+	      if (cn2->flag == NOLOOP)
+		break;
+	      
+	      if (cn2->flag == TESTLOOP)
+		die(_("CNAME loop involving %s"), cn->alias, EC_BADCONF);
+	      
+	      cn2->flag = TESTLOOP;
+	    }
+	  
+	  for (cn3 = cn->targetp; cn3 != cn2; cn3 = cn3->targetp)
+	    cn3->flag = NOLOOP;
+	}
     }
 
   if (daemon->if_addrs)

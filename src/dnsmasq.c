@@ -714,10 +714,16 @@ int main (int argc, char **argv)
 
   if (daemon->port == 0)
     my_syslog(LOG_INFO, _("started, version %s DNS disabled"), VERSION);
-  else if (daemon->cachesize != 0)
-    my_syslog(LOG_INFO, _("started, version %s cachesize %d"), VERSION, daemon->cachesize);
-  else
-    my_syslog(LOG_INFO, _("started, version %s cache disabled"), VERSION);
+  else 
+    {
+      if (daemon->cachesize != 0)
+	my_syslog(LOG_INFO, _("started, version %s cachesize %d"), VERSION, daemon->cachesize);
+      else
+	my_syslog(LOG_INFO, _("started, version %s cache disabled"), VERSION);
+
+      if (option_bool(OPT_LOCAL_SERVICE))
+	my_syslog(LOG_INFO, _("DNS service limited to local subnets"));
+    }
   
   my_syslog(LOG_INFO, _("compile time options: %s"), compile_opts);
   
@@ -731,9 +737,6 @@ int main (int argc, char **argv)
     }
 #endif
 
-  if (option_bool(OPT_LOCAL_SERVICE))
-    my_syslog(LOG_INFO, _("DNS service limited to local subnets"));
-  
 #ifdef HAVE_DNSSEC
   if (option_bool(OPT_DNSSEC_VALID))
     {

@@ -310,9 +310,9 @@ struct ptr_record {
 };
 
 struct cname {
-  int ttl;
+  int ttl, flag;
   char *alias, *target;
-  struct cname *next;
+  struct cname *next, *targetp;
 }; 
 
 struct ds_config {

@@ -116,7 +116,8 @@ size_t answer_auth(struct dns_header *header, char *limit, size_t qlen, time_t n
   struct interface_name *intr;
   struct naptr *na;
   struct all_addr addr;
-  struct cname *a;
+  struct cname *a, *candidate;
+  unsigned int wclen;
   
   /* Clear buffer beyond request to avoid risk of
      information disclosure. */
@@ -137,6 +138,7 @@ size_t answer_auth(struct dns_header *header, char *limit, size_t qlen, time_t n
     {
       unsigned short flag = 0;
       int found = 0;
+      int cname_wildcard = 0;
   
       /* save pointer to name for copying into answers */
       nameoffset = p - (unsigned char *)header;
@@ -411,25 +413,6 @@ size_t answer_auth(struct dns_header *header, char *limit, size_t qlen, time_t n
 		   }
 	     }
        
-       for (a = daemon->cnames; a; a = a->next)
-	 if (hostname_isequal(name, a->alias) )
-	   {
-	     log_query(F_CONFIG | F_CNAME, name, NULL, NULL);
-	     strcpy(name, a->target);
-	     if (!strchr(name, '.'))
-	       {
-		 strcat(name, ".");
-		 strcat(name, zone->domain);
-	       }
-	     found = 1;
-	     if (add_resource_record(header, limit, &trunc, nameoffset, &ansp, 
-				     daemon->auth_ttl, &nameoffset,
-				     T_CNAME, C_IN, "d", name))
-	       anscount++;
-	     
-	     goto cname_restart;
-	   }
-
       if (!cut)
 	{
 	  nxdomain = 0;
@@ -536,7 +519,60 @@ size_t answer_auth(struct dns_header *header, char *limit, size_t qlen, time_t n
 	}
       
       if (!found)
-	log_query(flag | F_NEG | (nxdomain ? F_NXDOMAIN : 0) | F_FORWARD | F_AUTH, name, NULL, NULL);
+	{
+	  /* Check for possible wildcard match against *.domain 
+	     return length of match, to get longest.
+	     Note that if return length of wildcard section, so
+	     we match b.simon to _both_ *.simon and b.simon
+	     but return a longer (better) match to b.simon.
+	  */  
+	  for (wclen = 0, candidate = NULL, a = daemon->cnames; a; a = a->next)
+	    if (a->alias[0] == '*')
+	      {
+		char *test = name;
+		
+		while ((test = strchr(test+1, '.')))
+		  {
+		    if (hostname_isequal(test, &(a->alias[1])))
+		      {
+			if (strlen(test) > wclen && !cname_wildcard)
+			  {
+			    wclen = strlen(test);
+			    candidate = a;
+			    cname_wildcard = 1;
+			  }
+			break;
+		      }
+		  }
+		
+	      }
+	    else if (hostname_isequal(a->alias, name) && strlen(a->alias) > wclen)
+	      {
+		/* Simple case, no wildcard */
+		wclen = strlen(a->alias);
+		candidate = a;
+	      }
+	  
+	  if (candidate)
+	    {
+	      log_query(F_CONFIG | F_CNAME, name, NULL, NULL);
+	      strcpy(name, candidate->target);
+	      if (!strchr(name, '.'))
+		{
+		  strcat(name, ".");
+		  strcat(name, zone->domain);
+		}
+	      found = 1;
+	      if (add_resource_record(header, limit, &trunc, nameoffset, &ansp, 
+				      daemon->auth_ttl, &nameoffset,
+				      T_CNAME, C_IN, "d", name))
+		anscount++;
+	      
+	      goto cname_restart;
+	    }
+
+	  log_query(flag | F_NEG | (nxdomain ? F_NXDOMAIN : 0) | F_FORWARD | F_AUTH, name, NULL, NULL);
+	}
       
     }
   

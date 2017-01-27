@@ -2,7 +2,24 @@ dnsmasq (2.77-1) unstable; urgency=low
 
    * New upstream.
 
- -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 31 Aug 2016 21:48:10 +0000
+ -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 14 Dec 2016 18:01:40 +0000
+
+dnsmasq (2.76-5) unstable; urgency=medium
+
+  * Nail libnettle dependency to avoid ABI incompatibility.
+    (closes: #846642)
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 14 Dec 2016 17:58:10 +0000
+
+dnsmasq (2.76-4.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Add two upstream patches to fix binding to an interface being
+    destroyed and recreated. Closes: #834722.
+      + 2675f2061525bc954be14988d64384b74aa7bf8b
+      + 16800ea072dd0cdf14d951c4bb8d2808b3dfe53d
+
+ -- Vincent Bernat <bernat@debian.org>  Sat, 26 Nov 2016 20:15:34 +0100
 
 dnsmasq (2.76-4) unstable; urgency=medium
 

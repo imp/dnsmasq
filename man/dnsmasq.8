@@ -581,7 +581,7 @@ Return a PTR DNS record.
 .B --naptr-record=<name>,<order>,<preference>,<flags>,<service>,<regexp>[,<replacement>]
 Return an NAPTR DNS record, as specified in RFC3403.
 .TP
-.B --cname=<cname>,<target>[,<TTL>]
+.B --cname=<cname>,[<cname>,]<target>[,<TTL>]
 Return a CNAME record which indicates that <cname> is really
 <target>. There are significant limitations on the target; it must be a
 DNS name which is known to dnsmasq from /etc/hosts (or additional
@@ -589,7 +589,9 @@ hosts files), from DHCP, from --interface-name or from another
 .B --cname.
 If the target does not satisfy this
 criteria, the whole cname is ignored. The cname must be unique, but it
-is permissable to have more than one cname pointing to the same target.
+is permissable to have more than one cname pointing to the same target. Indeed
+it's possible to declare multiple cnames to a target in a single line, like so:
+.B --cname=cname1,cname2,target
 
 If the time-to-live is given, it overrides the default, which is zero
 or the value of -local-ttl. The value is a positive integer and gives 
@@ -1541,6 +1543,8 @@ DHCP relay-agent added any of these options.
  
 If the client provides vendor-class, DNSMASQ_VENDOR_CLASS.
 
+DNSMASQ_REQUESTED_OPTIONS a string containing the decimal values in the Parameter Request List option, comma separated, if the parameter request list option is provided by the client.
+
 For IPv6 only:
 
 If the client provides vendor-class, DNSMASQ_VENDOR_CLASS_ID,
@@ -2206,7 +2210,12 @@ following data is used to populate the authoritative zone.
 .B --cname
 as long as the record name is in  the authoritative domain. If the
 target of the CNAME is unqualified, then it  is qualified with the
-authoritative zone name.
+authoritative zone name. CNAME used in this way (only) may be wildcards, as in
+
+.nf
+.B cname=*.example.com,default.example.com
+.fi
+
 .PP
 IPv4 and IPv6 addresses from /etc/hosts (and 
 .B --addn-hosts
