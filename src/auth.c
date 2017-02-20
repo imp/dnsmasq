@@ -518,7 +518,8 @@ size_t answer_auth(struct dns_header *header, char *limit, size_t qlen, time_t n
 	      } while ((crecp = cache_find_by_name(crecp, name, now, F_IPV4 | F_IPV6)));
 	}
       
-      if (!found)
+      /* Only supply CNAME if no record for any type is known. */
+      if (nxdomain)
 	{
 	  /* Check for possible wildcard match against *.domain 
 	     return length of match, to get longest.
@@ -864,7 +865,7 @@ size_t answer_auth(struct dns_header *header, char *limit, size_t qlen, time_t n
       header->hb4 &= ~HB4_RA;
     }
 
-  /* authoritive */
+  /* authoritative */
   if (auth)
     header->hb3 |= HB3_AA;
   
