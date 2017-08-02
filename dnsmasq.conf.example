@@ -146,7 +146,7 @@
 # Set a different domain for a particular subnet
 #domain=wireless.thekelleys.org.uk,192.168.2.0/24
 
-# Same idea, but range rather then subnet
+# Same idea, but range rather than subnet
 #domain=reserved.thekelleys.org.uk,192.68.3.100,192.168.3.200
 
 # Uncomment this to enable the integrated DHCP server, you need
