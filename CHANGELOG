@@ -176,7 +176,7 @@ version 2.76
 	    in the wild PXE clients which have problems with PXE
 	    boot menus. To work around this, when there's a single
 	    --pxe-service which applies to client, then that target
-	    will be booted directly, rather then sending a
+	    will be booted directly, rather than sending a
 	    single-item boot menu.
 
             Many thanks to Jarek Polok, Michael Kuron and Dreamcat4 
@@ -193,7 +193,7 @@ version 2.76
 	    The new behaviour is the same as the old, except when
 	    <basename> includes a file suffix, in which case
 	    the layer suffix is no longer added. This allows
-	    sensible suffices to be used, rather then the
+	    sensible suffices to be used, rather than the
 	    meaningless ".0". Only in the unlikely event that you
 	    have a config with a basename which already has a
 	    suffix, is this an incompatible change, since the file

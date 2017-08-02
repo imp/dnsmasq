@@ -62,7 +62,7 @@ dnsmasq (2.76-1) unstable; urgency=low
    * New upstream. (closes: #798586)
    * Use /run/dnsmasq directly, rather than relying on link from /var/run
      to avoid problems before /var is mounted. (closes: #800351)
-   * Test for the existence of /usr/share/doc/dnsmasq rather then
+   * Test for the existence of /usr/share/doc/dnsmasq rather than
      /etc/dnsmasq.d/README in the daemon startup script. (closes: #819856)
    * Add --help to manpage and mention dhcp6 in summary. (closes: #821226)
 
