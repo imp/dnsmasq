@@ -73,7 +73,7 @@ release 0.98  Some enhancements and bug-fixes.
               (3) Dnsmasq should now forward (but not cache) inverse queries 
                   and server status queries; this feature has not been tested.
               (4) Don't write the pid file when in non-daemon mode.
-	      (5) Create the pid file mode 644, rather then 666 (!).
+	      (5) Create the pid file mode 644, rather than 666 (!).
               (6) Generate queries to upstream nameservers with unpredictable
                   ids, to thwart DNS spoofers.
               (7) Dnsmasq no longer forwards queries when the 
@@ -205,7 +205,7 @@ release 1.2   Added IPv6 DNS record support. AAAA records are cached
               compilation on non-linux systems.
 
 release 1.3   Some versions of the Linux kernel return EINVAL rather
-              then ENPROTONOSUPPORT when IPv6 is not available, 
+              than ENPROTONOSUPPORT when IPv6 is not available, 
               causing dnsmasq to bomb out. This release fixes that.
               Thanks to Steve Davis for pointing this one out.
 
