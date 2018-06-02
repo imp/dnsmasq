@@ -29,6 +29,10 @@ version 2.80
 	have different parameters and avoids advertising the same
 	prefix twice. Thanks to Luis Marsano for spotting this case.
 
+	Allow zone transfer in authoritative mode if auth-peer is specified,
+	even if auth-sec-servers is not. Thanks to Raphaël Halimi for
+	the suggestion.
+
 
 version 2.79
 	Fix parsing of CNAME arguments, which are confused by extra spaces.

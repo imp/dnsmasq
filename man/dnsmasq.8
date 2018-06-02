@@ -817,7 +817,11 @@ authoritative zones as dnsmasq.
 Specify the addresses of secondary servers which are allowed to
 initiate zone transfer (AXFR) requests for zones for which dnsmasq is
 authoritative. If this option is not given, then AXFR requests will be
-accepted from any secondary. 
+accepted from any secondary. Specifying
+.B auth-peer
+without
+.B auth-sec-servers
+enables zone transfer but does not advertise the secondary in NS records returned by dnsmasq.
 .TP 
 .B --conntrack
 Read the Linux connection track mark associated with incoming DNS
