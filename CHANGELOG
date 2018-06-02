@@ -23,6 +23,12 @@ version 2.80
 	which packets should be dumped is given by the --dumpmask
 	option.
 
+	Handle the case of both standard and constructed dhcp-ranges on the
+	same interface better. We don't now contruct a dhcp-range if there's
+	already one specified. This allows the specified interface to
+	have different parameters and avoids advertising the same
+	prefix twice. Thanks to Luis Marsano for spotting this case.
+
 
 version 2.79
 	Fix parsing of CNAME arguments, which are confused by extra spaces.

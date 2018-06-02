@@ -667,23 +667,28 @@ static int construct_worker(struct in6_addr *local, int prefix,
 	end6 = *local;
 	setaddr6part(&end6, addr6part(&template->end6));
 	
+	/* If there's an absolute address context covering this address
+	   then don't contruct one as well. */
 	for (context = daemon->dhcp6; context; context = context->next)
-	  if ((context->flags & CONTEXT_CONSTRUCTED) &&
+	  if (!(context->flags & CONTEXT_TEMPLATE) &&
 	      IN6_ARE_ADDR_EQUAL(&start6, &context->start6) &&
 	      IN6_ARE_ADDR_EQUAL(&end6, &context->end6))
 	    {
-	      int flags = context->flags;
-	      context->flags &= ~(CONTEXT_GC | CONTEXT_OLD);
-	      if (flags & CONTEXT_OLD)
+	      if (context->flags & CONTEXT_CONSTRUCTED)
 		{
-		  /* address went, now it's back */
-		  log_context(AF_INET6, context); 
-		  /* fast RAs for a while */
-		  ra_start_unsolicited(param->now, context);
-		  param->newone = 1; 
-		  /* Add address to name again */
-		  if (context->flags & CONTEXT_RA_NAME)
-		    param->newname = 1;
+		  int cflags = context->flags;
+		  context->flags &= ~(CONTEXT_GC | CONTEXT_OLD);
+		  if (cflags & CONTEXT_OLD)
+		    {
+		      /* address went, now it's back */
+		      log_context(AF_INET6, context); 
+		      /* fast RAs for a while */
+		      ra_start_unsolicited(param->now, context);
+		      param->newone = 1; 
+		      /* Add address to name again */
+		      if (context->flags & CONTEXT_RA_NAME)
+			param->newname = 1;
+		    }
 		}
 	      break;
 	    }
