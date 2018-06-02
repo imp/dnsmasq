@@ -64,9 +64,10 @@ void dump_init(void)
 	die(_("cannot create %s: %s"), daemon->dump_file, EC_FILE);
     }
   else if ((daemon->dumpfd = open(daemon->dump_file, O_APPEND | O_RDWR)) == -1 ||
-	   !read_write(daemon->dumpfd, (void *)&header, sizeof(header), 1) ||
-	   header.magic_number != 0xa1b2c3d4)
+	   !read_write(daemon->dumpfd, (void *)&header, sizeof(header), 1))
     die(_("cannot access %s: %s"), daemon->dump_file, EC_FILE);
+  else if (header.magic_number != 0xa1b2c3d4)
+    die(_("bad header in %s"), daemon->dump_file, EC_FILE);
   else
     {
       /* count existing records */
