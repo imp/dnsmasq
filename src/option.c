@@ -2417,7 +2417,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 		if (strcmp(arg, "#") == 0)
 		  domain = "";
 		else if (strlen (arg) != 0 && !(domain = canonicalise_opt(arg)))
-		  option = '?';
+		  ret_err(gen_err);
 		serv = opt_malloc(sizeof(struct server));
 		memset(serv, 0, sizeof(struct server));
 		serv->next = newlist;
@@ -2549,7 +2549,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 		 if (strcmp(arg, "#") == 0 || !*arg)
 		   domain = "";
 		 else if (strlen(arg) != 0 && !(domain = canonicalise_opt(arg)))
-		   option = '?';
+		   ret_err(gen_err);
 		 ipsets->next = opt_malloc(sizeof(struct ipsets));
 		 ipsets = ipsets->next;
 		 memset(ipsets, 0, sizeof(struct ipsets));
@@ -2564,13 +2564,11 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	     memset(ipsets, 0, sizeof(struct ipsets));
 	     ipsets->domain = "";
 	   }
+	 
 	 if (!arg || !*arg)
-	   {
-	     option = '?';
-	     break;
-	   }
-	 size = 2;
-	 for (end = arg; *end; ++end) 
+	   ret_err(gen_err);
+	 
+	 for (size = 2, end = arg; *end; ++end) 
 	   if (*end == ',')
 	       ++size;
      
@@ -2797,12 +2795,6 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	
 	memset (new, 0, sizeof(*new));
 	new->lease_time = DEFLEASE;
-	
-	if (!arg)
-	  {
-	    option = '?';
-	    break;
-	  }
 	
 	while(1)
 	  {
@@ -3805,11 +3797,9 @@ err:
 
 	if ((k < 2) || 
 	    (!(inet_pton(AF_INET, a[0], &new->in) > 0)) ||
-	    (!(inet_pton(AF_INET, a[1], &new->out) > 0)))
-	  option = '?';
-	
-	if (k == 3 && !inet_pton(AF_INET, a[2], &new->mask))
-	  option = '?';
+	    (!(inet_pton(AF_INET, a[1], &new->out) > 0)) ||
+	    (k == 3 && !inet_pton(AF_INET, a[2], &new->mask)))
+	  ret_err(_("missing address in alias"));
 	
 	if (dash && 
 	    (!(inet_pton(AF_INET, dash, &new->end) > 0) ||
