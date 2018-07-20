@@ -4137,11 +4137,11 @@ err:
       }
 
 #ifdef HAVE_DNSSEC
-    case LOPT_DNSSEC_STAMP:
+    case LOPT_DNSSEC_STAMP: /* --dnssec-timestamp */
       daemon->timestamp_file = opt_string_alloc(arg); 
       break;
 
-    case LOPT_DNSSEC_CHECK:
+    case LOPT_DNSSEC_CHECK: /* --dnssec-check-unsigned */
       if (arg)
 	{
 	  if (strcmp(arg, "no") == 0)
@@ -4151,7 +4151,7 @@ err:
 	}
       break;
       
-    case LOPT_TRUST_ANCHOR:
+    case LOPT_TRUST_ANCHOR: /* --trust-anchor */
       {
 	struct ds_config *new = opt_malloc(sizeof(struct ds_config));
       	char *cp, *cp1, *keyhex, *digest, *algo = NULL;
