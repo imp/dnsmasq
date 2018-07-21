@@ -21,7 +21,7 @@ static struct crec *cache_head = NULL, *cache_tail = NULL, **hash_table = NULL;
 static struct crec *dhcp_spare = NULL;
 #endif
 static struct crec *new_chain = NULL;
-static int cache_inserted = 0, cache_live_freed = 0, insert_error;
+static int insert_error;
 static union bigname *big_free = NULL;
 static int bignames_left, hash_size;
 
@@ -556,7 +556,7 @@ struct crec *cache_insert(char *name, struct all_addr *addr,
 	  
 	  free_avail = 1; /* Must be free space now. */
 	  cache_scan_free(cache_get_name(new), &free_addr, now, new->flags, NULL, NULL);
-	  cache_live_freed++;
+	  daemon->metrics[METRIC_DNS_CACHE_LIVE_FREED]++;
 	}
       else
 	{
@@ -641,7 +641,7 @@ void cache_end_insert(void)
 	{
 	  cache_hash(new_chain);
 	  cache_link(new_chain);
-	  cache_inserted++;
+	  daemon->metrics[METRIC_DNS_CACHE_INSERTED]++;
 	}
       new_chain = tmp;
     }
@@ -1059,7 +1059,8 @@ void cache_reload(void)
   struct ds_config *ds;
 #endif
 
-  cache_inserted = cache_live_freed = 0;
+  daemon->metrics[METRIC_DNS_CACHE_INSERTED] = 0;
+  daemon->metrics[METRIC_DNS_CACHE_LIVE_FREED] = 0;
   
   for (i=0; i<hash_size; i++)
     for (cache = hash_table[i], up = &hash_table[i]; cache; cache = tmp)
@@ -1348,24 +1349,24 @@ int cache_make_stat(struct txt_record *t)
       break;
 
     case TXT_STAT_INSERTS:
-      sprintf(buff+1, "%d", cache_inserted);
+      sprintf(buff+1, "%d", daemon->metrics[METRIC_DNS_CACHE_INSERTED]);
       break;
 
     case TXT_STAT_EVICTIONS:
-      sprintf(buff+1, "%d", cache_live_freed);
+      sprintf(buff+1, "%d", daemon->metrics[METRIC_DNS_CACHE_LIVE_FREED]);
       break;
 
     case TXT_STAT_MISSES:
-      sprintf(buff+1, "%u", daemon->queries_forwarded);
+      sprintf(buff+1, "%u", daemon->metrics[METRIC_DNS_QUERIES_FORWARDED]);
       break;
 
     case TXT_STAT_HITS:
-      sprintf(buff+1, "%u", daemon->local_answer);
+      sprintf(buff+1, "%u", daemon->metrics[METRIC_DNS_LOCAL_ANSWERED]);
       break;
 
 #ifdef HAVE_AUTH
     case TXT_STAT_AUTH:
-      sprintf(buff+1, "%u", daemon->auth_answer);
+      sprintf(buff+1, "%u", daemon->metrics[METRIC_DNS_AUTH_ANSWERED]);
       break;
 #endif
 
@@ -1446,11 +1447,11 @@ void dump_cache(time_t now)
 
   my_syslog(LOG_INFO, _("time %lu"), (unsigned long)now);
   my_syslog(LOG_INFO, _("cache size %d, %d/%d cache insertions re-used unexpired cache entries."), 
-	    daemon->cachesize, cache_live_freed, cache_inserted);
+	    daemon->cachesize, daemon->metrics[METRIC_DNS_CACHE_LIVE_FREED], daemon->metrics[METRIC_DNS_CACHE_INSERTED]);
   my_syslog(LOG_INFO, _("queries forwarded %u, queries answered locally %u"), 
-	    daemon->queries_forwarded, daemon->local_answer);
+	    daemon->metrics[METRIC_DNS_QUERIES_FORWARDED], daemon->metrics[METRIC_DNS_LOCAL_ANSWERED]);
 #ifdef HAVE_AUTH
-  my_syslog(LOG_INFO, _("queries for authoritative zones %u"), daemon->auth_answer);
+  my_syslog(LOG_INFO, _("queries for authoritative zones %u"), daemon->metrics[METRIC_DNS_AUTH_ANSWERED]);
 #endif
 #ifdef HAVE_DNSSEC
   blockdata_report();

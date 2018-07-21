@@ -57,6 +57,7 @@
 
 #include "config.h"
 #include "ip6addr.h"
+#include "metrics.h"
 
 typedef unsigned char u8;
 typedef unsigned short u16;
@@ -1040,6 +1041,7 @@ extern struct daemon {
   char *dump_file;
   int dump_mask;
   unsigned long soa_sn, soa_refresh, soa_retry, soa_expiry;
+  u32 metrics[__METRIC_MAX];
 #ifdef OPTION6_PREFIX_CLASS 
   struct prefix_class *prefix_classes;
 #endif
@@ -1060,7 +1062,6 @@ extern struct daemon {
   int dnssec_no_time_check;
   int back_to_the_future;
 #endif
-  unsigned int local_answer, queries_forwarded, auth_answer;
   struct frec *frec_list;
   struct serverfd *sfds;
   struct irec *interfaces;
