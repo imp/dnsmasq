@@ -947,8 +947,12 @@ int main (int argc, char **argv)
 
 #ifdef HAVE_DBUS
       set_dbus_listeners();
-#endif	
-  
+#endif
+
+#ifdef HAVE_UBUS
+      set_ubus_listeners();
+#endif
+
 #ifdef HAVE_DHCP
       if (daemon->dhcp || daemon->relay4)
 	{
@@ -1078,7 +1082,11 @@ int main (int argc, char **argv)
 	}
       check_dbus_listeners();
 #endif
-      
+
+#ifdef HAVE_UBUS
+      check_ubus_listeners();
+#endif
+
       check_dns_listeners(now);
 
 #ifdef HAVE_TFTP

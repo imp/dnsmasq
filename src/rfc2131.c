@@ -1636,6 +1636,13 @@ static void log_packet(char *type, void *addr, unsigned char *ext_mac,
 	      daemon->namebuff,
 	      string ? string : "",
 	      err ? err : "");
+
+#ifdef HAVE_UBUS
+	if (!strcmp(type, "DHCPACK"))
+		ubus_event_bcast("dhcp.ack", daemon->namebuff, addr ? inet_ntoa(a) : NULL, string ? string : NULL, interface);
+	else if (!strcmp(type, "DHCPRELEASE"))
+		ubus_event_bcast("dhcp.release", daemon->namebuff, addr ? inet_ntoa(a) : NULL, string ? string : NULL, interface);
+#endif
 }
 
 static void log_options(unsigned char *start, u32 xid)
