@@ -225,6 +225,11 @@ int main (int argc, char **argv)
     die(_("loop detection not available: set HAVE_LOOP in src/config.h"), NULL, EC_BADCONF);
 #endif
 
+#ifndef HAVE_UBUS
+  if (option_bool(OPT_UBUS))
+    die(_("Ubus not available: set HAVE_UBUS in src/config.h"), NULL, EC_BADCONF);
+#endif
+  
   if (daemon->max_port < daemon->min_port)
     die(_("max_port cannot be smaller than min_port"), NULL, EC_BADCONF);
 
@@ -950,9 +955,10 @@ int main (int argc, char **argv)
 #endif
 
 #ifdef HAVE_UBUS
-      set_ubus_listeners();
+      if (option_bool(OPT_UBUS)
+	  set_ubus_listeners();
 #endif
-
+	  
 #ifdef HAVE_DHCP
       if (daemon->dhcp || daemon->relay4)
 	{
@@ -1084,7 +1090,8 @@ int main (int argc, char **argv)
 #endif
 
 #ifdef HAVE_UBUS
-      check_ubus_listeners();
+      if (daemon->enable_ubus)
+        check_ubus_listeners();
 #endif
 
       check_dns_listeners(now);
