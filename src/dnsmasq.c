@@ -955,7 +955,7 @@ int main (int argc, char **argv)
 #endif
 
 #ifdef HAVE_UBUS
-      if (option_bool(OPT_UBUS)
+      if (option_bool(OPT_UBUS))
 	  set_ubus_listeners();
 #endif
 	  
@@ -1090,7 +1090,7 @@ int main (int argc, char **argv)
 #endif
 
 #ifdef HAVE_UBUS
-      if (daemon->enable_ubus)
+      if (option_bool(OPT_UBUS))
         check_ubus_listeners();
 #endif
 
