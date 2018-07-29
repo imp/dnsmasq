@@ -20,7 +20,7 @@
 
 #include <libubus.h>
 
-static struct ubus_context *ubus;
+static struct ubus_context *ubus = NULL;
 static struct blob_buf b;
 
 static int ubus_handle_metrics(struct ubus_context *ctx, struct ubus_object *obj,
@@ -74,9 +74,10 @@ static int ubus_handle_metrics(struct ubus_context *ctx, struct ubus_object *obj
 			       struct ubus_request_data *req, const char *method,
 			       struct blob_attr *msg)
 {
+  int i;
   blob_buf_init(&b, 0);
 
-  for(int i=0; i < __METRIC_MAX; i++)
+  for(i=0; i < __METRIC_MAX; i++)
     blobmsg_add_u32(&b, get_metric_name(i), daemon->metrics[i]);
   
   ubus_send_reply(ctx, req, b.head);
