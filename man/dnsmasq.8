@@ -1329,6 +1329,9 @@ The special form with vi-encap:<enterprise number> matches against
 vendor-identifying vendor classes for the specified enterprise. Please
 see RFC 3925 for more details of these rare and interesting beasts.
 .TP
+.B --dhcp-name-match=set:<tag>,<name>[*]
+Set the tag if the given name is supplied by a dhcp client. There may be a single trailing wildcard *, which has the usual meaning. Combined with dhcp-ignore or dhcp-ignore-names this gives the ability to ignore certain clients by name, or disallow certain hostnames from being claimed by a client.
+.TP
 .B --tag-if=set:<tag>[,set:<tag>[,tag:<tag>[,tag:<tag>]]]
 Perform boolean operations on tags. Any tag appearing as set:<tag> is set if
 all the tags which appear as tag:<tag> are set, (or unset when tag:!<tag> is used)

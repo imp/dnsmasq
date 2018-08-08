@@ -164,6 +164,7 @@ struct myoption {
 #define LOPT_DUMPFILE      352
 #define LOPT_DUMPMASK      353
 #define LOPT_UBUS          354
+#define LOPT_NAME_MATCH    355
  
 #ifdef HAVE_GETOPT_LONG
 static const struct option opts[] =  
@@ -273,7 +274,8 @@ static const struct myoption opts[] =
     { "stop-dns-rebind", 0, 0, LOPT_REBIND },
     { "rebind-domain-ok", 1, 0, LOPT_NO_REBIND },
     { "all-servers", 0, 0, LOPT_NOLAST }, 
-    { "dhcp-match", 1, 0, LOPT_MATCH }, 
+    { "dhcp-match", 1, 0, LOPT_MATCH },
+    { "dhcp-name-match", 1, 0, LOPT_NAME_MATCH },
     { "dhcp-broadcast", 2, 0, LOPT_BROADCAST },
     { "neg-ttl", 1, 0, LOPT_NEGTTL },
     { "max-ttl", 1, 0, LOPT_MAXTTL },
@@ -456,6 +458,7 @@ static struct {
   { LOPT_NO_REBIND, ARG_DUP, "/<domain>/", gettext_noop("Inhibit DNS-rebind protection on this domain."), NULL },
   { LOPT_NOLAST, OPT_ALL_SERVERS, NULL, gettext_noop("Always perform DNS queries to all servers."), NULL },
   { LOPT_MATCH, ARG_DUP, "set:<tag>,<optspec>", gettext_noop("Set tag if client includes matching option in request."), NULL },
+  { LOPT_NAME_MATCH, ARG_DUP, "set:<tag>,<string>[*]", gettext_noop("Set tag if client provides given name."), NULL },
   { LOPT_ALTPORT, ARG_ONE, "[=<ports>]", gettext_noop("Use alternative ports for DHCP."), NULL },
   { LOPT_NAPTR, ARG_DUP, "<name>,<naptr>", gettext_noop("Specify NAPTR DNS record."), NULL },
   { LOPT_MINPORT, ARG_ONE, "<port>", gettext_noop("Specify lowest port available for DNS query transmission."), NULL },
@@ -3286,7 +3289,33 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 			    option == LOPT_FORCE ? DHOPT_FORCE : 
 			    (option == LOPT_MATCH ? DHOPT_MATCH :
 			     (option == LOPT_OPTS ? DHOPT_BANK : 0)));
-     
+
+    case LOPT_NAME_MATCH: /* --dhcp-name-match */
+      {
+	struct dhcp_match_name *new = opt_malloc(sizeof(struct dhcp_match_name));
+	struct dhcp_netid *id = opt_malloc(sizeof(struct dhcp_netid));
+	ssize_t len;
+	
+	if (!(comma = split(arg)) || (len = strlen(comma)) == 0)
+	  ret_err(gen_err);
+
+	new->wildcard = 0;
+	new->netid = id;
+	id->net = opt_string_alloc(set_prefix(arg));
+
+	if (comma[len-1] == '*')
+	  {
+	    comma[len-1] = 0;
+	    new->wildcard = 1;
+	  }
+	new->name = opt_string_alloc(comma);
+
+	new->next = daemon->dhcp_name_match;
+	daemon->dhcp_name_match = new;
+
+	break;
+      }
+      
     case 'M': /* --dhcp-boot */
       {
 	struct dhcp_netid *id = NULL;

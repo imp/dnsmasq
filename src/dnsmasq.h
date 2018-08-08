@@ -822,6 +822,13 @@ struct dhcp_boot {
   struct dhcp_boot *next;
 };
 
+struct dhcp_match_name {
+  char *name;
+  int wildcard;
+  struct dhcp_netid *netid;
+  struct dhcp_match_name *next;
+};
+
 struct pxe_service {
   unsigned short CSA, type; 
   char *menu, *basename, *sname;
@@ -1014,6 +1021,7 @@ extern struct daemon {
   struct ra_interface *ra_interfaces;
   struct dhcp_config *dhcp_conf;
   struct dhcp_opt *dhcp_opts, *dhcp_match, *dhcp_opts6, *dhcp_match6;
+  struct dhcp_match_name *dhcp_name_match;
   struct dhcp_vendor *dhcp_vendors;
   struct dhcp_mac *dhcp_macs;
   struct dhcp_boot *boot_config;
