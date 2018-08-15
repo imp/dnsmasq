@@ -42,6 +42,12 @@
 #  define __EXTENSIONS__
 #endif
 
+#if (defined(__GNUC__) && __GNUC__ >= 3) || defined(__clang__)
+#define ATTRIBUTE_NORETURN __attribute__ ((noreturn))
+#else
+#define ATTRIBUTE_NORETURN
+#endif
+
 /* get these before config.h  for IPv6 stuff... */
 #include <sys/types.h> 
 #include <sys/socket.h>
@@ -1275,7 +1281,7 @@ int wildcard_match(const char* wildcard, const char* match);
 int wildcard_matchn(const char* wildcard, const char* match, int num);
 
 /* log.c */
-void die(char *message, char *arg1, int exit_code);
+void die(char *message, char *arg1, int exit_code) ATTRIBUTE_NORETURN;
 int log_start(struct passwd *ent_pw, int errfd);
 int log_reopen(char *log_file);
 
