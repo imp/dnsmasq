@@ -810,7 +810,7 @@ char *parse_server(char *arg, union mysockaddr *addr, union mysockaddr *source_a
     if (interface_opt)
       {
 #if defined(SO_BINDTODEVICE)
-	strncpy(interface, interface_opt, IF_NAMESIZE - 1);
+	safe_strncpy(interface, interface_opt, IF_NAMESIZE);
 #else
 	return _("interface binding not supported");
 #endif
@@ -839,7 +839,7 @@ char *parse_server(char *arg, union mysockaddr *addr, union mysockaddr *source_a
 		return _("interface can only be specified once");
 	      
 	      source_addr->in.sin_addr.s_addr = INADDR_ANY;
-	      strncpy(interface, source, IF_NAMESIZE - 1);
+	      safe_strncpy(interface, source, IF_NAMESIZE);
 #else
 	      return _("interface binding not supported");
 #endif
@@ -874,7 +874,7 @@ char *parse_server(char *arg, union mysockaddr *addr, union mysockaddr *source_a
 		return _("interface can only be specified once");
 	      
 	      source_addr->in6.sin6_addr = in6addr_any;
-	      strncpy(interface, source, IF_NAMESIZE - 1);
+	      safe_strncpy(interface, source, IF_NAMESIZE);
 #else
 	      return _("interface binding not supported");
 #endif
@@ -4801,8 +4801,7 @@ void read_opts(int argc, char **argv, char *compile_opts)
 	      argbuf_size = strlen(optarg) + 1;
 	      argbuf = opt_malloc(argbuf_size);
 	    }
-	  strncpy(argbuf, optarg, argbuf_size);
-	  argbuf[argbuf_size-1] = 0;
+	  safe_strncpy(argbuf, optarg, argbuf_size);
 	  arg = argbuf;
 	}
       else
