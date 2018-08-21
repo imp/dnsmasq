@@ -1378,7 +1378,7 @@ static void make_non_terminals(struct crec *source)
       if (!is_outdated_cname_pointer(crecp) &&
 	  (crecp->flags & F_FORWARD) &&
 	  (crecp->flags & type) &&
-	  !(crecp->flags & (F_IPV4 | F_IPV6 | F_CNAME)) && 
+	  !(crecp->flags & (F_IPV4 | F_IPV6 | F_CNAME | F_DNSKEY | F_DS)) && 
 	  hostname_isequal(name, cache_get_name(crecp)))
 	{
 	  *up = crecp->hash_next;
@@ -1434,7 +1434,7 @@ static void make_non_terminals(struct crec *source)
 	crecp = whine_malloc(sizeof(struct crec));
 
       *crecp = *source;
-      crecp->flags &= ~(F_IPV4 | F_IPV6 | F_CNAME | F_REVERSE);
+      crecp->flags &= ~(F_IPV4 | F_IPV6 | F_CNAME | F_DNSKEY | F_DS | F_REVERSE);
       crecp->flags |= F_NAMEP;
       crecp->name.namep = name;
 
