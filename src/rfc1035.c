@@ -1381,7 +1381,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 		    if (add_resource_record(header, limit, &trunc, nameoffset, &ansp, 
 					    daemon->local_ttl, NULL,
 					    t->class, C_IN, "t", t->len, t->txt))
-		      anscount ++;
+		      anscount++;
 		  }
 	      }
 		
