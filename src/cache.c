@@ -25,6 +25,8 @@ static int insert_error;
 static union bigname *big_free = NULL;
 static int bignames_left, hash_size;
 
+static void make_non_terminals(struct crec *source);
+
 /* type->string mapping: this is also used by the name-hash function as a mixing table. */
 static const struct {
   unsigned int type;
@@ -648,6 +650,20 @@ void cache_end_insert(void)
   new_chain = NULL;
 }
 
+int cache_find_non_terminal(char *name, time_t now)
+{
+  struct crec *crecp;
+
+  for (crecp = *hash_bucket(name); crecp; crecp = crecp->hash_next)
+    if (!is_outdated_cname_pointer(crecp) &&
+	!is_expired(now, crecp) &&
+	(crecp->flags & F_FORWARD) &&
+	hostname_isequal(name, cache_get_name(crecp)))
+      return 1;
+
+  return 0;
+}
+
 struct crec *cache_find_by_name(struct crec *crecp, char *name, time_t now, unsigned int prot)
 {
   struct crec *ans;
@@ -818,6 +834,8 @@ static void add_hosts_cname(struct crec *target)
 	crec->addr.cname.uid = target->uid;
 	crec->uid = UID_NONE;
 	cache_hash(crec);
+	make_non_terminals(crec);
+	
 	add_hosts_cname(crec); /* handle chains */
       }
 }
@@ -889,6 +907,7 @@ static void add_hosts_entry(struct crec *cache, struct all_addr *addr, int addrl
   cache->uid = index;
   memcpy(&cache->addr.addr, addr, addrlen);  
   cache_hash(cache);
+  make_non_terminals(cache);
   
   /* don't need to do alias stuff for second and subsequent addresses. */
   if (!nameexists)
@@ -1102,6 +1121,7 @@ void cache_reload(void)
 	  cache->addr.cname.uid = SRC_INTERFACE;
 	  cache->uid = UID_NONE;
 	  cache_hash(cache);
+	  make_non_terminals(cache);
 	  add_hosts_cname(cache); /* handle chains */
 	}
 
@@ -1119,6 +1139,7 @@ void cache_reload(void)
 	cache->addr.ds.digest = ds->digest_type;
 	cache->uid = ds->class;
 	cache_hash(cache);
+	make_non_terminals(cache);
       }
 #endif
   
@@ -1234,6 +1255,7 @@ static void add_dhcp_cname(struct crec *target, time_t ttd)
 	    aliasc->addr.cname.uid = target->uid;
 	    aliasc->uid = UID_NONE;
 	    cache_hash(aliasc);
+	    make_non_terminals(aliasc);
 	    add_dhcp_cname(aliasc, ttd);
 	  }
       }
@@ -1322,11 +1344,103 @@ void cache_add_dhcp_entry(char *host_name, int prot,
       crec->name.namep = host_name;
       crec->uid = UID_NONE;
       cache_hash(crec);
+      make_non_terminals(crec);
 
       add_dhcp_cname(crec, ttd);
     }
 }
 #endif
+
+/* Called when we put a local or DHCP name into the cache.
+   Creates empty cache entries for subnames (ie,
+   for three.two.one, for two.one and one), without
+   F_IPV4 or F_IPV6 or F_CNAME set. These convert
+   NXDOMAIN answers to NoData ones. */
+static void make_non_terminals(struct crec *source)
+{
+  char *name = cache_get_name(source);
+  struct crec* crecp, *tmp, **up;
+  int type = F_HOSTS | F_CONFIG;
+#ifdef HAVE_DHCP
+  if (source->flags & F_DHCP)
+    type = F_DHCP;
+#endif
+  
+  /* First delete any empty entries for our new real name. Note that
+     we only delete empty entries deriving from DHCP for a new DHCP-derived
+     entry and vice-versa for HOSTS and CONFIG. This ensures that 
+     non-terminals from DHCP go when we reload DHCP and 
+     for HOSTS/CONFIG when we re-read. */
+  for (up = hash_bucket(name), crecp = *up; crecp; crecp = tmp)
+    {
+      tmp = crecp->hash_next;
+
+      if (!is_outdated_cname_pointer(crecp) &&
+	  (crecp->flags & F_FORWARD) &&
+	  (crecp->flags & type) &&
+	  !(crecp->flags & (F_IPV4 | F_IPV6 | F_CNAME)) && 
+	  hostname_isequal(name, cache_get_name(crecp)))
+	{
+	  *up = crecp->hash_next;
+#ifdef HAVE_DHCP
+	  if (type & F_DHCP)
+	    {
+	      crecp->next = dhcp_spare;
+	      dhcp_spare = crecp;
+	    }
+	  else
+#endif
+	    free(crecp);
+	  break;
+	}
+      else
+	 up = &crecp->hash_next;
+    }
+     
+  while ((name = strchr(name, '.')))
+    {
+      name++;
+
+      /* Look for one existing, don't need another */
+      for (crecp = *hash_bucket(name); crecp; crecp = crecp->hash_next)
+	if (!is_outdated_cname_pointer(crecp) &&
+	    (crecp->flags & F_FORWARD) &&
+	    (crecp->flags & type) &&
+	    hostname_isequal(name, cache_get_name(crecp)))
+	  break;
+      
+      if (crecp)
+	{
+	  /* If the new name expires later, transfer that time to
+	     empty non-terminal entry. */
+	  if (!(crecp->flags & F_IMMORTAL))
+	    {
+	      if (source->flags & F_IMMORTAL)
+		crecp->flags |= F_IMMORTAL;
+	      else if (difftime(crecp->ttd, source->ttd) < 0)
+		crecp->ttd = source->ttd;
+	    }
+	  continue;
+	}
+      
+#ifdef HAVE_DHCP
+      if ((source->flags & F_DHCP) && dhcp_spare)
+	{
+	  crecp = dhcp_spare;
+	  dhcp_spare = dhcp_spare->next;
+	}
+      else
+#endif
+	crecp = whine_malloc(sizeof(struct crec));
+
+      *crecp = *source;
+      crecp->flags &= ~(F_IPV4 | F_IPV6 | F_CNAME | F_REVERSE);
+      crecp->flags |= F_NAMEP;
+      crecp->name.namep = name;
+
+      cache_hash(crecp);
+    }
+}
 
 #ifndef NO_ID
 int cache_make_stat(struct txt_record *t)
@@ -1443,7 +1557,6 @@ static char *sanitise(char *name)
 void dump_cache(time_t now)
 {
   struct server *serv, *serv1;
-  char *t = "";
 
   my_syslog(LOG_INFO, _("time %lu"), (unsigned long)now);
   my_syslog(LOG_INFO, _("cache size %d, %d/%d cache insertions re-used unexpired cache entries."), 
@@ -1489,6 +1602,7 @@ void dump_cache(time_t now)
       for (i=0; i<hash_size; i++)
 	for (cache = hash_table[i]; cache; cache = cache->hash_next)
 	  {
+	    char *t = " ";
 	    char *a = daemon->addrbuff, *p = daemon->namebuff, *n = cache_get_name(cache);
 	    *a = 0;
 	    if (strlen(n) == 0 && !(cache->flags & F_REVERSE))
