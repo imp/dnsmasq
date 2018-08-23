@@ -51,6 +51,8 @@ version 2.80
 
 	Add --dhcp-name-match config option. 
 
+	Add --caa-record config option.
+	
 
 version 2.79
 	Fix parsing of CNAME arguments, which are confused by extra spaces.

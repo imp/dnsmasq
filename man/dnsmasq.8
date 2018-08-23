@@ -593,6 +593,9 @@ Return a PTR DNS record.
 .B --naptr-record=<name>,<order>,<preference>,<flags>,<service>,<regexp>[,<replacement>]
 Return an NAPTR DNS record, as specified in RFC3403.
 .TP
+.B --caa-record=<name>,<flags>,<tag>,<value>
+Return a CAA DNS record, as specified in RFC6844.
+.TP
 .B --cname=<cname>,[<cname>,]<target>[,<TTL>]
 Return a CNAME record which indicates that <cname> is really
 <target>. There are significant limitations on the target; it must be a
@@ -2262,8 +2265,8 @@ secondary servers for reverse lookups.
 When dnsmasq is configured to act as an authoritative server, the
 following data is used to populate the authoritative zone.
 .PP
-.B --mx-host, --srv-host, --dns-rr, --txt-record, --naptr-record
-, as long as the record names are in the authoritative domain.
+.B --mx-host, --srv-host, --dns-rr, --txt-record, --naptr-record, --caa-record,
+as long as the record names are in the authoritative domain.
 .PP
 .B --cname
 as long as the record name is in  the authoritative domain. If the

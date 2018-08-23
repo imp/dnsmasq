@@ -165,6 +165,7 @@ struct myoption {
 #define LOPT_DUMPMASK      353
 #define LOPT_UBUS          354
 #define LOPT_NAME_MATCH    355
+#define LOPT_CAA           356
  
 #ifdef HAVE_GETOPT_LONG
 static const struct option opts[] =  
@@ -233,6 +234,7 @@ static const struct myoption opts[] =
     { "srv-host", 1, 0, 'W' },
     { "localise-queries", 0, 0, 'y' },
     { "txt-record", 1, 0, 'Y' },
+    { "caa-record", 1, 0 , LOPT_CAA },
     { "dns-rr", 1, 0, LOPT_RR },
     { "enable-dbus", 2, 0, '1' },
     { "enable-ubus", 0, 0, LOPT_UBUS },
@@ -481,6 +483,7 @@ static struct {
   { LOPT_RA, OPT_RA, NULL, gettext_noop("Send router-advertisements for interfaces doing DHCPv6"), NULL },
   { LOPT_DUID, ARG_ONE, "<enterprise>,<duid>", gettext_noop("Specify DUID_EN-type DHCPv6 server DUID"), NULL },
   { LOPT_HOST_REC, ARG_DUP, "<name>,<address>[,<ttl>]", gettext_noop("Specify host (A/AAAA and PTR) records"), NULL },
+  { LOPT_CAA, ARG_DUP, "<name>,<flags>,<tag>,<value>", gettext_noop("Specify certification authority authorization record"), NULL },  
   { LOPT_RR, ARG_DUP, "<name>,<RR-number>,[<data>]", gettext_noop("Specify arbitrary DNS resource record"), NULL },
   { LOPT_CLVERBIND, OPT_CLEVERBIND, NULL, gettext_noop("Bind to interfaces in use - check for new interfaces"), NULL },
   { LOPT_AUTHSERV, ARG_ONE, "<NS>,<interface>", gettext_noop("Export local names to global DNS"), NULL },
@@ -4002,7 +4005,7 @@ err:
 	
 	if (data)
 	  {
-	    new->txt=opt_malloc(len);
+	    new->txt = opt_malloc(len);
 	    new->len = len;
 	    memcpy(new->txt, data, len);
 	  }
@@ -4010,6 +4013,37 @@ err:
 	break;
       }
 
+    case LOPT_CAA: /* --caa-record */
+      {
+       	struct txt_record *new;
+	char *tag, *value;
+	int flags;
+	
+	comma = split(arg);
+	tag = split(comma);
+	value = split(tag);
+	
+	new = opt_malloc(sizeof(struct txt_record));
+	new->next = daemon->rr;
+	daemon->rr = new;
+
+	if (!atoi_check(comma, &flags) || !tag || !value || !(new->name = canonicalise_opt(arg)))
+	  ret_err(_("bad CAA record"));
+	
+	unhide_metas(tag);
+	unhide_metas(value);
+
+	new->len = strlen(tag) + strlen(value) + 2;
+	new->txt = opt_malloc(new->len);
+	new->txt[0] = flags;
+	new->txt[1] = strlen(tag);
+	memcpy(&new->txt[2], tag, strlen(tag));
+	memcpy(&new->txt[2 + strlen(tag)], value, strlen(value));
+	new->class = T_CAA;
+	
+	break;
+      }
+	
     case 'Y':  /* --txt-record */
       {
 	struct txt_record *new;
