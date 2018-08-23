@@ -1377,7 +1377,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 		sec_data = 0;
 		if (!dryrun)
 		  {
-		    log_query(F_CONFIG | F_RRNAME, name, NULL, "<RR>");
+		    log_query(F_CONFIG | F_RRNAME, name, NULL, querystr(NULL, t->class));
 		    if (add_resource_record(header, limit, &trunc, nameoffset, &ansp, 
 					    daemon->local_ttl, NULL,
 					    t->class, C_IN, "t", t->len, t->txt))

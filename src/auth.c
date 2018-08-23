@@ -339,7 +339,7 @@ size_t answer_auth(struct dns_header *header, char *limit, size_t qlen, time_t n
 	    if (rc == 2 && txt->class == qtype)
 	      {
 		found = 1;
-		log_query(F_CONFIG | F_RRNAME, name, NULL, "<RR>"); 
+		log_query(F_CONFIG | F_RRNAME, name, NULL, querystr(NULL, txt->class)); 
 		if (add_resource_record(header, limit, &trunc, nameoffset, &ansp, daemon->auth_ttl,
 					NULL, txt->class, C_IN, "t", txt->len, txt->txt))
 		  anscount++;

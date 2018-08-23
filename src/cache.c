@@ -70,7 +70,8 @@ static const struct {
   { 252, "AXFR" },
   { 253, "MAILB" },
   { 254, "MAILA" },
-  { 255, "ANY" }
+  { 255, "ANY" },
+  { 257, "CAA" }
 };
 
 static void cache_free(struct crec *crecp);
@@ -1703,9 +1704,13 @@ char *querystr(char *desc, unsigned short type)
 	break;
       }
 
-  len += 3; /* braces, terminator */
-  len += strlen(desc);
-
+  if (desc)
+    {
+       len += 2; /* braces */
+       len += strlen(desc);
+    }
+  len++; /* terminator */
+  
   if (!buff || bufflen < len)
     {
       if (buff)
@@ -1719,12 +1724,22 @@ char *querystr(char *desc, unsigned short type)
 
   if (buff)
     {
-      if (types)
-	sprintf(buff, "%s[%s]", desc, types);
+      if (desc)
+	{
+	  if (types)
+	    sprintf(buff, "%s[%s]", desc, types);
+	  else
+	    sprintf(buff, "%s[type=%d]", desc, type);
+	}
       else
-	sprintf(buff, "%s[type=%d]", desc, type);
+	{
+	  if (types)
+	    sprintf(buff, "<%s>", types);
+	  else
+	    sprintf(buff, "type=%d", type);
+	}
     }
-
+  
   return buff ? buff : "";
 }
 
