@@ -1202,7 +1202,7 @@ static int dhcp6_no_relay(struct state *state, int msg_type, void *inbuff, size_
 		      }
 		    
 		    o1 = new_opt6(OPTION6_IAADDR);
-		    put_opt6(opt6_ptr(ia_option, 0), IN6ADDRSZ);
+		    put_opt6(&addr, IN6ADDRSZ);
 		    put_opt6_long(0);
 		    put_opt6_long(0);
 		    end_opt6(o1);
