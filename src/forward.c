@@ -118,6 +118,7 @@ static unsigned int search_servers(time_t now, struct all_addr **addrpp, unsigne
   unsigned int matchlen = 0;
   struct server *serv;
   unsigned int flags = 0;
+  static struct all_addr zero;
   
   for (serv = daemon->servers; serv; serv=serv->next)
     if (qtype == F_DNSSECOK && !(serv->flags & SERV_DO_DNSSEC))
@@ -129,9 +130,16 @@ static unsigned int search_servers(time_t now, struct all_addr **addrpp, unsigne
 	*type = SERV_FOR_NODOTS;
 	if (serv->flags & SERV_NO_ADDR)
 	  flags = F_NXDOMAIN;
-	else if (serv->flags & SERV_LITERAL_ADDRESS) 
+	else if (serv->flags & SERV_LITERAL_ADDRESS)
 	  { 
-	    if (sflag & qtype)
+	    /* literal address = '#' -> return all-zero address for IPv4 and IPv6 */
+	    if ((serv->flags & SERV_USE_RESOLV) && (qtype & (F_IPV6 | F_IPV4)))
+	      {
+		memset(&zero, 0, sizeof(zero));
+		flags = qtype;
+		*addrpp = &zero;
+	      }
+	    else if (sflag & qtype)
 	      {
 		flags = sflag;
 		if (serv->addr.sa.sa_family == AF_INET) 
@@ -184,7 +192,14 @@ static unsigned int search_servers(time_t now, struct all_addr **addrpp, unsigne
 		      flags = F_NXDOMAIN;
 		    else if (serv->flags & SERV_LITERAL_ADDRESS)
 		      {
-			if (sflag & qtype)
+			 /* literal address = '#' -> return all-zero address for IPv4 and IPv6 */
+			if ((serv->flags & SERV_USE_RESOLV) && (qtype & (F_IPV6 | F_IPV4)))
+			  {			    
+			    memset(&zero, 0, sizeof(zero));
+			    flags = qtype;
+			    *addrpp = &zero;
+			  }
+			else if (sflag & qtype)
 			  {
 			    flags = sflag;
 			    if (serv->addr.sa.sa_family == AF_INET) 

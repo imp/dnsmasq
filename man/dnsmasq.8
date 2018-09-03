@@ -510,7 +510,12 @@ upstream nameserver by a more specific \fB--server\fP directive. As for
 \fB--server\fP, one or more domains with no address returns a
 no-such-domain answer, so \fB--address=/example.com/\fP is equivalent to
 \fB--server=/example.com/\fP and returns NXDOMAIN for example.com and
-all its subdomains.
+all its subdomains. An address specified as '#' translates to the NULL
+address of 0.0.0.0 and its IPv6 equivalent of :: so
+\fB--address=/example.com/#\fP will return NULL addresses for example.com and
+its subdomains. This is partly syntactic sugar for \fB--address=/example.com/0.0.0.0\fP
+and \fB--address=/example.com/::\fP but is also more efficient than including both
+as seperate configuration lines.
 .TP
 .B --ipset=/<domain>[/<domain>...]/<ipset>[,<ipset>...]
 Places the resolved IP addresses of queries for one or more domains in

@@ -2467,11 +2467,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	  }
 
 	else if (strcmp(arg, "#") == 0)
-	  {
-	    newlist->flags |= SERV_USE_RESOLV; /* treat in ordinary way */
-	    if (newlist->flags & SERV_LITERAL_ADDRESS)
-	      ret_err(gen_err);
-	  }
+	  newlist->flags |= SERV_USE_RESOLV; /* treat in ordinary way */
 	else
 	  {
 	    char *err = parse_server(arg, &newlist->addr, &newlist->source_addr, newlist->interface, &newlist->flags);

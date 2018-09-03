@@ -52,6 +52,12 @@ version 2.80
 	Add --dhcp-name-match config option. 
 
 	Add --caa-record config option.
+
+	Implement --address=/example.com/# as (more efficient) syntactic
+	sugar for --address=/example.com/0.0.0.0 and
+	--address=/example.com/::
+	Returning null addresses is a useful technique for ad-blocking.
+	Thanks to Peter Russell for the suggestion.
 	
 
 version 2.79
