@@ -956,22 +956,26 @@ size_t setup_reply(struct dns_header *header, size_t qlen,
       log_query(F_CONFIG | F_RCODE, "error", &a, NULL);
       SET_RCODE(header, SERVFAIL);
     }
-  else if (flags == F_IPV4)
-    { /* we know the address */
-      SET_RCODE(header, NOERROR);
-      header->ancount = htons(1);
-      header->hb3 |= HB3_AA;
-      add_resource_record(header, NULL, NULL, sizeof(struct dns_header), &p, ttl, NULL, T_A, C_IN, "4", addrp);
-    }
-#ifdef HAVE_IPV6
-  else if (flags == F_IPV6)
+  else if (flags & ( F_IPV4 | F_IPV6))
     {
-      SET_RCODE(header, NOERROR);
-      header->ancount = htons(1);
-      header->hb3 |= HB3_AA;
-      add_resource_record(header, NULL, NULL, sizeof(struct dns_header), &p, ttl, NULL, T_AAAA, C_IN, "6", addrp);
-    }
+      if (flags & F_IPV4)
+	{ /* we know the address */
+	  SET_RCODE(header, NOERROR);
+	  header->ancount = htons(1);
+	  header->hb3 |= HB3_AA;
+	  add_resource_record(header, NULL, NULL, sizeof(struct dns_header), &p, ttl, NULL, T_A, C_IN, "4", addrp);
+	}
+      
+#ifdef HAVE_IPV6
+      if (flags & F_IPV6)
+	{
+	  SET_RCODE(header, NOERROR);
+	  header->ancount = htons(ntohs(header->ancount) + 1);
+	  header->hb3 |= HB3_AA;
+	  add_resource_record(header, NULL, NULL, sizeof(struct dns_header), &p, ttl, NULL, T_AAAA, C_IN, "6", addrp);
+	}
 #endif
+    }
   else /* nowhere to forward to */
     {
       struct all_addr a;

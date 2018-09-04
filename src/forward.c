@@ -229,12 +229,18 @@ static unsigned int search_servers(time_t now, struct all_addr **addrpp, unsigne
 
   if (flags)
     {
-      int logflags = 0;
-      
-      if (flags == F_NXDOMAIN || flags == F_NOERR)
-	logflags = F_NEG | qtype;
-  
-      log_query(logflags | flags | F_CONFIG | F_FORWARD, qdomain, *addrpp, NULL);
+       if (flags == F_NXDOMAIN || flags == F_NOERR)
+	 log_query(flags | qtype | F_NEG | F_CONFIG | F_FORWARD, qdomain, NULL, NULL);
+       else
+	 {
+	   /* handle F_IPV4 and F_IPV6 set on ANY query to 0.0.0.0/:: domain. */
+	   if (flags & F_IPV4)
+	     log_query((flags | F_CONFIG | F_FORWARD) & ~F_IPV6, qdomain, *addrpp, NULL);
+#ifdef HAVE_IPV6
+	   if (flags & F_IPV6)
+	     log_query((flags | F_CONFIG | F_FORWARD) & ~F_IPV4, qdomain, *addrpp, NULL);
+#endif
+	 }
     }
   else if ((*type) & SERV_USE_RESOLV)
     {
