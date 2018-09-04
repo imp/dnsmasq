@@ -287,7 +287,7 @@ void *safe_malloc(size_t size)
  * Can be replaced by (void)strlcpy() on some platforms */
 void safe_strncpy(char *dest, const char *src, size_t size)
 {
-  if (size)
+  if (size != 0)
     {
       dest[size-1] = '\0';
       strncpy(dest, src, size-1);
