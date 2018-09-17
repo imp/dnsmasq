@@ -1,6 +1,7 @@
 dnsmasq (2.80-1) unstable; urgency=low
 
-   * New upstream.
+   * New upstream. (closes: #837602) (closes: #794640) (closes: #794636)
+   * Close old bugs, long agp fixed. (closes: #802845) (closes: #754299)
    * Provide usr/lib/tmpfiles.d/dnsmasq.conf. (closes: #872396)
    * Run restorecon on /run/dnsmasq for SE Linux. (closes: #872397)
 
