@@ -169,6 +169,7 @@ binary-indep:	checkroot
 		-d debian/trees/daemon/usr/share/dnsmasq \
 	        -d debian/trees/daemon/etc/default \
 		-d debian/trees/daemon/lib/systemd/system \
+		-d debian/trees/daemon/usr/lib/tmpfiles.d \
                 -d debian/trees/daemon/etc/insserv.conf.d
 	install -m 644 debian/conffiles debian/trees/daemon/DEBIAN
 	install -m 755 debian/postinst debian/postrm debian/prerm debian/trees/daemon/DEBIAN
@@ -180,6 +181,7 @@ binary-indep:	checkroot
 	install -m 644 dnsmasq.conf.example debian/trees/daemon/etc/dnsmasq.conf
 	install -m 644 debian/readme.dnsmasq.d debian/trees/daemon/etc/dnsmasq.d/README
 	install -m 644 debian/systemd.service debian/trees/daemon/lib/systemd/system/dnsmasq.service
+	install -m 644 debian/tmpfiles.conf debian/trees/daemon/usr/lib/tmpfiles.d/dnsmasq.conf
 	install -m 644 debian/insserv debian/trees/daemon/etc/insserv.conf.d/dnsmasq
 	ln -s $(package) debian/trees/daemon/usr/share/doc/dnsmasq
 	cd debian/trees/daemon && find . -type f ! -regex '.*DEBIAN/.*' -printf '%P\0' | LC_ALL=C sort -z | xargs -r0 md5sum > DEBIAN/md5sums	

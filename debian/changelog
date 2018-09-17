@@ -1,3 +1,10 @@
+dnsmasq (2.80-1) unstable; urgency=low
+
+   * New upstream.
+   * Provide usr/lib/tmpfiles.d/dnsmasq.conf. (closes: #872396)
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Mon, 17 Sep 2018 23:11:25 +0000
+
 dnsmasq (2.79-1) unstable; urgency=low
 
    * New upstream. (closes: #888200)
