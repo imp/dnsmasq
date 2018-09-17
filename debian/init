@@ -127,7 +127,8 @@ start()
            mkdir /run/dnsmasq || return 2
            chown dnsmasq:nogroup /run/dnsmasq || return 2
         fi
-
+	[ -x /sbin/restorecon ] && /sbin/restorecon /run/dnsmasq
+	
 	start-stop-daemon --start --quiet --pidfile /run/dnsmasq/$NAME.pid --exec $DAEMON --test > /dev/null || return 1
 	start-stop-daemon --start --quiet --pidfile /run/dnsmasq/$NAME.pid --exec $DAEMON -- \
 		-x /run/dnsmasq/$NAME.pid \
