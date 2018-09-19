@@ -515,7 +515,7 @@ address of 0.0.0.0 and its IPv6 equivalent of :: so
 \fB--address=/example.com/#\fP will return NULL addresses for example.com and
 its subdomains. This is partly syntactic sugar for \fB--address=/example.com/0.0.0.0\fP
 and \fB--address=/example.com/::\fP but is also more efficient than including both
-as seperate configuration lines.
+as seperate configuration lines. Note that NULL addresses normally work in the same way as localhost, so beware that clients looking up these names are likely to end up talking to themselves.
 .TP
 .B --ipset=/<domain>[/<domain>...]/<ipset>[,<ipset>...]
 Places the resolved IP addresses of queries for one or more domains in
