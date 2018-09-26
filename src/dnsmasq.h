@@ -442,6 +442,9 @@ struct crec {
   } name;
 };
 
+#define SIZEOF_BARE_CREC (sizeof(struct crec) - SMALLDNAME)
+#define SIZEOF_POINTER_CREC (sizeof(struct crec) + sizeof(char *) - SMALLDNAME)
+
 #define F_IMMORTAL  (1u<<0)
 #define F_NAMEP     (1u<<1)
 #define F_REVERSE   (1u<<2)
