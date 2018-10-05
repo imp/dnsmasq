@@ -827,7 +827,8 @@ authoritative zones as dnsmasq.
 .B --auth-peer=<ip-address>[,<ip-address>[,<ip-address>...]]
 Specify the addresses of secondary servers which are allowed to
 initiate zone transfer (AXFR) requests for zones for which dnsmasq is
-authoritative. If this option is not given, then AXFR requests will be
+authoritative. If this option is not given but --auth-sec-servers is,
+then AXFR requests will be
 accepted from any secondary. Specifying
 .B --auth-peer
 without
