@@ -1276,7 +1276,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
   int q, ans, anscount = 0, addncount = 0;
   int dryrun = 0;
   struct crec *crecp;
-  int nxdomain = 0, auth = 1, trunc = 0, sec_data = 1;
+  int nxdomain = 0, notimp = 0, auth = 1, trunc = 0, sec_data = 1;
   struct mx_srv_record *rec;
   size_t len;
 
@@ -1352,6 +1352,17 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 
 		    }
 		}
+	    }
+	}
+
+      if (qclass == C_CHAOS)
+	{
+	  /* don't forward *.bind and *.server chaos queries */
+	  if (hostname_issubdomain("bind", name) || hostname_issubdomain("server", name))
+	    {
+	      if (!ans)
+		notimp = 1, auth = 0;
+	      ans = 1;
 	    }
 	}
 
@@ -1903,6 +1914,8 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
   
   if (nxdomain)
     SET_RCODE(header, NXDOMAIN);
+  else if (notimp)
+    SET_RCODE(header, NOTIMP);
   else
     SET_RCODE(header, NOERROR); /* no error */
   header->ancount = htons(anscount);
