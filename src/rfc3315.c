@@ -1098,6 +1098,14 @@ static int dhcp6_no_relay(struct state *state, int msg_type, void *inbuff, size_
 		    return 1;
 		  }
 
+                if (!is_invalid_address_from_static_range(state->context, req_addr)) {
+                    o1 = new_opt6(OPTION6_STATUS_CODE);
+                    put_opt6_short(DHCP6NOTONLINK);
+                    put_opt6_string(_("confirm failed"));
+                    end_opt6(o1);
+                    return 1;
+                }
+
 		good_addr = 1;
 		log6_quiet(state, "DHCPREPLY", req_addr, state->hostname);
 	      }

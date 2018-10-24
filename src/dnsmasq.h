@@ -1412,6 +1412,7 @@ int get_incoming_mark(union mysockaddr *peer_addr, struct all_addr *local_addr,
 #ifdef HAVE_DHCP6
 void dhcp6_init(void);
 void dhcp6_packet(time_t now);
+int  is_invalid_address_from_static_range(struct dhcp_context *context, struct in6_addr *taddr);
 struct dhcp_context *address6_allocate(struct dhcp_context *context,  unsigned char *clid, int clid_len, int temp_addr,
 				       int iaid, int serial, struct dhcp_netid *netids, int plain_range, struct in6_addr *ans);
 int config_valid(struct dhcp_config *config, struct dhcp_context *context, struct in6_addr *addr);
