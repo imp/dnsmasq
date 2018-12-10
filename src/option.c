@@ -1039,7 +1039,9 @@ static void dhcp_context_free(struct dhcp_context *ctx)
     {
       dhcp_netid_free(ctx->filter);
       free(ctx->netid.net);
+#ifdef HAVE_DHCP6
       free(ctx->template_interface);
+#endif
       free(ctx);
     }
 }
