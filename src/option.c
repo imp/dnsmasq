@@ -3432,7 +3432,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
       {
 	struct dhcp_netid *id = dhcp_tags(&arg);
 	
-	if (!id)
+	if (!arg)
 	  {
 	    ret_err(gen_err);
 	  }
@@ -3483,7 +3483,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
       {
 	struct dhcp_netid *id = dhcp_tags(&arg);
 	
-	if (!id)
+	if (!arg)
 	  {
 	    ret_err(gen_err);
 	  }
@@ -3513,7 +3513,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	 new->opt = 10; /* PXE_MENU_PROMPT */
 	 new->netid = dhcp_tags(&arg);
 	 
-	 if (!new->netid)
+	 if (!arg)
 	   {
 	     dhcp_opt_free(new);
 	     ret_err(gen_err);
