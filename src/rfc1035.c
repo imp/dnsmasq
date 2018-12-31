@@ -950,7 +950,7 @@ size_t setup_reply(struct dns_header *header, size_t qlen,
   else if (flags == F_SERVFAIL)
     {
       struct all_addr a;
-      a.addr.rcode.rcode = SERVFAIL;
+      a.addr.log.rcode = SERVFAIL;
       log_query(F_CONFIG | F_RCODE, "error", &a, NULL);
       SET_RCODE(header, SERVFAIL);
     }
@@ -975,7 +975,7 @@ size_t setup_reply(struct dns_header *header, size_t qlen,
   else /* nowhere to forward to */
     {
       struct all_addr a;
-      a.addr.rcode.rcode = REFUSED;
+      a.addr.log.rcode = REFUSED;
       log_query(F_CONFIG | F_RCODE, "error", &a, NULL);
       SET_RCODE(header, REFUSED);
     }
@@ -1374,7 +1374,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 		  notimp = 1, auth = 0;
 		  if (!dryrun)
 		    {
-		       addr.addr.rcode.rcode = NOTIMP;
+		       addr.addr.log.rcode = NOTIMP;
 		       log_query(F_CONFIG | F_RCODE, name, &addr, NULL);
 		    }
 		  ans = 1, sec_data = 0;

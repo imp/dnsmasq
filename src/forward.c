@@ -658,7 +658,7 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
   if (rcode != NOERROR && rcode != NXDOMAIN)
     {
       struct all_addr a;
-      a.addr.rcode.rcode = rcode;
+      a.addr.log.rcode = rcode;
       log_query(F_UPSTREAM | F_RCODE, "error", &a, NULL);
       
       return resize_packet(header, n, pheader, plen);
