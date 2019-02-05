@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2016 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2018 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -371,8 +371,14 @@ void dhcp_update_configs(struct dhcp_config *configs)
   int prot = AF_INET;
 
   for (config = configs; config; config = config->next)
+  {
     if (config->flags & CONFIG_ADDR_HOSTS)
-      config->flags &= ~(CONFIG_ADDR | CONFIG_ADDR6 | CONFIG_ADDR_HOSTS);
+      config->flags &= ~(CONFIG_ADDR | CONFIG_ADDR_HOSTS);
+#ifdef HAVE_DHCP6
+    if (config->flags & CONFIG_ADDR6_HOSTS)
+      config->flags &= ~(CONFIG_ADDR6 | CONFIG_ADDR6_HOSTS);
+#endif
+  }
 
 #ifdef HAVE_DHCP6 
  again:  
@@ -403,30 +409,30 @@ void dhcp_update_configs(struct dhcp_config *configs)
 		  crec = cache_find_by_name(crec, config->hostname, 0, cacheflags);
 		if (!crec)
 		  continue; /* should be never */
-		inet_ntop(prot, &crec->addr.addr, daemon->addrbuff, ADDRSTRLEN);
+		inet_ntop(prot, &crec->addr, daemon->addrbuff, ADDRSTRLEN);
 		my_syslog(MS_DHCP | LOG_WARNING, _("%s has more than one address in hostsfile, using %s for DHCP"), 
 			  config->hostname, daemon->addrbuff);
 	      }
 	    
 	    if (prot == AF_INET && 
-		(!(conf_tmp = config_find_by_address(configs, crec->addr.addr.addr.addr4)) || conf_tmp == config))
+		(!(conf_tmp = config_find_by_address(configs, crec->addr.addr4)) || conf_tmp == config))
 	      {
-		config->addr = crec->addr.addr.addr.addr4;
+		config->addr = crec->addr.addr4;
 		config->flags |= CONFIG_ADDR | CONFIG_ADDR_HOSTS;
 		continue;
 	      }
 
 #ifdef HAVE_DHCP6
 	    if (prot == AF_INET6 && 
-		(!(conf_tmp = config_find_by_address6(configs, &crec->addr.addr.addr.addr6, 128, 0)) || conf_tmp == config))
+		(!(conf_tmp = config_find_by_address6(configs, &crec->addr.addr6, 128, 0)) || conf_tmp == config))
 	      {
-		memcpy(&config->addr6, &crec->addr.addr.addr.addr6, IN6ADDRSZ);
-		config->flags |= CONFIG_ADDR6 | CONFIG_ADDR_HOSTS;
+		memcpy(&config->addr6, &crec->addr.addr6, IN6ADDRSZ);
+		config->flags |= CONFIG_ADDR6 | CONFIG_ADDR6_HOSTS;
 		continue;
 	      }
 #endif
 
-	    inet_ntop(prot, &crec->addr.addr, daemon->addrbuff, ADDRSTRLEN);
+	    inet_ntop(prot, &crec->addr, daemon->addrbuff, ADDRSTRLEN);
 	    my_syslog(MS_DHCP | LOG_WARNING, _("duplicate IP address %s (%s) in dhcp-config directive"), 
 		      daemon->addrbuff, config->hostname);
 	    
@@ -485,11 +491,11 @@ char *whichdevice(void)
  
 void  bindtodevice(char *device, int fd)
 {
-  struct ifreq ifr;
-  
-  strcpy(ifr.ifr_name, device);
+  size_t len = strlen(device)+1;
+  if (len > IFNAMSIZ)
+    len = IFNAMSIZ;
   /* only allowed by root. */
-  if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) == -1 &&
+  if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, device, len) == -1 &&
       errno != EPERM)
     die(_("failed to set SO_BINDTODEVICE on DHCP socket: %s"), NULL, EC_BADNET);
 }
@@ -559,6 +565,7 @@ static const struct opttab_t {
   { "nntp-server", 71, OT_ADDR_LIST }, 
   { "irc-server", 74, OT_ADDR_LIST }, 
   { "user-class", 77, 0 },
+  { "rapid-commit", 80, 0 },
   { "FQDN", 81, OT_INTERNAL },
   { "agent-id", 82, OT_INTERNAL },
   { "client-arch", 93, 2 | OT_DEC },
@@ -692,7 +699,7 @@ char *option_string(int prot, unsigned int opt, unsigned char *val, int opt_len,
 	    
 	    if (ot[o].size & OT_ADDR_LIST) 
 	      {
-		struct all_addr addr;
+		union all_addr addr;
 		int addr_len = INADDRSZ;
 
 #ifdef HAVE_DHCP6

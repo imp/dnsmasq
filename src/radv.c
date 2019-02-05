@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2016 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2018 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -198,6 +198,9 @@ void icmp6_packet(time_t now)
       /* look for link-layer address option for logging */
       if (sz >= 16 && packet[8] == ICMP6_OPT_SOURCE_MAC && (packet[9] * 8) + 8 <= sz)
 	{
+	  if ((packet[9] * 8 - 2) * 3 - 1 >= MAXDNAME) {
+	    return;
+	  }
 	  print_mac(daemon->namebuff, &packet[10], (packet[9] * 8) - 2);
 	  mac = daemon->namebuff;
 	}
@@ -243,7 +246,7 @@ static void send_ra_alias(time_t now, int iface, char *iface_name, struct in6_ad
   struct dhcp_netid iface_id;
   struct dhcp_opt *opt_cfg;
   struct ra_interface *ra_param = find_iface_param(iface_name);
-  int done_dns = 0, old_prefix = 0;
+  int done_dns = 0, old_prefix = 0, mtu = 0;
   unsigned int min_pref_time;
 #ifdef HAVE_LINUX_NETWORK
   FILE *f;
@@ -399,22 +402,32 @@ static void send_ra_alias(time_t now, int iface, char *iface_name, struct in6_ad
       put_opt6_long(1000 * calc_interval(find_iface_param(iface_name)));
     }
 
+  /* Set the MTU from ra_param if any, an MTU of 0 mean automatic for linux, */
+  /* an MTU of -1 prevents the option from being sent. */
+  if (ra_param)
+    mtu = ra_param->mtu;
 #ifdef HAVE_LINUX_NETWORK
-  /* Note that IPv6 MTU is not neccessarily the same as the IPv4 MTU
+  /* Note that IPv6 MTU is not necessarily the same as the IPv4 MTU
      available from SIOCGIFMTU */
-  sprintf(daemon->namebuff, "/proc/sys/net/ipv6/conf/%s/mtu", iface_name);
-  if ((f = fopen(daemon->namebuff, "r")))
+  if (mtu == 0)
     {
-      if (fgets(daemon->namebuff, MAXDNAME, f))
-	{
-	  put_opt6_char(ICMP6_OPT_MTU);
-	  put_opt6_char(1);
-	  put_opt6_short(0);
-	  put_opt6_long(atoi(daemon->namebuff));
-	}
-      fclose(f);
+      char *mtu_name = ra_param ? ra_param->mtu_name : NULL;
+      sprintf(daemon->namebuff, "/proc/sys/net/ipv6/conf/%s/mtu", mtu_name ? : iface_name);
+      if ((f = fopen(daemon->namebuff, "r")))
+        {
+          if (fgets(daemon->namebuff, MAXDNAME, f))
+            mtu = atoi(daemon->namebuff);
+          fclose(f);
+        }
     }
 #endif
+  if (mtu > 0)
+    {
+      put_opt6_char(ICMP6_OPT_MTU);
+      put_opt6_char(1);
+      put_opt6_short(0);
+      put_opt6_long(mtu);
+    }
      
   iface_enumerate(AF_LOCAL, &send_iface, add_lla);
  

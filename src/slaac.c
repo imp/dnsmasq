@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2016 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2018 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -166,7 +166,8 @@ time_t periodic_slaac(time_t now, struct dhcp_lease *leases)
 	    
 	    if (sendto(daemon->icmp6fd, daemon->outpacket.iov_base, save_counter(-1), 0,
 		       (struct sockaddr *)&addr,  sizeof(addr)) == -1 &&
-		errno == EHOSTUNREACH)
+		errno == EHOSTUNREACH &&
+		slaac->backoff == 12)
 	      slaac->ping_time = 0; /* Give up */ 
 	    else
 	      {

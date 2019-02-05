@@ -7,10 +7,13 @@ src/.copts_*
 contrib/lease-tools/dhcp_lease_time
 contrib/lease-tools/dhcp_release
 contrib/lease-tools/dhcp_release6
-debian/base/
-debian/daemon/
 debian/files
 debian/substvars
 debian/utils-substvars
+<<<<<<< HEAD
 debian/utils/
 *.kdev4
+=======
+debian/trees/
+debian/build/
+>>>>>>> thekelleys.org/master

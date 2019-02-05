@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2016 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2018 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 #define NAMESERVER_PORT 53
 #define TFTP_PORT       69
+#define MIN_PORT        1024           /* first non-reserved port */
 #define MAX_PORT        65535u
 
 #define IN6ADDRSZ       16
@@ -75,6 +76,7 @@
 #define T_AXFR          252
 #define T_MAILB		253	
 #define T_ANY		255
+#define T_CAA           257
 
 #define EDNS0_OPTION_MAC            65001 /* dyndns.org temporary assignment */
 #define EDNS0_OPTION_CLIENT_SUBNET  8     /* IANA */

@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2016 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2018 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -371,7 +371,7 @@ static int complete_context6(struct in6_addr *local,  int prefix,
 	}
 
       for (relay = daemon->relay6; relay; relay = relay->next)
-	if (IN6_ARE_ADDR_EQUAL(local, &relay->local.addr.addr6) && relay->current == relay &&
+	if (IN6_ARE_ADDR_EQUAL(local, &relay->local.addr6) && relay->current == relay &&
 	    (IN6_IS_ADDR_UNSPECIFIED(&param->relay_local) || IN6_ARE_ADDR_EQUAL(local, &param->relay_local)))
 	  {
 	    relay->current = param->relay;
@@ -431,8 +431,15 @@ struct dhcp_context *address6_allocate(struct dhcp_context *context,  unsigned c
       else
 	{ 
 	  if (!temp_addr && option_bool(OPT_CONSEC_ADDR))
-	    /* seed is largest extant lease addr in this context */
-	    start = lease_find_max_addr6(c) + serial;
+	    {
+	      /* seed is largest extant lease addr in this context,
+		 skip addresses equal to the number of addresses rejected
+		 by clients. This should avoid the same client being offered the same
+		 address after it has rjected it. */
+	      start = lease_find_max_addr6(c) + 1 + serial + c->addr_epoch;
+	      if (c->addr_epoch)
+		c->addr_epoch--;
+	    }
 	  else
 	    {
 	      u64 range = 1 + addr6part(&c->end6) - addr6part(&c->start6);
@@ -640,13 +647,20 @@ static int construct_worker(struct in6_addr *local, int prefix,
     return 0;
   
   for (template = daemon->dhcp6; template; template = template->next)
-    if (!(template->flags & CONTEXT_TEMPLATE))
+    if (!(template->flags & (CONTEXT_TEMPLATE | CONTEXT_CONSTRUCTED)))
       {
 	/* non-template entries, just fill in interface and local addresses */
 	if (prefix <= template->prefix &&
 	    is_same_net6(local, &template->start6, template->prefix) &&
 	    is_same_net6(local, &template->end6, template->prefix))
 	  {
+	    /* First time found, do fast RA. */
+	    if (template->if_index != if_index || !IN6_ARE_ADDR_EQUAL(&template->local6, local))
+	      {
+		ra_start_unsolicited(param->now, template);
+		param->newone = 1;
+	      }
+	    
 	    template->if_index = if_index;
 	    template->local6 = *local;
 	  }
@@ -661,24 +675,33 @@ static int construct_worker(struct in6_addr *local, int prefix,
 	setaddr6part(&end6, addr6part(&template->end6));
 	
 	for (context = daemon->dhcp6; context; context = context->next)
-	  if ((context->flags & CONTEXT_CONSTRUCTED) &&
+	  if (!(context->flags & CONTEXT_TEMPLATE) &&
 	      IN6_ARE_ADDR_EQUAL(&start6, &context->start6) &&
 	      IN6_ARE_ADDR_EQUAL(&end6, &context->end6))
 	    {
-	      int flags = context->flags;
-	      context->flags &= ~(CONTEXT_GC | CONTEXT_OLD);
-	      if (flags & CONTEXT_OLD)
+	      /* If there's an absolute address context covering this address
+		 then don't construct one as well. */
+	      if (!(context->flags & CONTEXT_CONSTRUCTED))
+		break;
+	      
+	      if (context->if_index == if_index)
 		{
-		  /* address went, now it's back */
-		  log_context(AF_INET6, context); 
-		  /* fast RAs for a while */
-		  ra_start_unsolicited(param->now, context);
-		  param->newone = 1; 
-		  /* Add address to name again */
-		  if (context->flags & CONTEXT_RA_NAME)
-		    param->newname = 1;
+		  int cflags = context->flags;
+		  context->flags &= ~(CONTEXT_GC | CONTEXT_OLD);
+		  if (cflags & CONTEXT_OLD)
+		    {
+		      /* address went, now it's back, and on the same interface */
+		      log_context(AF_INET6, context); 
+		      /* fast RAs for a while */
+		      ra_start_unsolicited(param->now, context);
+		      param->newone = 1; 
+		      /* Add address to name again */
+		      if (context->flags & CONTEXT_RA_NAME)
+			param->newname = 1;
+		    
+		    }
+		  break;
 		}
-	      break;
 	    }
 	
 	if (!context && (context = whine_malloc(sizeof (struct dhcp_context))))

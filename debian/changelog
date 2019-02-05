@@ -1,8 +1,67 @@
-dnsmasq (2.77-1) unstable; urgency=low
+dnsmasq (2.81-1) unstable; urgency=low
 
    * New upstream.
 
- -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 14 Dec 2016 18:01:40 +0000
+ -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 2 Nov 2018 23:08:25 +0000
+
+dnsmasq (2.80-1) unstable; urgency=low
+
+   * New upstream. (closes: #837602) (closes: #794640) (closes: #794636)
+   * Close old bugs, long agp fixed. (closes: #802845) (closes: #754299)
+   * Provide usr/lib/tmpfiles.d/dnsmasq.conf. (closes: #872396)
+   * Run restorecon on /run/dnsmasq for SE Linux. (closes: #872397)
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Mon, 17 Sep 2018 23:11:25 +0000
+
+dnsmasq (2.79-1) unstable; urgency=low
+
+   * New upstream. (closes: #888200)
+   * Fix trust-anchor regex in init script. (closes: #884347)
+   * Fix exit code for dhcp_release6 (closes: #883596)
+   * Add project homepage to control file. (closes: #887764)
+   * New binary package dnsmasq-base-lua, includes Lua support.
+   * Remove hardwired shlibs dependency for libnettle 3.3 and
+     fix code to avoid ABI breakage as long as compiled against
+     libnettle 3.4 or later. (closes: #891315)
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 16 Feb 2018 19:54:22 +0000
+
+dnsmasq (2.78-3) unstable; urgency=high
+
+   * Make failure of pidfile chown a warning. (closes: #889857)
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Thu, 8 Feb 2018 21:26:30 +0000
+
+dnsmasq (2.78-2) unstable; urgency=high
+
+   * Change ownership of pid file, to keep systemd happy. (closes: #889336)
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Tue, 6 Feb 2018 17:21:30 +0000
+
+dnsmasq (2.78-1) unstable; urgency=high
+
+   * New upstream.
+     Security fixes for CVE-2017-13704  (closes: #877102)
+     Security fixes for CVE-2017-14491 - CVE-2017-14496 inclusive.
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Sun, 29 Sep 2017 21:34:00 +0000
+
+dnsmasq (2.77-2) unstable; urgency=low
+
+   * Improve sed regexp for parsing root.ds.
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Mon, 5 Jun 2017 20:46:32 +0000
+
+dnsmasq (2.77-1) unstable; urgency=low
+
+   * New upstream.
+   * Don't register as a resolvconf source when config file
+     includes port=0 to disable DNS.
+   * Handle gratuitous format change in /usr/share/dns/root.ds
+     (closes: #858506) (closes: #860064)
+   * Add lsb-base dependency.
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Tue, 11 Apr 2017 14:19:20 +0000
 
 dnsmasq (2.76-5) unstable; urgency=medium
 

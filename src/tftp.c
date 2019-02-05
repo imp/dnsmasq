@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2016 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2018 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 static struct tftp_file *check_tftp_fileperm(ssize_t *len, char *prefix);
 static void free_transfer(struct tftp_transfer *transfer);
-static ssize_t tftp_err(int err, char *packet, char *mess, char *file);
+static ssize_t tftp_err(int err, char *packet, char *message, char *file);
 static ssize_t tftp_err_oops(char *packet, char *file);
 static ssize_t get_block(char *packet, struct tftp_transfer *transfer);
 static char *next(char **p, char *end);
@@ -59,18 +59,12 @@ void tftp_request(struct listener *listen, time_t now)
   char *name = NULL;
   char *prefix = daemon->tftp_prefix;
   struct tftp_prefix *pref;
-  struct all_addr addra;
-#ifdef HAVE_IPV6
+  union all_addr addra;
   /* Can always get recvd interface for IPv6 */
   int check_dest = !option_bool(OPT_NOWILD) || listen->family == AF_INET6;
-#else
-  int check_dest = !option_bool(OPT_NOWILD);
-#endif
   union {
     struct cmsghdr align; /* this ensures alignment */
-#ifdef HAVE_IPV6
     char control6[CMSG_SPACE(sizeof(struct in6_pktinfo))];
-#endif
 #if defined(HAVE_LINUX_NETWORK)
     char control[CMSG_SPACE(sizeof(struct in_pktinfo))];
 #elif defined(HAVE_SOLARIS_NETWORK)
@@ -174,7 +168,6 @@ void tftp_request(struct listener *listen, time_t now)
 	  
 #endif
 
-#ifdef HAVE_IPV6
       if (listen->family == AF_INET6)
         {
           for (cmptr = CMSG_FIRSTHDR(&msg); cmptr; cmptr = CMSG_NXTHDR(&msg, cmptr))
@@ -190,19 +183,16 @@ void tftp_request(struct listener *listen, time_t now)
                 if_index = p.p->ipi6_ifindex;
               }
         }
-#endif
       
       if (!indextoname(listen->tftpfd, if_index, namebuff))
 	return;
 
       name = namebuff;
       
-      addra.addr.addr4 = addr.in.sin_addr;
+      addra.addr4 = addr.in.sin_addr;
 
-#ifdef HAVE_IPV6
       if (listen->family == AF_INET6)
-	addra.addr.addr6 = addr.in6.sin6_addr;
-#endif
+	addra.addr6 = addr.in6.sin6_addr;
 
       if (daemon->tftp_interfaces)
 	{
@@ -222,7 +212,7 @@ void tftp_request(struct listener *listen, time_t now)
 	      if (!option_bool(OPT_CLEVERBIND))
 		enumerate_interfaces(0); 
 	      if (!loopback_exception(listen->tftpfd, listen->family, &addra, name) &&
-		  !label_exception(if_index, listen->family, &addra) )
+		  !label_exception(if_index, listen->family, &addra))
 		return;
 	    }
 	  
@@ -234,7 +224,7 @@ void tftp_request(struct listener *listen, time_t now)
 #endif
 	}
 
-      strncpy(ifr.ifr_name, name, IF_NAMESIZE);
+      safe_strncpy(ifr.ifr_name, name, IF_NAMESIZE);
       if (ioctl(listen->tftpfd, SIOCGIFMTU, &ifr) != -1)
 	{
 	  mtu = ifr.ifr_mtu;  
@@ -262,7 +252,6 @@ void tftp_request(struct listener *listen, time_t now)
       addr.in.sin_len = sizeof(addr.in);
 #endif
     }
-#ifdef HAVE_IPV6
   else
     {
       addr.in6.sin6_port = htons(port);
@@ -272,7 +261,6 @@ void tftp_request(struct listener *listen, time_t now)
       addr.in6.sin6_len = sizeof(addr.in6);
 #endif
     }
-#endif
 
   if (!(transfer = whine_malloc(sizeof(struct tftp_transfer))))
     return;
@@ -310,10 +298,9 @@ void tftp_request(struct listener *listen, time_t now)
 		{ 
 		  if (listen->family == AF_INET)
 		    addr.in.sin_port = htons(port);
-#ifdef HAVE_IPV6
 		  else
-		     addr.in6.sin6_port = htons(port);
-#endif
+		    addr.in6.sin6_port = htons(port);
+		  
 		  continue;
 		}
 	      my_syslog(MS_TFTP | LOG_ERR, _("unable to get free port for TFTP"));
@@ -382,7 +369,7 @@ void tftp_request(struct listener *listen, time_t now)
 	  if (prefix[strlen(prefix)-1] != '/')
 	    strncat(daemon->namebuff, "/", (MAXDNAME-1) - strlen(daemon->namebuff));
 
-	  if (option_bool(OPT_TFTP_APREF))
+	  if (option_bool(OPT_TFTP_APREF_IP))
 	    {
 	      size_t oldlen = strlen(daemon->namebuff);
 	      struct stat statbuf;
@@ -394,7 +381,40 @@ void tftp_request(struct listener *listen, time_t now)
 	      if (stat(daemon->namebuff, &statbuf) == -1 || !S_ISDIR(statbuf.st_mode))
 		daemon->namebuff[oldlen] = 0;
 	    }
-		
+	  
+	  if (option_bool(OPT_TFTP_APREF_MAC))
+	    {
+	      unsigned char *macaddr = NULL;
+	      unsigned char macbuf[DHCP_CHADDR_MAX];
+	      
+#ifdef HAVE_DHCP
+	      if (daemon->dhcp && peer.sa.sa_family == AF_INET)
+	        {
+		  /* Check if the client IP is in our lease database */
+		  struct dhcp_lease *lease = lease_find_by_addr(peer.in.sin_addr);
+		  if (lease && lease->hwaddr_type == ARPHRD_ETHER && lease->hwaddr_len == ETHER_ADDR_LEN)
+		    macaddr = lease->hwaddr;
+		}
+#endif
+	      
+	      /* If no luck, try to find in ARP table. This only works if client is in same (V)LAN */
+	      if (!macaddr && find_mac(&peer, macbuf, 1, now) > 0)
+		macaddr = macbuf;
+	      
+	      if (macaddr)
+	        {
+		  size_t oldlen = strlen(daemon->namebuff);
+		  struct stat statbuf;
+
+		  snprintf(daemon->namebuff + oldlen, (MAXDNAME-1) - oldlen, "%.2x-%.2x-%.2x-%.2x-%.2x-%.2x/",
+			   macaddr[0], macaddr[1], macaddr[2], macaddr[3], macaddr[4], macaddr[5]);
+		  
+		  /* remove unique-directory if it doesn't exist */
+		  if (stat(daemon->namebuff, &statbuf) == -1 || !S_ISDIR(statbuf.st_mode))
+		    daemon->namebuff[oldlen] = 0;
+		}
+	    }
+	  
 	  /* Absolute pathnames OK if they match prefix */
 	  if (filename[0] == '/')
 	    {
@@ -407,7 +427,7 @@ void tftp_request(struct listener *listen, time_t now)
       else if (filename[0] == '/')
 	daemon->namebuff[0] = 0;
       strncat(daemon->namebuff, filename, (MAXDNAME-1) - strlen(daemon->namebuff));
-
+      
       /* check permissions and open file */
       if ((transfer->file = check_tftp_fileperm(&len, prefix)))
 	{
@@ -701,7 +721,7 @@ static ssize_t get_block(char *packet, struct tftp_transfer *transfer)
       if (transfer->opt_blocksize)
 	{
 	  p += (sprintf(p, "blksize") + 1);
-	  p += (sprintf(p, "%d", transfer->blocksize) + 1);
+	  p += (sprintf(p, "%u", transfer->blocksize) + 1);
 	}
       if (transfer->opt_transize)
 	{

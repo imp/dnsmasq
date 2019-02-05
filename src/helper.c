@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2016 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2018 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,9 +64,7 @@ struct script_data
 #ifdef HAVE_TFTP
   off_t file_len;
 #endif
-#ifdef HAVE_IPV6
   struct in6_addr addr6;
-#endif
 #ifdef HAVE_DHCP6
   int iaid, vendorclass_count;
 #endif
@@ -97,13 +95,14 @@ int create_helper(int event_fd, int err_fd, uid_t uid, gid_t gid, long max_fd)
       return pipefd[1];
     }
 
-  /* ignore SIGTERM, so that we can clean up when the main process gets hit
+  /* ignore SIGTERM and SIGINT, so that we can clean up when the main process gets hit
      and SIGALRM so that we can use sleep() */
   sigact.sa_handler = SIG_IGN;
   sigact.sa_flags = 0;
   sigemptyset(&sigact.sa_mask);
   sigaction(SIGTERM, &sigact, NULL);
   sigaction(SIGALRM, &sigact, NULL);
+  sigaction(SIGINT, &sigact, NULL);
 
   if (!option_bool(OPT_DEBUG) && uid != 0)
     {
@@ -135,7 +134,7 @@ int create_helper(int event_fd, int err_fd, uid_t uid, gid_t gid, long max_fd)
 	max_fd != STDIN_FILENO && max_fd != pipefd[0] && 
 	max_fd != event_fd && max_fd != err_fd)
       close(max_fd);
-  
+
 #ifdef HAVE_LUASCRIPT
   if (daemon->luascript)
     {
@@ -189,6 +188,7 @@ int create_helper(int event_fd, int err_fd, uid_t uid, gid_t gid, long max_fd)
       unsigned char *buf = (unsigned char *)daemon->namebuff;
       unsigned char *end, *extradata, *alloc_buff = NULL;
       int is6, err = 0;
+      int pipeout[2];
 
       free(alloc_buff);
       
@@ -300,10 +300,8 @@ int create_helper(int event_fd, int err_fd, uid_t uid, gid_t gid, long max_fd)
     
       if (!is6)
 	inet_ntop(AF_INET, &data.addr, daemon->addrbuff, ADDRSTRLEN);
-#ifdef HAVE_IPV6
       else
 	inet_ntop(AF_INET6, &data.addr6, daemon->addrbuff, ADDRSTRLEN);
-#endif
 
 #ifdef HAVE_TFTP
       /* file length */
@@ -472,16 +470,54 @@ int create_helper(int event_fd, int err_fd, uid_t uid, gid_t gid, long max_fd)
       if (!daemon->lease_change_command)
 	continue;
 
+      /* Pipe to capture stdout and stderr from script */
+      if (!option_bool(OPT_DEBUG) && pipe(pipeout) == -1)
+	continue;
+      
       /* possible fork errors are all temporary resource problems */
       while ((pid = fork()) == -1 && (errno == EAGAIN || errno == ENOMEM))
 	sleep(2);
 
       if (pid == -1)
-	continue;
+        {
+	  if (!option_bool(OPT_DEBUG))
+	    {
+	      close(pipeout[0]);
+	      close(pipeout[1]);
+	    }
+	  continue;
+        }
       
       /* wait for child to complete */
       if (pid != 0)
 	{
+	  if (!option_bool(OPT_DEBUG))
+	    {
+	      FILE *fp;
+	  
+	      close(pipeout[1]);
+	      
+	      /* Read lines sent to stdout/err by the script and pass them back to be logged */
+	      if (!(fp = fdopen(pipeout[0], "r")))
+		close(pipeout[0]);
+	      else
+		{
+		  while (fgets(daemon->packet, daemon->packet_buff_sz, fp))
+		    {
+		      /* do not include new lines, log will append them */
+		      size_t len = strlen(daemon->packet);
+		      if (len > 0)
+			{
+			  --len;
+			  if (daemon->packet[len] == '\n')
+			    daemon->packet[len] = 0;
+			}
+		      send_event(event_fd, EVENT_SCRIPT_LOG, 0, daemon->packet);
+		    }
+		  fclose(fp);
+		}
+	    }
+	  
 	  /* reap our children's children, if necessary */
 	  while (1)
 	    {
@@ -503,6 +539,15 @@ int create_helper(int event_fd, int err_fd, uid_t uid, gid_t gid, long max_fd)
 	    }
 	  
 	  continue;
+	}
+
+      if (!option_bool(OPT_DEBUG))
+	{
+	  /* map stdout/stderr of script to pipeout */
+	  close(pipeout[0]);
+	  dup2(pipeout[1], STDOUT_FILENO);
+	  dup2(pipeout[1], STDERR_FILENO);
+	  close(pipeout[1]);
 	}
       
       if (data.action != ACTION_TFTP && data.action != ACTION_ARP)
@@ -580,7 +625,8 @@ int create_helper(int event_fd, int err_fd, uid_t uid, gid_t gid, long max_fd)
 	    hostname = NULL;
 	  
 	  my_setenv("DNSMASQ_LOG_DHCP", option_bool(OPT_LOG_OPTS) ? "1" : NULL, &err);
-    }
+	}
+      
       /* we need to have the event_fd around if exec fails */
       if ((i = fcntl(event_fd, F_GETFD)) != -1)
 	fcntl(event_fd, F_SETFD, i | FD_CLOEXEC);
@@ -776,10 +822,8 @@ void queue_tftp(off_t file_len, char *filename, union mysockaddr *peer)
 
   if ((buf->flags = peer->sa.sa_family) == AF_INET)
     buf->addr = peer->in.sin_addr;
-#ifdef HAVE_IPV6
   else
     buf->addr6 = peer->in6.sin6_addr;
-#endif
 
   memcpy((unsigned char *)(buf+1), filename, filename_len);
   
@@ -787,7 +831,7 @@ void queue_tftp(off_t file_len, char *filename, union mysockaddr *peer)
 }
 #endif
 
-void queue_arp(int action, unsigned char *mac, int maclen, int family, struct all_addr *addr)
+void queue_arp(int action, unsigned char *mac, int maclen, int family, union all_addr *addr)
 {
   /* no script */
   if (daemon->helperfd == -1)
@@ -800,11 +844,9 @@ void queue_arp(int action, unsigned char *mac, int maclen, int family, struct al
   buf->hwaddr_len = maclen;
   buf->hwaddr_type =  ARPHRD_ETHER; 
   if ((buf->flags = family) == AF_INET)
-    buf->addr = addr->addr.addr4;
-#ifdef HAVE_IPV6
+    buf->addr = addr->addr4;
   else
-    buf->addr6 = addr->addr.addr6;
-#endif
+    buf->addr6 = addr->addr6;
   
   memcpy(buf->hwaddr, mac, maclen);
   

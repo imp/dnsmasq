@@ -83,7 +83,7 @@ static unsigned char *option_find1(unsigned char *p, unsigned char *end, int opt
           if (p >= end - 2)
             return NULL; /* malformed packet */
           opt_len = option_len(p);
-          if (p >= end - (2 + opt_len))
+          if (end - p >= (2 + opt_len))
             return NULL; /* malformed packet */
           if (*p == opt && opt_len >= minsize)
             return p;
@@ -206,13 +206,13 @@ int main(int argc, char **argv)
 	{
 	  unsigned int x;
 	  if ((x = t/86400))
-	    printf("%dd", x);
+	    printf("%ud", x);
 	  if ((x = (t/3600)%24))
-	    printf("%dh", x);
+	    printf("%uh", x);
 	  if ((x = (t/60)%60))
-	    printf("%dm", x);
+	    printf("%um", x);
 	  if ((x = t%60))
-	    printf("%ds", x);
+	    printf("%us", x);
 	}
       return 0;
     }

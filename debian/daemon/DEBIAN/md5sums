@@ -1,0 +1,9 @@
+8528b9b07acf4cbac231eb21dd3d262c  etc/default/dnsmasq
+bc949f5cad485a88b585271b933f0c05  etc/dnsmasq.conf
+5a7e3e2c9f6a57880086d342f0b28f98  etc/dnsmasq.d/README
+619ec632736050c3f49e43ecf218efce  etc/init.d/dnsmasq
+530a424ac064ea9d86f235d12ecc227a  etc/insserv.conf.d/dnsmasq
+79d449fe3b873444952bc1192bb53f0c  etc/resolvconf/update.d/dnsmasq
+443b19531735c1a85f12ebed875c06f1  lib/systemd/system/dnsmasq.service
+7409a853391ba34cc1df9be4da0a0c27  usr/lib/resolvconf/dpkg-event.d/dnsmasq
+0bff11efd403998d8581a00fb492bc99  usr/share/dnsmasq/installed-marker

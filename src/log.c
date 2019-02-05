@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2016 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2018 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -232,7 +232,7 @@ static void log_write(void)
 	      logaddr.sun_len = sizeof(logaddr) - sizeof(logaddr.sun_path) + strlen(_PATH_LOG) + 1; 
 #endif
 	      logaddr.sun_family = AF_UNIX;
-	      strncpy(logaddr.sun_path, _PATH_LOG, sizeof(logaddr.sun_path));
+	      safe_strncpy(logaddr.sun_path, _PATH_LOG, sizeof(logaddr.sun_path));
 	      
 	      /* Got connection back? try again. */
 	      if (connect(log_fd, (struct sockaddr *)&logaddr, sizeof(logaddr)) != -1)
@@ -288,7 +288,9 @@ void my_syslog(int priority, const char *format, ...)
     func = "-tftp";
   else if ((LOG_FACMASK & priority) == MS_DHCP)
     func = "-dhcp";
-      
+  else if ((LOG_FACMASK & priority) == MS_SCRIPT)
+    func = "-script";
+	    
 #ifdef LOG_PRI
   priority = LOG_PRI(priority);
 #else

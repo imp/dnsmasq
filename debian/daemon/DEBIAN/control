@@ -1,0 +1,19 @@
+Package: dnsmasq
+Version: 2.77-1
+Architecture: all
+Maintainer: Simon Kelley <simon@thekelleys.org.uk>
+Installed-Size: 71
+Depends: netbase, dnsmasq-base (>= 2.77-1), init-system-helpers (>= 1.18~)
+Suggests: resolvconf
+Conflicts: resolvconf (<< 1.15)
+Section: net
+Priority: optional
+Description: Small caching DNS proxy and DHCP/TFTP server
+ Dnsmasq is a lightweight, easy to configure, DNS forwarder and DHCP
+ server. It is designed to provide DNS and optionally, DHCP, to a
+ small network. It can serve the names of local machines which are
+ not in the global DNS. The DHCP server integrates with the DNS
+ server and allows machines with DHCP-allocated addresses
+ to appear in the DNS with names configured either in each host or
+ in a central configuration file. Dnsmasq supports static and dynamic
+ DHCP leases and BOOTP/TFTP for network booting of diskless machines.
