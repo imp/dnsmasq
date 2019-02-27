@@ -17,6 +17,10 @@ version 2.81
 	combinatorial explosion of compile-time options. Thanks to
 	Kevin Darbyshire-Bryant for the patch.
 
+	Fix line-counting when reading /etc/hosts and friends; for
+	correct error messages. Thanks to Christian Rosentreter
+	for reporting this.
+
 
 version 2.80
 	Add support for RFC 4039 DHCP rapid commit. Thanks to Ashram Method
