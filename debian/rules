@@ -194,7 +194,7 @@ binary-indep:	checkroot
 binary-arch:	checkroot 
 	$(call build_tree,debian/trees/base)
 	make $(TARGET) BUILDDIR=debian/build/no-lua PREFIX=/usr DESTDIR=`pwd`/debian/trees/base CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" COPTS="$(DEB_COPTS)" CC=$(CC) PKG_CONFIG=$(PKG_CONFIG)
-ifeq (,$(findstring nodocs,$(DEB_BUILD_OPTIONS)))
+ifeq (,$(findstring nodoc,$(DEB_BUILD_OPTIONS)))
 	$(call add_docs,debian/trees/base)
 else	
 	rm -rf debian/trees/base/usr/share/man
@@ -213,7 +213,7 @@ endif
 
 	$(call build_tree,debian/trees/lua-base)
 	make $(TARGET) BUILDDIR=debian/build/lua PREFIX=/usr DESTDIR=`pwd`/debian/trees/lua-base CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" COPTS="-DHAVE_LUASCRIPT $(DEB_COPTS)" CC=$(CC) PKG_CONFIG=$(PKG_CONFIG)
-ifeq (,$(findstring nodocs,$(DEB_BUILD_OPTIONS)))
+ifeq (,$(findstring nodoc,$(DEB_BUILD_OPTIONS)))
 	$(call add_docs,debian/trees/lua-base)
 else	
 	rm -rf debian/trees/lua-base/usr/share/man
@@ -239,14 +239,14 @@ ifeq ($(DEB_HOST_ARCH_OS),linux)
 	install -m 755 -d debian/trees/utils/DEBIAN \
 	               -d debian/trees/utils/usr/bin \
                        -d debian/trees/utils/usr/share/doc/dnsmasq-utils
-ifeq (,$(findstring nodocs,$(DEB_BUILD_OPTIONS)))
+ifeq (,$(findstring nodoc,$(DEB_BUILD_OPTIONS)))
 	install -m 755 -d debian/trees/utils/usr/share/man/man1
 endif
 	make -C contrib/lease-tools PREFIX=/usr DESTDIR=`pwd`/debian/trees/utils CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" COPTS="$(DEB_COPTS)" CC=$(CC) PKG_CONFIG=$(PKG_CONFIG)
 	install -m 755 contrib/lease-tools/dhcp_release debian/trees/utils/usr/bin/dhcp_release
 	install -m 755 contrib/lease-tools/dhcp_release6 debian/trees/utils/usr/bin/dhcp_release6
 	install -m 755 contrib/lease-tools/dhcp_lease_time debian/trees/utils/usr/bin/dhcp_lease_time
-ifeq (,$(findstring nodocs,$(DEB_BUILD_OPTIONS)))
+ifeq (,$(findstring nodoc,$(DEB_BUILD_OPTIONS)))
 	install -m 644 contrib/lease-tools/dhcp_release.1 debian/trees/utils/usr/share/man/man1/dhcp_release.1
 	gzip -9n debian/trees/utils/usr/share/man/man1/dhcp_release.1
 	install -m 644 contrib/lease-tools/dhcp_release6.1 debian/trees/utils/usr/share/man/man1/dhcp_release6.1
