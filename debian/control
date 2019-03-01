@@ -7,6 +7,8 @@ Build-depends: gettext, libnetfilter-conntrack-dev [linux-any],
 	       liblua5.2-dev
 Maintainer: Simon Kelley <simon@thekelleys.org.uk>
 Homepage: http://www.thekelleys.org.uk/dnsmasq/doc.html
+Vcs-Git: http://thekelleys.org.uk/git/dnsmasq.git
+Vcs-Browser: http://thekelleys.org.uk/gitweb/?p=dnsmasq.git
 Standards-Version: 3.9.8
 
 Package: dnsmasq
