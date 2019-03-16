@@ -28,7 +28,12 @@ version 2.81
 
 	Support TCP-fastopen (RFC-7413) on both incoming and
 	outgoing TCP connections, if supported and enabled in the OS.
-	
+
+	Improve kernel-capability manipulation code under Linux. Dnsmasq
+	now fails early if a required capability is not available, and
+	tries not to request capabilities not required by its
+	configuration.
+
 	
 version 2.80
 	Add support for RFC 4039 DHCP rapid commit. Thanks to Ashram Method
