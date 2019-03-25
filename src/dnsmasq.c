@@ -420,6 +420,16 @@ int main (int argc, char **argv)
   die(_("DBus not available: set HAVE_DBUS in src/config.h"), NULL, EC_BADCONF);
 #endif
 
+  if (option_bool(OPT_UBUS))
+#ifdef HAVE_UBUS
+    {
+      daemon->ubus = NULL;
+      ubus_init();
+    }
+#else
+  die(_("UBus not available: set HAVE_UBUS in src/config.h"), NULL, EC_BADCONF);
+#endif
+
   if (daemon->port != 0)
     pre_allocate_sfds();
 
@@ -811,6 +821,16 @@ int main (int argc, char **argv)
     }
 #endif
 
+#ifdef HAVE_UBUS
+  if (option_bool(OPT_UBUS))
+    {
+      if (daemon->ubus)
+        my_syslog(LOG_INFO, _("UBus support enabled: connected to system bus"));
+      else
+        my_syslog(LOG_INFO, _("UBus support enabled: bus connection pending"));
+    }
+#endif
+
 #ifdef HAVE_DNSSEC
   if (option_bool(OPT_DNSSEC_VALID))
     {
@@ -999,7 +1019,7 @@ int main (int argc, char **argv)
 
 #ifdef HAVE_UBUS
       if (option_bool(OPT_UBUS))
-	  set_ubus_listeners();
+        set_ubus_listeners();
 #endif
 	  
 #ifdef HAVE_DHCP
@@ -1134,7 +1154,15 @@ int main (int argc, char **argv)
 
 #ifdef HAVE_UBUS
       if (option_bool(OPT_UBUS))
-        check_ubus_listeners();
+        {
+          /* if we didn't create a UBus connection, retry now. */
+          if (!daemon->ubus)
+            {
+              ubus_init();
+            }
+
+          check_ubus_listeners();
+        }
 #endif
 
       check_dns_listeners(now);
