@@ -34,6 +34,11 @@ version 2.81
 	tries not to request capabilities not required by its
 	configuration.
 
+	Add --shared-network config. This enables allocation of addresses
+	the DHCP server in subnets where the server (or relay) doesn't
+	have an interface on the network in that subnet. Many thanks to
+	plank.de for sponsoring this feature.
+
 	
 version 2.80
 	Add support for RFC 4039 DHCP rapid commit. Thanks to Ashram Method
