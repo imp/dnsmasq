@@ -37,7 +37,7 @@ version 2.81
 	Add --shared-network config. This enables allocation of addresses
 	the DHCP server in subnets where the server (or relay) doesn't
 	have an interface on the network in that subnet. Many thanks to
-	plank.de for sponsoring this feature.
+	kamp.de for sponsoring this feature.
 
 	
 version 2.80
