@@ -5,8 +5,9 @@ dnsmasq (2.81-1) unstable; urgency=low
    * Add Vcs-* fields to control. (closes: #922422)
    * Add systemd support for multiple daemon instances. (closes: #914305)
    * Add note explaining that ENABLED is SYSV-init only. (closes: #914755)
-	
- -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 1 Mar 2019 17:19:25 +0000
+   * Replace ash with dash in contrib/reverse-dns. (closes: #920224)
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 8 Apr 2019 17:14:15 +0000
 
 dnsmasq (2.80-1) unstable; urgency=low
 
