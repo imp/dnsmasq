@@ -3,6 +3,7 @@ dnsmasq (2.81-1) unstable; urgency=low
    * New upstream.
    * Fix nodocs/nodoc confusion in rules. (closes: #922758)
    * Add Vcs-* fields to control. (closes: #922422)
+   * Add systemd support for multiple daemon instances. (closes: #914305)
 
  -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 1 Mar 2019 17:19:25 +0000
 

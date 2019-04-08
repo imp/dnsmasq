@@ -129,6 +129,8 @@ define add_docs
 	gzip -9n $1/usr/share/doc/$(package)/changelog.archive
 	install -m 644 dbus/DBus-interface $1/usr/share/doc/$(package)/.
 	gzip -9n $1/usr/share/doc/$(package)/DBus-interface	
+	install -m 644 debian/systemd_howto $1/usr/share/doc/$(package)/.
+	gzip -9n $1/usr/share/doc/$(package)/systemd_howto
 	gzip -9n $1/usr/share/man/man8/dnsmasq.8
 	for f in $1/usr/share/man/*; do \
 		if [ -f $$f/man8/dnsmasq.8 ]; then \
@@ -161,7 +163,7 @@ binary-indep:	checkroot
 	rm -rf debian/trees/daemon
 	install -m 755 \
 	        -d debian/trees/daemon/DEBIAN \
-		-d debian/trees/daemon/usr/share/doc \
+		-d debian/trees/daemon/usr/share/doc/dnsmasq \
 	        -d debian/trees/daemon/etc/init.d \
 		-d debian/trees/daemon/etc/dnsmasq.d \
 	        -d debian/trees/daemon/etc/resolvconf/update.d \
@@ -181,6 +183,7 @@ binary-indep:	checkroot
 	install -m 644 dnsmasq.conf.example debian/trees/daemon/etc/dnsmasq.conf
 	install -m 644 debian/readme.dnsmasq.d debian/trees/daemon/etc/dnsmasq.d/README
 	install -m 644 debian/systemd.service debian/trees/daemon/lib/systemd/system/dnsmasq.service
+	install -m 644 debian/systemd@.service debian/trees/daemon/lib/systemd/system/dnsmasq@.service
 	install -m 644 debian/tmpfiles.conf debian/trees/daemon/usr/lib/tmpfiles.d/dnsmasq.conf
 	install -m 644 debian/insserv debian/trees/daemon/etc/insserv.conf.d/dnsmasq
 	ln -s $(package) debian/trees/daemon/usr/share/doc/dnsmasq
