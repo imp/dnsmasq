@@ -17,6 +17,8 @@
 #DNSMASQ_OPTS="--conf-file=/etc/dnsmasq.alt"
 
 # Whether or not to run the dnsmasq daemon; set to 0 to disable.
+# Note that this is only valid when using SYSV init. For systemd,
+# use "systemctl disable dnsmasq"
 ENABLED=1
 
 # By default search this drop directory for configuration options.
