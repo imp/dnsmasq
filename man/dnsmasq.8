@@ -1405,6 +1405,12 @@ address, and setting this flag enables this mode. Note that in the
 sequential mode, clients which allow a lease to expire are much more
 likely to move IP address; for this reason it should not be generally used.
 .TP
+.B --dhcp-ignore-clid
+Dnsmasq is reading 'client identifier' (RFC 2131) option sent by clients
+(if available) to identify clients. This allow to serve same IP address
+for a host using several interfaces. Use this option to disable 'client identifier'
+reading, i.e. to always identify a host using the MAC address.
+.TP
 .B --pxe-service=[tag:<tag>,]<CSA>,<menu text>[,<basename>|<bootservicetype>][,<server address>|<server_name>]
 Most uses of PXE boot-ROMS simply allow the PXE
 system to obtain an IP address and then download the file specified by
