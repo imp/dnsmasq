@@ -6,6 +6,7 @@ dnsmasq (2.81-1) unstable; urgency=low
    * Add systemd support for multiple daemon instances. (closes: #914305)
    * Add note explaining that ENABLED is SYSV-init only. (closes: #914755)
    * Replace ash with dash in contrib/reverse-dns. (closes: #920224)
+   * Move to libidn2. (closes: #932695)
 
  -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 8 Apr 2019 17:14:15 +0000
 

@@ -2,7 +2,7 @@ Source: dnsmasq
 Section: net
 Priority: optional
 Build-depends: gettext, libnetfilter-conntrack-dev [linux-any],
-               libidn11-dev, libdbus-1-dev (>=0.61), libgmp-dev, 
+               libidn2-dev, libdbus-1-dev (>=0.61), libgmp-dev, 
                nettle-dev (>=2.4-3), libbsd-dev [!linux-any],
 	       liblua5.2-dev
 Maintainer: Simon Kelley <simon@thekelleys.org.uk>

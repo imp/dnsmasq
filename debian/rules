@@ -49,7 +49,7 @@ ifeq (,$(filter nodbus,$(DEB_BUILD_OPTIONS)))
 endif
 
 ifeq (,$(filter noidn, $(DEB_BUILD_OPTIONS)))
-	DEB_COPTS += -DHAVE_IDN
+	DEB_COPTS += -DHAVE_LIBIDN2
 endif
 
 ifeq (,$(filter noconntrack,$(DEB_BUILD_OPTIONS)))
