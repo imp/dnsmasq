@@ -46,10 +46,9 @@ version 2.81
 	Fix compilation against nettle version 3.5 and later.
 
 	Fix spurious DNSSEC validation failures when the auth section
-	of a reply proving that a DS record does not exist contains
-	unsigned RRs. Only the NSEC/NSEC3 records needed to prove
-	the non-existence of the DS record must be signed. Thanks
-	to Tore Anderson for spotting and diagnosing the bug.
+	of a reply contains unsigned RRs from a signed zone, 
+	with the exception that NSEC and NSEC3 RRs must always be signed.
+        Thanks to Tore Anderson for spotting and diagnosing the bug.
 
 	
 version 2.80
