@@ -54,6 +54,10 @@ version 2.81
 	identifier option (option 61), so clients are only identified by
 	MAC addresses.
 
+	Fix a bug which stopped --dhcp-name-match from working when a hostname
+	is supplied in --dhcp-host. Thanks to James Feeney for spotting this.
+
+	
 version 2.80
 	Add support for RFC 4039 DHCP rapid commit. Thanks to Ashram Method
 	for the initial patch and motivation.
