@@ -57,6 +57,9 @@ version 2.81
 	Fix a bug which stopped --dhcp-name-match from working when a hostname
 	is supplied in --dhcp-host. Thanks to James Feeney for spotting this.
 
+	Fix bug which caused very rarely caused zero-length DHCPv6 packets.
+	Thanks to Dereck Higgins for spotting this.
+
 	
 version 2.80
 	Add support for RFC 4039 DHCP rapid commit. Thanks to Ashram Method
