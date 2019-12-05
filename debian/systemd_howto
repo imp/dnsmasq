@@ -32,7 +32,7 @@ TODO
 #1 - Found shortcoming on 2019-03-10
 Only the option DNSMASQ_EXCEPT="lo" avoids that an DNS instance will be set as the machine's DNS resolver.
 This may interfere with the wish to run an additional instance on a different port on the localhost addresses.
-My suggestion in the initial Debian report [1] was to specify a explicit variable for this.
+My suggestion in the initial Debian report [1] was to specify an explicit variable for this.
 
 [1] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=914305#5
 

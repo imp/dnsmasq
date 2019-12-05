@@ -515,7 +515,7 @@ address of 0.0.0.0 and its IPv6 equivalent of :: so
 \fB--address=/example.com/#\fP will return NULL addresses for example.com and
 its subdomains. This is partly syntactic sugar for \fB--address=/example.com/0.0.0.0\fP
 and \fB--address=/example.com/::\fP but is also more efficient than including both
-as seperate configuration lines. Note that NULL addresses normally work in the same way as localhost, so beware that clients looking up these names are likely to end up talking to themselves.
+as separate configuration lines. Note that NULL addresses normally work in the same way as localhost, so beware that clients looking up these names are likely to end up talking to themselves.
 .TP
 .B --ipset=/<domain>[/<domain>...]/<ipset>[,<ipset>...]
 Places the resolved IP addresses of queries for one or more domains in
@@ -748,7 +748,7 @@ fast.
 
 Versions of dnsmasq prior to 2.80 defaulted to not checking unsigned replies, and used 
 .B --dnssec-check-unsigned
-to switch this on. Such configurations will continue to work as before, but those which used the default of no checking will need to be altered to explicitly select no checking. The new default is because switching off checking for unsigned replies is inherently dangerous. Not only does it open the possiblity of forged replies, but it allows everything to appear to be working even when the upstream namesevers do not support DNSSEC, and in this case no DNSSEC validation at all is occuring.
+to switch this on. Such configurations will continue to work as before, but those which used the default of no checking will need to be altered to explicitly select no checking. The new default is because switching off checking for unsigned replies is inherently dangerous. Not only does it open the possiblity of forged replies, but it allows everything to appear to be working even when the upstream namesevers do not support DNSSEC, and in this case no DNSSEC validation at all is occurring.
 .TP
 .B --dnssec-no-timecheck
 DNSSEC signatures are only valid for specified time windows, and should be rejected outside those windows. This generates an
