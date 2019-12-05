@@ -60,7 +60,7 @@ version 2.81
 	Fix bug which caused very rarely caused zero-length DHCPv6 packets.
 	Thanks to Dereck Higgins for spotting this.
 
-	
+
 version 2.80
 	Add support for RFC 4039 DHCP rapid commit. Thanks to Ashram Method
 	for the initial patch and motivation.
