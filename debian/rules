@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 # debian/rules file - for dnsmasq.
-# Copyright 2001-2018 by Simon Kelley
+# Copyright 2001-2020 by Simon Kelley
 # Based on the sample in the debian hello package which carries the following:
 # Copyright 1994,1995 by Ian Jackson.
 # I hereby give you perpetual unlimited permission to copy,
