@@ -771,9 +771,12 @@ over system restarts. The timestamp file is created after dnsmasq has dropped ro
 unprivileged user that dnsmasq runs as.
 .TP
 .B --proxy-dnssec
-Copy the DNSSEC Authenticated Data bit from upstream servers to downstream clients and cache it.  This is an 
+Copy the DNSSEC Authenticated Data bit from upstream servers to downstream clients.  This is an 
 alternative to having dnsmasq validate DNSSEC, but it depends on the security of the network between 
-dnsmasq and the upstream servers, and the trustworthiness of the upstream servers.
+dnsmasq and the upstream servers, and the trustworthiness of the upstream servers. Note that caching the
+Authenticated Data bit correctly in all cases is not technically possible. If the AD bit is to be relied upon
+when using this option, then the cache should be disabled using --cache-size=0. In most cases, enabling DNSSEC validation
+within dnsmasq is a better option. See --dnssec for details.
 .TP
 .B --dnssec-debug
 Set debugging mode for the DNSSEC validation, set the Checking Disabled bit on upstream queries, 
