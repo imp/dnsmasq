@@ -1943,7 +1943,12 @@ specifies a range of ports for use by TFTP transfers. This can be
 useful when TFTP has to traverse a firewall. The start of the range
 cannot be lower than 1025 unless dnsmasq is running as root. The number
 of concurrent TFTP connections is limited by the size of the port range. 
-.TP  
+.TP
+.B --tftp-single-port
+Run in a mode where the TFTP server uses ONLY the well-known port (69) for its end
+of the TFTP transfer. This allows TFTP to work when there in NAT is the path between client and server. Note that
+this is not strictly compliant with the RFCs specifying the TFTP protocol: use at your own risk.
+.TP
 .B \-C, --conf-file=<file>
 Specify a configuration file. The presence of this option stops dnsmasq from reading the default configuration
 file (normally /etc/dnsmasq.conf). Multiple files may be specified by repeating the option
