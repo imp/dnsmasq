@@ -64,8 +64,13 @@ version 2.81
 
 	Enhance --conf-dir to load files in a deterministic order. Thanks to
 	Evgenii Seliavka for the suggestion and initial patch.
-	
 
+	In the router advert code, handle case where we have two
+	different interfaces on the same IPv6 net, and we're doing
+	RA/DHCP service on only one of them. Thanks to NIIBE Yutaka
+	for spotting this case and making the initial patch.
+	
+	
 version 2.80
 	Add support for RFC 4039 DHCP rapid commit. Thanks to Ashram Method
 	for the initial patch and motivation.
