@@ -69,6 +69,14 @@ version 2.81
 	different interfaces on the same IPv6 net, and we're doing
 	RA/DHCP service on only one of them. Thanks to NIIBE Yutaka
 	for spotting this case and making the initial patch.
+
+	Support prefixed ranges of ipv6 addresses in dhcp-host.
+	This eases problems chain-netbooting, where each link in the
+	chain requests an address using a different UID. With a single
+	address, only one gets the "static" address, but with this
+	fix, enough addresses can be reserved for all the stages of the
+	boot. Many thanks to Harald Jensås for his work on this idea and
+	earlier patches. 
 	
 	
 version 2.80

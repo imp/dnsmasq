@@ -1013,7 +1013,13 @@ may contain an IPv4 address or an IPv6 address, or both. IPv6 addresses must be 
 IPv6 addresses may contain only the host-identifier part:
 .B --dhcp-host=laptop,[::56]
 in which case they act as wildcards in constructed dhcp ranges, with
-the appropriate network part inserted. 
+the appropriate network part inserted. For IPv6, the address may include a prefix length:
+.B --dhcp-host=laptop,[1234:50/126]
+which (in this case) specifies four addresses, 1234::50 to 1234::53. This is useful
+when a host presents either a consistent name or hardware-ID, but varying DUIDs, since it allows
+dnsmasq to honour the static address allocation but assign a different adddress for each DUID. This
+typically occurs when chain netbooting, as each stage of the chain gets in turn allocates an address.
+
 Note that in IPv6 DHCP, the hardware address may not be
 available, though it normally is for direct-connected clients, or
 clients using DHCP relays which support RFC 6939.
