@@ -975,7 +975,7 @@ is also included, as described in RFC-3775 section 7.3.
 tells dnsmasq to advertise the prefix without the on-link (aka L) bit set.
 
 .TP
-.B \-G, --dhcp-host=[<hwaddr>][,id:<client_id>|*][,set:<tag>][,<ipaddr>][,<hostname>][,<lease_time>][,ignore]
+.B \-G, --dhcp-host=[<hwaddr>][,id:<client_id>|*][,set:<tag>][tag:<tag>][,<ipaddr>][,<hostname>][,<lease_time>][,ignore]
 Specify per host parameters for the DHCP server. This allows a machine
 with a particular hardware address to be always allocated the same
 hostname, IP address and lease time. A hostname specified like this
@@ -1060,6 +1060,9 @@ ignore requests from unknown machines using
 .B --dhcp-ignore=tag:!known
 If the host matches only a \fB--dhcp-host\fP directive which cannot
 be used because it specifies an address on different subnet, the tag "known-othernet" is set.
+
+The tag:<tag> construct filters which dhcp-host directives are used. Tagged directives are used in preference to untagged ones.
+
 Ethernet addresses (but not client-ids) may have
 wildcard bytes, so for example 
 .B --dhcp-host=00:20:e0:3b:13:*,ignore 

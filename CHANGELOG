@@ -76,7 +76,10 @@ version 2.81
 	address, only one gets the "static" address, but with this
 	fix, enough addresses can be reserved for all the stages of the
 	boot. Many thanks to Harald Jensås for his work on this idea and
-	earlier patches. 
+	earlier patches.
+
+	Add filtering by tag of --dhcp-host directives. Based on a patch
+	by Harald Jensås.
 	
 	
 version 2.80
