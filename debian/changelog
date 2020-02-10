@@ -9,7 +9,8 @@ dnsmasq (2.81-1) unstable; urgency=low
    * Move to libidn2. (closes: #932695)
    * Fix RA problem with two interfaces on same net, but RA service on
      only one of the interfaces. (closes: #949565)
-
+   * Fix breakage of dig +trace. (closes: #942363)
+	
  -- Simon Kelley <simon@thekelleys.org.uk>  Mon, 27 Jan 2020 22:31:15 +0000
 
 dnsmasq (2.80-1) unstable; urgency=low
