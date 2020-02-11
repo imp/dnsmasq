@@ -80,6 +80,8 @@ version 2.81
 
 	Add filtering by tag of --dhcp-host directives. Based on a patch
 	by Harald Jensås.
+
+	Allow empty server spec in --rev-server, to match --server.
 	
 	
 version 2.80

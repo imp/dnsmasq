@@ -484,7 +484,7 @@ source address specified but the port may be specified directly as
 part of the source address. Forcing queries to an interface is not
 implemented on all platforms supported by dnsmasq.
 .TP
-.B --rev-server=<ip-address>/<prefix-len>,<ipaddr>[#<port>][@<source-ip>|<interface>[#<port>]]
+.B --rev-server=<ip-address>/<prefix-len>[,<ipaddr>][#<port>][@<source-ip>|<interface>[#<port>]]
 This is functionally the same as 
 .B --server, 
 but provides some syntactic sugar to make specifying address-to-name queries easier. For example
