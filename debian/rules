@@ -175,6 +175,10 @@ binary-indep:	checkroot
                 -d debian/trees/daemon/etc/insserv.conf.d
 	install -m 644 debian/conffiles debian/trees/daemon/DEBIAN
 	install -m 755 debian/postinst debian/postrm debian/prerm debian/trees/daemon/DEBIAN
+	rm -f debian/dnsmasq.postinst.debhelper debian/dnsmasq.postrm.debhelper
+	dh_runit -pdnsmasq -Pdebian/trees/daemon
+	cat debian/dnsmasq.postinst.debhelper >> debian/trees/daemon/DEBIAN/postinst
+	cat debian/dnsmasq.postrm.debhelper   >> debian/trees/daemon/DEBIAN/postrm
 	install -m 755 debian/init debian/trees/daemon/etc/init.d/dnsmasq
 	install -m 755 debian/resolvconf debian/trees/daemon/etc/resolvconf/update.d/dnsmasq
 	install -m 755 debian/resolvconf-package debian/trees/daemon/usr/lib/resolvconf/dpkg-event.d/dnsmasq
@@ -188,7 +192,7 @@ binary-indep:	checkroot
 	install -m 644 debian/insserv debian/trees/daemon/etc/insserv.conf.d/dnsmasq
 	ln -s $(package) debian/trees/daemon/usr/share/doc/dnsmasq
 	cd debian/trees/daemon && find . -type f ! -regex '.*DEBIAN/.*' -printf '%P\0' | LC_ALL=C sort -z | xargs -r0 md5sum > DEBIAN/md5sums	
-	dpkg-gencontrol $(PACKAGE_VERSION) -T -pdnsmasq -Pdebian/trees/daemon
+	dpkg-gencontrol $(PACKAGE_VERSION) -Tdebian/dnsmasq.substvars -pdnsmasq -Pdebian/trees/daemon
 	find debian/trees/daemon -depth -newermt '$(BUILD_DATE)' -print0 | xargs -0r touch --no-dereference --date='$(BUILD_DATE)'
 	chown -R root.root debian/trees/daemon
 	chmod -R g-ws debian/trees/daemon
