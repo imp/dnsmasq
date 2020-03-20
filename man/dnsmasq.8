@@ -366,10 +366,13 @@ been built with DBus support. If the service name is given, dnsmasq
 provides service at that name, rather than the default which is 
 .B uk.org.thekelleys.dnsmasq
 .TP 
-.B --enable-ubus
+.B --enable-ubus[=<service-name>]
 Enable dnsmasq UBus interface. It sends notifications via UBus on
 DHCPACK and DHCPRELEASE events. Furthermore it offers metrics.
-Requires that dnsmasq has been built with UBus support.
+Requires that dnsmasq has been built with UBus support. If the service
+name is given, dnsmasq provides service at that namespace, rather than
+the default which is
+.B dnsmasq
 .TP
 .B \-o, --strict-order
 By default, dnsmasq will send queries to any of the upstream servers
