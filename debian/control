@@ -3,8 +3,9 @@ Section: net
 Priority: optional
 Build-depends: gettext, libnetfilter-conntrack-dev [linux-any],
                libidn2-dev, libdbus-1-dev (>=0.61), libgmp-dev, 
-               nettle-dev (>=2.4-3), libbsd-dev [!linux-any],
-	       liblua5.2-dev, dh-runit, debhelper-compat (= 10)
+               nettle-dev (>=2.4-3), libbsd-dev [kfreebsd-any],
+	       liblua5.2-dev, dh-runit, debhelper-compat (= 10),
+               pkg-config
 Maintainer: Simon Kelley <simon@thekelleys.org.uk>
 Homepage: http://www.thekelleys.org.uk/dnsmasq/doc.html
 Vcs-Git: http://thekelleys.org.uk/git/dnsmasq.git

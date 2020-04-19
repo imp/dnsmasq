@@ -98,9 +98,10 @@ ifeq (,$(filter nodnssec,$(DEB_BUILD_OPTIONS)))
      DEB_COPTS += -DHAVE_DNSSEC
 endif
 
-ifneq ($(DEB_HOST_ARCH_OS),linux)
+ifeq ($(DEB_HOST_ARCH_OS),kfreebsd)
      # For strlcpy in FreeBSD
-     LDFLAGS += -lbsd
+     LIBS += $(shell ${PKG_CONFIG} --libs libbsd-overlay)
+     CFLAGS += $(shell ${PKG_CONFIG} --cflags libbsd-overlay)
 endif
 
 define build_tree
@@ -204,7 +205,7 @@ binary-indep:	checkroot
 
 binary-arch:	checkroot 
 	$(call build_tree,debian/trees/base)
-	make $(TARGET) BUILDDIR=debian/build/no-lua PREFIX=/usr DESTDIR=`pwd`/debian/trees/base CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" COPTS="$(DEB_COPTS)" CC=$(CC) PKG_CONFIG=$(PKG_CONFIG)
+	make $(TARGET) BUILDDIR=debian/build/no-lua PREFIX=/usr DESTDIR=`pwd`/debian/trees/base CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" COPTS="$(DEB_COPTS)" CC=$(CC) PKG_CONFIG=$(PKG_CONFIG) LIBS="$(LIBS)"
 ifeq (,$(findstring nodoc,$(DEB_BUILD_OPTIONS)))
 	$(call add_docs,debian/trees/base)
 else	
@@ -223,7 +224,7 @@ endif
 	dpkg --build debian/trees/base ..
 
 	$(call build_tree,debian/trees/lua-base)
-	make $(TARGET) BUILDDIR=debian/build/lua PREFIX=/usr DESTDIR=`pwd`/debian/trees/lua-base CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" COPTS="-DHAVE_LUASCRIPT $(DEB_COPTS)" CC=$(CC) PKG_CONFIG=$(PKG_CONFIG)
+	make $(TARGET) BUILDDIR=debian/build/lua PREFIX=/usr DESTDIR=`pwd`/debian/trees/lua-base CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" COPTS="-DHAVE_LUASCRIPT $(DEB_COPTS)" CC=$(CC) PKG_CONFIG=$(PKG_CONFIG) LIBS="$(LIBS)"
 ifeq (,$(findstring nodoc,$(DEB_BUILD_OPTIONS)))
 	$(call add_docs,debian/trees/lua-base)
 else	
@@ -253,7 +254,7 @@ ifeq ($(DEB_HOST_ARCH_OS),linux)
 ifeq (,$(findstring nodoc,$(DEB_BUILD_OPTIONS)))
 	install -m 755 -d debian/trees/utils/usr/share/man/man1
 endif
-	make -C contrib/lease-tools PREFIX=/usr DESTDIR=`pwd`/debian/trees/utils CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" COPTS="$(DEB_COPTS)" CC=$(CC) PKG_CONFIG=$(PKG_CONFIG)
+	make -C contrib/lease-tools PREFIX=/usr DESTDIR=`pwd`/debian/trees/utils CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" COPTS="$(DEB_COPTS)" CC=$(CC) PKG_CONFIG=$(PKG_CONFIG) LIBS="$(LIBS)"
 	install -m 755 contrib/lease-tools/dhcp_release debian/trees/utils/usr/bin/dhcp_release
 	install -m 755 contrib/lease-tools/dhcp_release6 debian/trees/utils/usr/bin/dhcp_release6
 	install -m 755 contrib/lease-tools/dhcp_lease_time debian/trees/utils/usr/bin/dhcp_lease_time
