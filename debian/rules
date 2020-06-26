@@ -177,11 +177,13 @@ binary-indep:	checkroot
                 -d debian/trees/daemon/etc/insserv.conf.d
 	install -m 644 debian/conffiles debian/trees/daemon/DEBIAN
 	install -m 755 debian/postinst debian/postrm debian/prerm debian/trees/daemon/DEBIAN
-	rm -f debian/dnsmasq.postinst.debhelper debian/dnsmasq.postrm.debhelper
-	dh_runit -pdnsmasq -Pdebian/trees/daemon
-	cd debian/trees/daemon && find etc/sv -type f -printf '/%p\n' >>DEBIAN/conffiles
-	cat debian/dnsmasq.postinst.debhelper >> debian/trees/daemon/DEBIAN/postinst
-	cat debian/dnsmasq.postrm.debhelper   >> debian/trees/daemon/DEBIAN/postrm
+	if ! dpkg-vendor --derives-from Ubuntu; then \
+                rm -f debian/dnsmasq.postinst.debhelper debian/dnsmasq.postrm.debhelper; \
+	      	dh_runit -pdnsmasq -Pdebian/trees/daemon; \
+		cat debian/dnsmasq.postinst.debhelper >> debian/trees/daemon/DEBIAN/postinst; \
+		cat debian/dnsmasq.postrm.debhelper   >> debian/trees/daemon/DEBIAN/postrm; \
+		cd debian/trees/daemon && find etc/sv -type f -printf '/%p\n' >>DEBIAN/conffiles; \
+	fi
 	install -m 755 debian/init debian/trees/daemon/etc/init.d/dnsmasq
 	install -m 755 debian/resolvconf debian/trees/daemon/etc/resolvconf/update.d/dnsmasq
 	install -m 755 debian/resolvconf-package debian/trees/daemon/usr/lib/resolvconf/dpkg-event.d/dnsmasq
