@@ -1,3 +1,9 @@
+dnsmasq (2.82-1) unstable; urgency=low
+
+   * New upstream.
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 26 Jun 2020 22:22:41 +0000
+
 dnsmasq (2.81-4) unstable; urgency=low
 
    * Remove runit support when building for Ubuntu. (closes: #960401)
