@@ -10,6 +10,14 @@ version 2.82
 	Fix crash under heavy TCP connection load introdcued in 2.81.
 	Thanks to Frank for good work chasing this down.
 
+	Change default lease time for DHCPv6 to one day.
+
+	Alter calculation of preffered and valid times in router
+	advertisements, so that these do not have a floor applied
+	of the lease time in the dhcp-range if this is not explicitly
+	specified and is merely the default.
+	Thanks to Martin-Éric Racine for suggestions on this.
+
 	
 version 2.81
 	Improve cache behaviour for TCP connections. For ease of
