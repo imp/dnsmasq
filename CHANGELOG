@@ -2,7 +2,12 @@ version 2.83
 	Use the values of --min-port and --max-port in outgoing
 	TCP connections to upstream DNS servers.
 
-	
+	Fix a remote buffer overflow problem in the DNSSEC code. Any
+	dnsmasq with DNSSEC compiled in and enabled is vulnerable to this,
+	referenced by CERT VU#434904.
+
+
+>>>>>>> Fix remote buffer overflow CERT VU#434904
 version 2.82
 	Improve behaviour in the face of network interfaces which come
 	and go and change index. Thanks to Petr Mensik for the patch.
