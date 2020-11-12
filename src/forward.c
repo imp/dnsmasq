@@ -16,7 +16,7 @@
 
 #include "dnsmasq.h"
 
-static struct frec *lookup_frec(unsigned short id, void *hash);
+static struct frec *lookup_frec(unsigned short id, int fd, int family, void *hash);
 static struct frec *lookup_frec_by_sender(unsigned short id,
 					  union mysockaddr *addr,
 					  void *hash);
@@ -805,7 +805,7 @@ void reply_query(int fd, int family, time_t now)
   crc = questions_crc(header, n, daemon->namebuff);
 #endif
   
-  if (!(forward = lookup_frec(ntohs(header->id), hash)))
+  if (!(forward = lookup_frec(ntohs(header->id), fd, family, hash)))
     return;
   
 #ifdef HAVE_DUMPFILE
@@ -2339,14 +2339,25 @@ struct frec *get_new_frec(time_t now, int *wait, struct frec *force)
 }
 
 /* crc is all-ones if not known. */
-static struct frec *lookup_frec(unsigned short id, void *hash)
+static struct frec *lookup_frec(unsigned short id, int fd, int family, void *hash)
 {
   struct frec *f;
 
   for(f = daemon->frec_list; f; f = f->next)
     if (f->sentto && f->new_id == id && 
 	(!hash || memcmp(hash, f->hash, HASH_SIZE) == 0))
-      return f;
+      {
+	/* sent from random port */
+	if (family == AF_INET && f->rfd4 && f->rfd4->fd == fd)
+	  return f;
+
+	if (family == AF_INET6 && f->rfd6 && f->rfd6->fd == fd)
+	  return f;
+
+	/* sent to upstream from bound socket. */
+	if (f->sentto->sfd && f->sentto->sfd->fd == fd)
+	  return f;
+      }
       
   return NULL;
 }
@@ -2407,12 +2418,20 @@ void server_gone(struct server *server)
 static unsigned short get_id(void)
 {
   unsigned short ret = 0;
+  struct frec *f;
   
-  do 
-    ret = rand16();
-  while (lookup_frec(ret, NULL));
-  
-  return ret;
+  while (1)
+    {
+      ret = rand16();
+
+      /* ensure id is unique. */
+      for (f = daemon->frec_list; f; f = f->next)
+	if (f->sentto && f->new_id == ret)
+	  break;
+
+      if (!f)
+	return ret;
+    }
 }
 
 
