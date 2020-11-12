@@ -11,6 +11,11 @@ version 2.83
 	in the {query-ID, random-port} tuple as possible, help defeat
 	cache poisoning attacks. Refer: CERT VU#434904.
 
+	Use the SHA-256 hash function to verify that DNS answers
+	received are for the questions originally asked. This replaces
+	the slightly insecure SHA-1 (when compiled with DNSSEC) or
+	the very insecure CRC32 (otherwise). Refer: CERT VU#434904.
+	
 
 version 2.82
 	Improve behaviour in the face of network interfaces which come
