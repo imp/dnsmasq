@@ -1359,6 +1359,8 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 		}
 
 	    }
+	  else
+	    return 0; /* give up if any cached CNAME in chain can't be used for DNSSEC reasons. */
 
 	  strcpy(name, cname_target);
 	}
