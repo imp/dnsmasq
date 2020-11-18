@@ -8,13 +8,27 @@ version 2.83
 
 	Be sure to only accept UDP DNS query replies at the address
 	from which the query was originated. This keeps as much entropy
-	in the {query-ID, random-port} tuple as possible, help defeat
+	in the {query-ID, random-port} tuple as possible, to help defeat
 	cache poisoning attacks. Refer: CERT VU#434904.
 
 	Use the SHA-256 hash function to verify that DNS answers
 	received are for the questions originally asked. This replaces
 	the slightly insecure SHA-1 (when compiled with DNSSEC) or
 	the very insecure CRC32 (otherwise). Refer: CERT VU#434904.
+
+	Handle multiple identical near simultaneous DNS queries better.
+	Previously, such queries would all be forwarded
+	independently. This is, in theory, inefficent but in practise
+	not a problem, _except_ that is means that an answer for any
+	of the forwarded queries will be accepted and cached.
+	An attacker can send a query multiple times, and for each repeat,
+	another {port, ID} becomes capable of accepting the answer he is
+	sending in the blind, to random IDs and ports. The chance of a
+	succesful attack is therefore multiplied by the number of repeats
+	of the query. The new behaviour detects repeated queries and
+	merely stores the clients sending repeats so that when the
+	first query completes, the answer can be sent to all the
+	clients who asked. Refer: CERT VU#434904.
 	
 
 version 2.82
