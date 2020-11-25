@@ -692,8 +692,8 @@ still marks the request so that no upstream nameserver will add client
 address information either. The default is zero for both IPv4 and
 IPv6. Note that upstream nameservers may be configured to return
 different results based on this information, but the dnsmasq cache
-does not take account. If a dnsmasq instance is configured such that
-different results may be encountered, caching should be disabled.
+does not take account. Caching is therefore disabled for such replies,
+unless the subnet address being added is constant.
 
 For example,
 .B --add-subnet=24,96
