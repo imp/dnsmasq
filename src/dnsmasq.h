@@ -829,6 +829,7 @@ struct dhcp_opt {
 #define DHOPT_RFC3925         2048
 #define DHOPT_TAGOK           4096
 #define DHOPT_ADDR6           8192
+#define DHOPT_VENDOR_PXE     16384
 
 struct dhcp_boot {
   char *file, *sname, *tftp_sname;
@@ -852,6 +853,8 @@ struct pxe_service {
   struct pxe_service *next;
 };
 
+#define DHCP_PXE_DEF_VENDOR      "PXEClient"
+
 #define MATCH_VENDOR     1
 #define MATCH_USER       2
 #define MATCH_CIRCUIT    3
@@ -865,6 +868,11 @@ struct dhcp_vendor {
   char *data;
   struct dhcp_netid netid;
   struct dhcp_vendor *next;
+};
+
+struct dhcp_pxe_vendor {
+  char *data;
+  struct dhcp_pxe_vendor *next;
 };
 
 struct dhcp_mac {
@@ -1040,6 +1048,7 @@ extern struct daemon {
   struct dhcp_config *dhcp_conf;
   struct dhcp_opt *dhcp_opts, *dhcp_match, *dhcp_opts6, *dhcp_match6;
   struct dhcp_match_name *dhcp_name_match;
+  struct dhcp_pxe_vendor *dhcp_pxe_vendors;
   struct dhcp_vendor *dhcp_vendors;
   struct dhcp_mac *dhcp_macs;
   struct dhcp_boot *boot_config;
