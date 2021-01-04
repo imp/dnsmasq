@@ -46,7 +46,7 @@
 #resolv-file=
 
 # By  default,  dnsmasq  will  send queries to any of the upstream
-# servers it knows about and tries to favour servers to are  known
+# servers it knows about and tries to favour servers who are  known
 # to  be  up.  Uncommenting this forces dnsmasq to try each query
 # with  each  server  strictly  in  the  order  they   appear   in
 # /etc/resolv.conf
