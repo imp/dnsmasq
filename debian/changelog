@@ -1,3 +1,10 @@
+dnsmasq (2.83-1) unstable; urgency=low
+
+   * New upstream.
+   * Includes fixes to CVE-2020-25681 - CVE-2020-25687 inclusive.
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 15 Jan 2021 22:22:41 +0000
+
 dnsmasq (2.82-1) unstable; urgency=low
 
    * New upstream.
