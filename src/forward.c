@@ -378,7 +378,7 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 	      new->dest = *dst_addr;
 	      new->log_id = daemon->log_id;
 	      new->iface = dst_iface;
-	      forward->frec_src.fd = udpfd;
+	      new->fd = udpfd;
 	    }
 	  
 	  return 1;
