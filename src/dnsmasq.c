@@ -390,8 +390,8 @@ int main (int argc, char **argv)
   if (daemon->port != 0)
     {
       cache_init();
-
       blockdata_init();
+      hash_questions_init();
     }
 
 #ifdef HAVE_INOTIFY
