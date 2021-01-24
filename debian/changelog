@@ -1,3 +1,9 @@
+dnsmasq (2.84-1) unstable; urgency=low
+
+   * New upstream.
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Sun, 24 Jan 2021 22:02:01 +0000
+
 dnsmasq (2.83-1) unstable; urgency=high
 
    * New upstream.
