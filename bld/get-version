@@ -31,7 +31,7 @@ else
      vers=`cat $1/VERSION | sed 's/[(), ]/,/ g' | tr ',' '\n' | grep ^v[0-9]`
 
      if [ $? -eq 0 ]; then
-         echo "${vers}" | sort -k1.2,1.5r -k 1.6,1.6 -k1.8,1.9r -k1.10,1.11r | head -n 1 | sed 's/^v//'
+         echo "${vers}" | sort -k1.2,1.5Vr -k1.6,1.6 -k1.8,1.9Vr -k1.10,1.11Vr | head -n 1 | sed 's/^v//'
      else
          cat $1/VERSION
      fi
