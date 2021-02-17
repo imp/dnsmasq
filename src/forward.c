@@ -278,8 +278,46 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
     fwd_flags |= FREC_DO_QUESTION;
 #endif
   
-  /* may be no servers available. */
-  if (forward || (forward = lookup_frec_by_sender(ntohs(header->id), udpaddr, hash)))
+  /* Check for retry on existing query from same source */
+  if (!forward && (!(forward = lookup_frec_by_sender(ntohs(header->id), udpaddr, hash))))
+    {
+      /* Maybe query from new source, but the same query may be in progress
+	 from another source. If so, just add this client to the
+	 list that will get the reply.*/
+	 
+      if (!option_bool(OPT_ADD_MAC) && !option_bool(OPT_MAC_B64) &&
+	  (forward = lookup_frec_by_query(hash, fwd_flags)))
+	{
+	  struct frec_src *new;
+
+	  /* Note whine_malloc() zeros memory. */
+	  if (!daemon->free_frec_src &&
+	      daemon->frec_src_count < daemon->ftabsize &&
+	      (daemon->free_frec_src = whine_malloc(sizeof(struct frec_src))))
+	    {
+	      daemon->frec_src_count++;
+	      daemon->free_frec_src->next = NULL;
+	    }
+	  
+	  /* If we've been spammed with many duplicates, just drop the query. */
+	  if (!daemon->free_frec_src)
+	    return 0;
+	  
+	  new = daemon->free_frec_src;
+	  daemon->free_frec_src = new->next;
+	  new->next = forward->frec_src.next;
+	  forward->frec_src.next = new;
+	  new->orig_id = ntohs(header->id);
+	  new->source = *udpaddr;
+	  new->dest = *dst_addr;
+	  new->log_id = daemon->log_id;
+	  new->iface = dst_iface;
+	  new->fd = udpfd;
+	}
+    }
+
+  /* retry existing query */
+  if (forward)
     {
       /* If we didn't get an answer advertising a maximal packet in EDNS,
 	 fall back to 1280, which should work everywhere on IPv6.
@@ -350,40 +388,8 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
     }
   else 
     {
-      /* Query from new source, but the same query may be in progress
-	 from another source. If so, just add this client to the
-	 list that will get the reply.*/
-	 
-      if (!option_bool(OPT_ADD_MAC) && !option_bool(OPT_MAC_B64) &&
-	  (forward = lookup_frec_by_query(hash, fwd_flags)))
-	{
-	  /* Note whine_malloc() zeros memory. */
-	  if (!daemon->free_frec_src &&
-	      daemon->frec_src_count < daemon->ftabsize &&
-	      (daemon->free_frec_src = whine_malloc(sizeof(struct frec_src))))
-	    {
-	      daemon->frec_src_count++;
-	      daemon->free_frec_src->next = NULL;
-	    }
-	  
-	  /* If we've been spammed with many duplicates, just drop the query. */
-	  if (daemon->free_frec_src)
-	    {
-	      struct frec_src *new = daemon->free_frec_src;
-	      daemon->free_frec_src = new->next;
-	      new->next = forward->frec_src.next;
-	      forward->frec_src.next = new;
-	      new->orig_id = ntohs(header->id);
-	      new->source = *udpaddr;
-	      new->dest = *dst_addr;
-	      new->log_id = daemon->log_id;
-	      new->iface = dst_iface;
-	      new->fd = udpfd;
-	    }
-	  
-	  return 1;
-	}
-	
+      /* new query */
+
       if (gotname)
 	flags = search_servers(now, &addrp, gotname, daemon->namebuff, &type, &domain, &norebind);
       
@@ -392,6 +398,7 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 #endif
       type &= ~SERV_DO_DNSSEC;      
       
+      /* may be no servers available. */
       if (daemon->servers && !flags)
 	forward = get_new_frec(now, NULL, NULL);
       /* table full - flags == 0, return REFUSED */
