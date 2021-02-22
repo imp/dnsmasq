@@ -1,3 +1,31 @@
+version 2.85
+        Fix problem with DNS retries in 2.83/2.84.
+        The new logic in 2.83/2.84 which merges distinct requests
+	for the same domain causes problems with clients which do
+	retries as distinct requests (differing IDs and/or source ports.)
+	The retries just get piggy-backed on the first, failed, request.
+        The logic is now changed so that distinct requests for repeated
+        queries still get merged into a single ID/source port, but
+	they now always trigger a re-try upstream.
+        Thanks to Nicholas Mu for his analysis.
+
+	Tweak sort order of tags in get-version. v2.84 sorts
+	before v2.83, but v2.83 sorts before v2.83rc1 and 2.83rc1
+	sorts before v2.83test1. This fixes the problem which lead
+	to 2.84 announcing itself as 2.84rc2.
+
+	
+version 2.84
+	Fix a problem, introduced in 2.83, which could see DNS replies
+	being sent via the wrong socket. On machines running both
+	IPv4 and IPv6 this could result in sporadic messages of
+	the form "failed to send packet: Network is unreachable" and
+	the lost of the query. Since the error is sporadic and of
+	low probability, the client retry would normally succeed.
+
+	Change HAVE_NETTLEHASH compile-time to HAVE_CRYPTOHASH.
+
+	
 version 2.83
 	Use the values of --min-port and --max-port in outgoing
 	TCP connections to upstream DNS servers.
