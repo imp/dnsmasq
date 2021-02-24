@@ -1045,6 +1045,19 @@ option, but aliases are possible by using CNAMEs. (See
 .B --cname
 ).
 
+More than one
+.B --dhcp-host
+can be associated (by name, hardware address or UID) with a host. Which one is used
+(and therefore which address is allocated by DHCP and appears in the DNS) depends
+on the subnet on which the host last obtained a DHCP lease:
+the
+.B --dhcp-host
+with an address within the subnet is used. If more than one address is within the subnet,
+the result is undefined. A corollary to this is that the name associated with a host using
+.B --dhcp-host
+does not appear in the DNS until the host obtains a DHCP lease.
+
+
 The special keyword "ignore"
 tells dnsmasq to never offer a DHCP lease to a machine. The machine
 can be specified by hardware address, client ID or hostname, for
