@@ -296,7 +296,7 @@ option requires non-standard networking APIs and it is only available
 under Linux. On other platforms it falls-back to \fB--bind-interfaces\fP mode.
 .TP
 .B \-y, --localise-queries
-Return answers to DNS queries from /etc/hosts and \fB--interface-name\fP which depend on the interface over which the query was
+Return answers to DNS queries from /etc/hosts and \fB--interface-name\fP and \fB--dynamic-host\fP which depend on the interface over which the query was
 received. If a name has more than one address associated with
 it, and at least one of those addresses is on the same subnet as the
 interface to which the query was sent, then return only the
@@ -590,6 +590,12 @@ eg.
 If the time-to-live is given, it overrides the default, which is zero
 or the value of \fB--local-ttl\fP. The value is a positive integer and gives
 the time-to-live in seconds.
+.TP
+.B --dynamic-host=<name>,[IPv4-address],[IPv6-address],<interface>
+Add A, AAAA and PTR records to the DNS in the same subnet as the specified interface. The address is derived from the network part of each address associated with the interface, and the host part from the specified address. For example
+.B --dynamic-host=example.com,0.0.0.8,eth0
+will, when eth0 has the address 192.168.78.x and netmask 255.255.255.0 give the
+name example.com an A record for 192.168.78.8. The same principle applies to IPv6 addresses. Note that if an interface has more than one address, more than one A or AAAA record will be created. The TTL of the records is always zero, and any changes to interface addresses will be immediately reflected in them.
 .TP
 .B \-Y, --txt-record=<name>[[,<text>],<text>]
 Return a TXT DNS record. The value of TXT record is a set of strings,
@@ -2380,6 +2386,8 @@ IPv4 and IPv6 addresses from /etc/hosts (and
 .B --host-record
 and 
 .B --interface-name
+and
+.B ---dynamic-host
 provided the address falls into one of the subnets specified in the
 .B --auth-zone.
 .PP

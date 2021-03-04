@@ -14,13 +14,18 @@ version 2.85
 	sorts before v2.83test1. This fixes the problem which lead
 	to 2.84 announcing itself as 2.84rc2.
 
-	Avoid treating a --dhcp-host which has an IPv6 address
+ 	Avoid treating a --dhcp-host which has an IPv6 address
 	as eligable for use with DHCPv4 on the grounds that it has
 	no address, and vice-versa. Thanks to Viktor Papp for
 	spotting the problem. (This bug was fixed was back in 2.67, and
 	then regessed in 2.81).
-	
-	
+
+	Add --dynamic-host option: A and AAAA records which take their
+	network part from the network of a local interface. Useful
+	for routers with dynamically prefixes. Thanks
+	to Fred F for the suggestion.
+
+
 version 2.84
 	Fix a problem, introduced in 2.83, which could see DNS replies
 	being sent via the wrong socket. On machines running both
