@@ -135,6 +135,9 @@ running, will go exclusively to the file.) When logging to a file,
 dnsmasq will close and reopen the file when it receives SIGUSR2. This 
 allows the log file to be rotated without stopping dnsmasq.
 .TP
+.B --log-debug
+Enable extra logging intended for debugging rather than information.
+.TP
 .B --log-async[=<lines>]
 Enable asynchronous logging and optionally set the limit on the
 number of lines
