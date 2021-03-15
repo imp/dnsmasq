@@ -25,7 +25,29 @@ version 2.85
 	for routers with dynamically prefixes. Thanks
 	to Fred F for the suggestion.
 
+	Use random source ports where possible if source
+	addresses/interfaces in use.
+	CVE-2021-3448 applies. Thanks to Petr Menšík for spotting this.
+	It's possible to specify the source address or interface to be
+	used when contacting upstream nameservers: server=8.8.8.8@1.2.3.4
+	or server=8.8.8.8@1.2.3.4#66 or server=8.8.8.8@eth0, and all of
+	these have, until now, used a single socket, bound to a fixed
+	port. This was originally done to allow an error (non-existent
+	interface, or non-local address) to be detected at start-up. This
+	means that any upstream servers specified in such a way don't use
+	random source ports, and are more susceptible to cache-poisoning
+	attacks.
+	We now use random ports where possible, even when the
+	source is specified, so server=8.8.8.8@1.2.3.4 or
+	server=8.8.8.8@eth0 will use random source
+	ports. server=8.8.8.8@1.2.3.4#66 or any use of --query-port will
+	use the explicitly configured port, and should only be done with
+	understanding of the security implications.
+	Note that this change changes non-existing interface, or non-local
+	source address errors from fatal to run-time. The error will be
+	logged and communiction with the server not possible.
 
+	
 version 2.84
 	Fix a problem, introduced in 2.83, which could see DNS replies
 	being sent via the wrong socket. On machines running both
