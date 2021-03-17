@@ -25,7 +25,9 @@ version 2.85
 	for routers with dynamically prefixes. Thanks
 	to Fred F for the suggestion.
 
-
+	Teach --bogus-nxdomain and --ignore-address to take an IPv4 subnet.
+	
+	
 version 2.84
 	Fix a problem, introduced in 2.83, which could see DNS replies
 	being sent via the wrong socket. On machines running both

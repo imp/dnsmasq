@@ -326,8 +326,8 @@ are re-written. So
 .B --alias=192.168.0.10-192.168.0.40,10.0.0.0,255.255.255.0
 maps 192.168.0.10->192.168.0.40 to 10.0.0.10->10.0.0.40
 .TP 
-.B \-B, --bogus-nxdomain=<ipaddr>
-Transform replies which contain the IP address given into "No such
+.B \-B, --bogus-nxdomain=<ipaddr>[/prefix]
+Transform replies which contain the IP specified address or subnet into "No such
 domain" replies. This is intended to counteract a devious move made by
 Verisign in September 2003 when they started returning the address of
 an advertising web page in response to queries for unregistered names,
@@ -335,8 +335,8 @@ instead of the correct NXDOMAIN response. This option tells dnsmasq to
 fake the correct response when it sees this behaviour. As at Sept 2003
 the IP address being returned by Verisign is 64.94.110.11
 .TP 
-.B --ignore-address=<ipaddr>
-Ignore replies to A-record queries which include the specified address. 
+.B --ignore-address=<ipaddr>[/prefix]
+Ignore replies to A-record queries which include the specified address or subnet. 
 No error is generated, dnsmasq simply continues to listen for another reply. 
 This is useful to defeat blocking strategies which rely on quickly supplying a
 forged answer to a DNS request for certain domain, before the correct answer can arrive.
