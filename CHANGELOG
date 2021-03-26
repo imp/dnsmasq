@@ -49,7 +49,20 @@ version 2.85
 	source address errors from fatal to run-time. The error will be
 	logged and communiction with the server not possible.
 
+	Change the method of allocation of random source ports for DNS.
+	Previously, without min-port or max-port configured, dnsmasq would
+	default to the compiled in defaults for those, which are 1024 and
+	65535. Now, when neither are configured, it defaults instead to
+	the kernel's ephemeral port range, which is typically
+	32768 to 60999 on Linux systems. This change eliminates the
+	possibility that dnsmasq may be using a registered port > 1024
+	when a long-running daemon starts up and wishes to claim it.
+	This change does likely slighly reduce the number of random ports
+	and therefore the protection from reply spoofing. The older
+	behaviour can be restored using the min-port and max-port config
+	switches should that be a concern.
 
+	
 version 2.84
 	Fix a problem, introduced in 2.83, which could see DNS replies
 	being sent via the wrong socket. On machines running both
