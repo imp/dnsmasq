@@ -62,6 +62,9 @@ version 2.85
 	behaviour can be restored using the min-port and max-port config
 	switches should that be a concern.
 
+	Scale the size of the DNS random-port pool based on the
+	value of the --dns-forward-max configuration.
+
 	
 version 2.84
 	Fix a problem, introduced in 2.83, which could see DNS replies
