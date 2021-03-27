@@ -15,10 +15,10 @@ version 2.85
 	to 2.84 announcing itself as 2.84rc2.
 
  	Avoid treating a --dhcp-host which has an IPv6 address
-	as eligable for use with DHCPv4 on the grounds that it has
+	as eligible for use with DHCPv4 on the grounds that it has
 	no address, and vice-versa. Thanks to Viktor Papp for
 	spotting the problem. (This bug was fixed was back in 2.67, and
-	then regessed in 2.81).
+	then regressed in 2.81).
 
 	Add --dynamic-host option: A and AAAA records which take their
 	network part from the network of a local interface. Useful
@@ -31,7 +31,7 @@ version 2.85
 	addresses/interfaces in use.
 	CVE-2021-3448 applies. Thanks to Petr Menšík for spotting this.
 	It's possible to specify the source address or interface to be
-	used when contacting upstream nameservers: server=8.8.8.8@1.2.3.4
+	used when contacting upstream name servers: server=8.8.8.8@1.2.3.4
 	or server=8.8.8.8@1.2.3.4#66 or server=8.8.8.8@eth0, and all of
 	these have, until now, used a single socket, bound to a fixed
 	port. This was originally done to allow an error (non-existent
@@ -47,7 +47,7 @@ version 2.85
 	understanding of the security implications.
 	Note that this change changes non-existing interface, or non-local
 	source address errors from fatal to run-time. The error will be
-	logged and communiction with the server not possible.
+	logged and communication with the server not possible.
 
 	Change the method of allocation of random source ports for DNS.
 	Previously, without min-port or max-port configured, dnsmasq would
@@ -57,7 +57,7 @@ version 2.85
 	32768 to 60999 on Linux systems. This change eliminates the
 	possibility that dnsmasq may be using a registered port > 1024
 	when a long-running daemon starts up and wishes to claim it.
-	This change does likely slighly reduce the number of random ports
+	This change does likely slightly reduce the number of random ports
 	and therefore the protection from reply spoofing. The older
 	behaviour can be restored using the min-port and max-port config
 	switches should that be a concern.
@@ -98,13 +98,13 @@ version 2.83
 
 	Handle multiple identical near simultaneous DNS queries better.
 	Previously, such queries would all be forwarded
-	independently. This is, in theory, inefficent but in practise
+	independently. This is, in theory, inefficient but in practise
 	not a problem, _except_ that is means that an answer for any
 	of the forwarded queries will be accepted and cached.
 	An attacker can send a query multiple times, and for each repeat,
 	another {port, ID} becomes capable of accepting the answer he is
 	sending in the blind, to random IDs and ports. The chance of a
-	succesful attack is therefore multiplied by the number of repeats
+	successful attack is therefore multiplied by the number of repeats
 	of the query. The new behaviour detects repeated queries and
 	merely stores the clients sending repeats so that when the
 	first query completes, the answer can be sent to all the
