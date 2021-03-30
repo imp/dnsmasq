@@ -65,6 +65,9 @@ version 2.85
 	Scale the size of the DNS random-port pool based on the
 	value of the --dns-forward-max configuration.
 
+	Tweak TFTP code to check sender of all recieved packets, as
+	specified in RFC 1350 para 4.
+
 	
 version 2.84
 	Fix a problem, introduced in 2.83, which could see DNS replies
