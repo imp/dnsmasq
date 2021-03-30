@@ -176,7 +176,7 @@ binary-indep:	checkroot
 		-d debian/trees/daemon/usr/lib/tmpfiles.d \
                 -d debian/trees/daemon/etc/insserv.conf.d
 	install -m 644 debian/conffiles debian/trees/daemon/DEBIAN
-	install -m 755 debian/postinst debian/postrm debian/prerm debian/trees/daemon/DEBIAN
+	install -m 755 debian/postinst debian/postrm debian/preinst debian/prerm debian/trees/daemon/DEBIAN
 	if ! dpkg-vendor --derives-from Ubuntu; then \
                 rm -f debian/dnsmasq.postinst.debhelper debian/dnsmasq.postrm.debhelper; \
 	      	dh_runit -pdnsmasq -Pdebian/trees/daemon; \

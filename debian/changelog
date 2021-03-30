@@ -1,8 +1,19 @@
 dnsmasq (2.85-1) unstable; urgency=low
 
    * New upstream.
+   * Includes fix to CVE-2021-3448.	
 
- -- Simon Kelley <simon@thekelleys.org.uk>  Tue, 2 Mar 2021 21:40:23 +0000
+ -- Simon Kelley <simon@thekelleys.org.uk>  Tue, 30 Mar 2021 21:40:23 +0100
+
+dnsmasq (2.84-1.1) unstable; urgency=medium
+
+   * Non-maintainer upload.
+   * Fix symlink to directory conversion for /usr/share/doc/dnsmasq.
+     This is achieved by directly calling dpkg-maintscript-helper in the preinst,
+     postinst, and postrm scripts, since the package does not use debhelper.
+     (Closes: #985282)
+
+ -- Sébastien Villemot <sebastien@debian.org>  Sun, 28 Mar 2021 10:55:07 +0200
 
 dnsmasq (2.84-1) unstable; urgency=low
 

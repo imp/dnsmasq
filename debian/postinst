@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+# /usr/share/doc/dnsmasq was a symlink in versions < 2.81-1 (see #985282)
+dpkg-maintscript-helper symlink_to_dir /usr/share/doc/dnsmasq dnsmasq-base 2.81-1~ dnsmasq -- "$@"
+
 # Code copied from dh_systemd_enable ----------------------
 # This will only remove masks created by d-s-h on package removal.
 deb-systemd-helper unmask dnsmasq.service >/dev/null || true
