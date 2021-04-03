@@ -65,7 +65,7 @@ version 2.85
 	Scale the size of the DNS random-port pool based on the
 	value of the --dns-forward-max configuration.
 
-	Tweak TFTP code to check sender of all recieved packets, as
+	Tweak TFTP code to check sender of all received packets, as
 	specified in RFC 1350 para 4.
 
 	
