@@ -2589,8 +2589,3 @@ static unsigned short get_id(void)
 	return ret;
     }
 }
-
-
-
-
-
