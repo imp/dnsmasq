@@ -1,7 +1,8 @@
 dnsmasq (2.85-1) unstable; urgency=low
 
    * New upstream.
-   * Includes fix to CVE-2021-3448.	
+   * Includes fix to CVE-2021-3448.
+   * Fix manpage typos. (closes: #986150)
 
  -- Simon Kelley <simon@thekelleys.org.uk>  Sat, 03 Apr 2021 22:17:23 +0100
 
