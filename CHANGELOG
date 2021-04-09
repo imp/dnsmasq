@@ -3,6 +3,24 @@ version 2.86
 	Thanks to Aichun Li for spotting this ommision, and the initial
 	patch.
 
+	Fix bug which caused dnsmasq to lose track of processes forked
+	to handle TCP DNS connections under heavy load. The code
+	checked that at least one free process table slot was
+	available before listening on TCP sockets, but didn't take
+	into account that more than one TCP connection could
+	arrive, so that check was not sufficient to ensure that
+	there would be slots for all new processes. It compounded
+	this error by silently failing to store the process when
+	it did run out of slots. Even when this bug is triggered,
+	all the right things happen, and answers are still returned.
+	Only under very exceptional circumstances, does the bug
+	manifest itself: see
+	https://lists.thekelleys.org.uk/pipermail/dnsmasq-discuss/2021q2/014976.html
+	Thanks to Tijs Van Buggenhout for finding the conditions under
+	which the bug manifests itself, and then working out
+	exactly what was going on.
+
+	
 	
 version 2.85
         Fix problem with DNS retries in 2.83/2.84.
