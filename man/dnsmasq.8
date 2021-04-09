@@ -711,7 +711,13 @@ will add the /24 and /96 subnets of the requestor for IPv4 and IPv6 requestors, 
 will add 1.2.3.0/24 for IPv4 requestors and ::/0 for IPv6 requestors.
 .B --add-subnet=1.2.3.4/24,1.2.3.4/24
 will add 1.2.3.0/24 for both IPv4 and IPv6 requestors.
-
+.TP
+.B --umbrella[=deviceid:<deviceid>[,orgid:<orgid>]]
+Embeds the requestor's IP address in DNS queries forwarded upstream.
+If device id or organization id are specified, the information is
+included in the forwarded queries and may be able to be used in
+filtering policies and reporting. The order of the deviceid and orgid
+attributes is irrelevant, but must be separated by a comma.
 .TP
 .B \-c, --cache-size=<cachesize>
 Set the size of dnsmasq's cache. The default is 150 names. Setting the cache size to zero disables caching. Note: huge cache size impacts performance.
