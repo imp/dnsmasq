@@ -20,8 +20,25 @@ version 2.86
 	which the bug manifests itself, and then working out
 	exactly what was going on.
 
-	
-	
+	Major rewrite of the DNS server and domain handling code.
+	This should be largely transparent, but it drastically
+	improves performance and reduces memory foot-print when
+	configuring large numbers domains of the form
+	local=/adserver.com/
+	or
+	local=/adserver.com/#
+	Lookup times now grow as log-to-base-2 of the number of domains,
+	rather than greater than linearly, as before.
+	The change makes multiple addresses associated with a domain work
+	address=/example.com/1.2.3.4
+	address=/example.com/5.6.7.8
+	It also handles multiple upstream servers for a domain better; using
+	the same try/retry alogrithms as non domain-specific servers. This
+	also applies to DNSSEC-generated queries.
+	Finally, some of the oldest and gnarliest code in dnsmasq has had
+	a significant clean-up. It's far from perfect, but it _is_ better.
+
+
 version 2.85
         Fix problem with DNS retries in 2.83/2.84.
         The new logic in 2.83/2.84 which merges distinct requests
