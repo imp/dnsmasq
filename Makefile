@@ -82,7 +82,7 @@ objs = cache.o rfc1035.o util.o option.o forward.o network.o \
        dhcp-common.o outpacket.o radv.o slaac.o auth.o ipset.o \
        domain.o dnssec.o blockdata.o tables.o loop.o inotify.o \
        poll.o rrfilter.o edns0.o arp.o crypto.o dump.o ubus.o \
-       metrics.o hash_questions.o domain-match.o
+       metrics.o hash-questions.o domain-match.o
 
 hdrs = dnsmasq.h config.h dhcp-protocol.h dhcp6-protocol.h \
        dns-protocol.h radv-protocol.h ip6addr.h metrics.h
