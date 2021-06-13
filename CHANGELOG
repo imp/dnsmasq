@@ -38,7 +38,18 @@ version 2.86
 	Finally, some of the oldest and gnarliest code in dnsmasq has had
 	a significant clean-up. It's far from perfect, but it _is_ better.
 
+	Revise resource handling for number of concurrent DNS queries. This
+	used to have a global limit, but that has a problem when using
+	different servers for different upstream domains. Queries which are
+	routed by domain to an upstream server which is not responding will
+	build up and trigger the limit, which breaks DNS service for
+	all other domains which could be handled by other servers. The
+	change is to make the limit per server-group, where a server group
+	is the set of servers configured for a particular domain. In the
+	common case, where only default servers are declared, there is
+	no effective change.
 
+	
 version 2.85
         Fix problem with DNS retries in 2.83/2.84.
         The new logic in 2.83/2.84 which merges distinct requests
