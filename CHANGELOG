@@ -49,6 +49,21 @@ version 2.86
 	common case, where only default servers are declared, there is
 	no effective change.
 
+	Improve efficiency of DNSSEC. The sharing point for DNSSEC RR data
+	used to be when it entered the cache, having been validated. After
+	that queries requiring the KEY or DS records would share the cached
+	values. There is a common case in dual-stack hosts that queries for
+	A and AAAA records for the same domain are made simultaneously.
+	If required keys were not in the cache, this would result in two
+	requests being sent upstream for the same key data (and all the
+	subsequent chain-of-trust queries.) Now we combine these requests
+	and elide the duplicates, resulting in fewer queries upstream
+	and better performance. To keep a better handle on what's
+	going on, the "extra" logging mode has been modified to associate
+	queries and answers  for DNSSEC queries in the same way as ordinary
+	queries. The requesting address and port have been removed from
+	DNSSEC logging lines, since this is no longer strictly defined.
+
 	
 version 2.85
         Fix problem with DNS retries in 2.83/2.84.

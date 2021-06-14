@@ -1965,11 +1965,13 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg)
 
   if (option_bool(OPT_EXTRALOG))
     {
-      int port = prettyprint_addr(daemon->log_source_addr, daemon->addrbuff2);
       if (flags & F_NOEXTRA)
-	my_syslog(LOG_INFO, "* %s/%u %s %s %s %s", daemon->addrbuff2, port, source, name, verb, dest);
+	my_syslog(LOG_INFO, "%u %s %s %s %s", daemon->log_display_id, source, name, verb, dest);
       else
-	my_syslog(LOG_INFO, "%u %s/%u %s %s %s %s", daemon->log_display_id, daemon->addrbuff2, port, source, name, verb, dest);
+	{
+	   int port = prettyprint_addr(daemon->log_source_addr, daemon->addrbuff2);
+	   my_syslog(LOG_INFO, "%u %s/%u %s %s %s %s", daemon->log_display_id, daemon->addrbuff2, port, source, name, verb, dest);
+	}
     }
   else
     my_syslog(LOG_INFO, "%s %s %s %s", source, name, verb, dest);
