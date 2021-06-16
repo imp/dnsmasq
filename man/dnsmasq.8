@@ -371,7 +371,10 @@ provides service at that name, rather than the default which is
 .TP 
 .B --enable-ubus[=<service-name>]
 Enable dnsmasq UBus interface. It sends notifications via UBus on
-DHCPACK and DHCPRELEASE events. Furthermore it offers metrics.
+DHCPACK and DHCPRELEASE events. Furthermore it offers metrics
+and allows configuration of Linux connection track mark based filtering.
+When DNS query filtering based on Linux connection track marks is enabled
+UBus notifications are generated for each resolved or filtered DNS query.
 Requires that dnsmasq has been built with UBus support. If the service
 name is given, dnsmasq provides service at that namespace, rather than
 the default which is
@@ -535,6 +538,32 @@ versa).  Domains and subdomains are matched in the same way as
 These IP sets must already exist. See
 .BR ipset (8)
 for more details.
+.TP
+.B --connmark-allowlist-enable[=<mask>]
+Enables filtering of incoming DNS queries with associated Linux connection track marks
+according to individual allowlists configured via a series of \fB--connmark-allowlist\fP
+options. Disallowed queries are not forwarded; they are rejected with a REFUSED error code.
+DNS queries are only allowed if they do not have an associated Linux connection
+track mark, or if the queried domains match the configured DNS patterns for the
+associated Linux connection track mark. If no allowlist is configured for a
+Linux connection track mark, all DNS queries associated with that mark are rejected.
+If a mask is specified, Linux connection track marks are first bitwise ANDed
+with the given mask before being processed.
+.TP
+.B --connmark-allowlist=<connmark>[/<mask>][,<pattern>[/<pattern>...]]
+Configures the DNS patterns that are allowed in DNS queries associated with
+the given Linux connection track mark.
+If a mask is specified, Linux connection track marks are first bitwise ANDed
+with the given mask before they are compared to the given connection track mark.
+Patterns follow the syntax of DNS names, but additionally allow the wildcard
+character "*" to be used up to twice per label to match 0 or more characters
+within that label. Note that the wildcard never matches a dot (e.g., "*.example.com"
+matches "api.example.com" but not "api.us.example.com"). Patterns must be
+fully qualified, i.e., consist of at least two labels. The final label must not be
+fully numeric, and must not be the "local" pseudo-TLD. A pattern must end with at least
+two literal (non-wildcard) labels.
+Instead of a pattern, "*" can be specified to disable allowlist filtering
+for a given Linux connection track mark entirely.
 .TP
 .B \-m, --mx-host=<mx name>[[,<hostname>],<preference>]
 Return an MX record named <mx name> pointing to the given hostname (if
