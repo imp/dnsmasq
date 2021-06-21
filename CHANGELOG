@@ -64,6 +64,18 @@ version 2.86
 	queries. The requesting address and port have been removed from
 	DNSSEC logging lines, since this is no longer strictly defined.
 
+	Connection track mark based DNS query filtering. Thanks to
+	Etan Kissling for implementing this It extends query filtering
+	support beyond what is currently possible
+	with the `--ipset` configuration option, by adding support for:
+	1) Specifying allowlists on a per-client basis, based on their
+	   associated Linux connection track mark.
+	2) Dynamic configuration of allowlists via Ubus.
+	3) Reporting when a DNS query resolves or is rejected via Ubus.
+	4) DNS name patterns containing wildcards.
+	Disallowed queries are not forwarded; they are rejected
+	with a REFUSED error code.
+
 	
 version 2.85
         Fix problem with DNS retries in 2.83/2.84.
