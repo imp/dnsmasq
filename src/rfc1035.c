@@ -885,6 +885,18 @@ int extract_addresses(struct dns_header *header, size_t qlen, char *name, time_t
 }
 
 #if defined(HAVE_CONNTRACK) && defined(HAVE_UBUS)
+/* Don't pass control chars and weird escapes to UBus. */
+static int safe_name(char *name)
+{
+  unsigned char *r;
+  
+  for (r = (unsigned char *)name; *r; r++)
+    if (!isprint((int)*r))
+      return 0;
+  
+  return 1;
+}
+
 void report_addresses(struct dns_header *header, size_t len, u32 mark)
 {
   unsigned char *p, *endrr;
@@ -926,10 +938,10 @@ void report_addresses(struct dns_header *header, size_t len, u32 mark)
 	{
 	  if (aqtype == T_CNAME)
 	    {
-	      char namebuff[MAXDNAME];
-	      if (!extract_name(header, len, &p, namebuff, 1, 0))
+	      if (!extract_name(header, len, &p, daemon->workspacename, 1, 0))
 		return;
-	      ubus_event_bcast_connmark_allowlist_resolved(mark, daemon->namebuff, namebuff, attl);
+	      if (safe_name(daemon->namebuff) && safe_name(daemon->workspacename))
+		ubus_event_bcast_connmark_allowlist_resolved(mark, daemon->namebuff, daemon->workspacename, attl);
 	    }
 	  if (aqtype == T_A)
 	    {
@@ -938,7 +950,7 @@ void report_addresses(struct dns_header *header, size_t len, u32 mark)
 	      if (ardlen != INADDRSZ)
 		return;
 	      memcpy(&addr, p, ardlen);
-	      if (inet_ntop(AF_INET, &addr, ip, sizeof ip))
+	      if (inet_ntop(AF_INET, &addr, ip, sizeof ip) && safe_name(daemon->namebuff))
 		ubus_event_bcast_connmark_allowlist_resolved(mark, daemon->namebuff, ip, attl);
 	    }
 	  else if (aqtype == T_AAAA)
@@ -948,7 +960,7 @@ void report_addresses(struct dns_header *header, size_t len, u32 mark)
 	      if (ardlen != IN6ADDRSZ)
 		return;
 	      memcpy(&addr, p, ardlen);
-	      if (inet_ntop(AF_INET6, &addr, ip, sizeof ip))
+	      if (inet_ntop(AF_INET6, &addr, ip, sizeof ip) && safe_name(daemon->namebuff))
 		ubus_event_bcast_connmark_allowlist_resolved(mark, daemon->namebuff, ip, attl);
 	    }
 	}
