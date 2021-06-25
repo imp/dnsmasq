@@ -1034,7 +1034,7 @@ int main (int argc, char **argv)
     close(err_pipe[1]);
   
   if (daemon->port != 0)
-    check_servers();
+    check_servers(0);
   
   pid = getpid();
 
@@ -1446,7 +1446,7 @@ static void async_event(int pipe, time_t now)
 	      }
 
 	    if (check)
-	      check_servers();
+	      check_servers(0);
 	  }
 
 #ifdef HAVE_DHCP
@@ -1645,7 +1645,7 @@ static void poll_resolv(int force, int do_reload, time_t now)
 	{
 	  my_syslog(LOG_INFO, _("reading %s"), latest->name);
 	  warned = 0;
-	  check_servers();
+	  check_servers(0);
 	  if (option_bool(OPT_RELOAD) && do_reload)
 	    clear_cache_and_reload(now);
 	}
