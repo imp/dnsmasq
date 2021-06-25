@@ -177,6 +177,7 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
   int subnet, cacheable, forwarded = 0;
   size_t edns0_len;
   unsigned char *pheader;
+  int ede = -1;
   (void)do_bit;
   
   if (header->hb4 & HB4_CD)
@@ -270,7 +271,10 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 
       /* no available server. */
       if (!lookup_domain(daemon->namebuff, gotname, &first, &last))
-	goto reply;
+	{
+	  ede = EDE_NOT_READY;
+	  goto reply;
+	}
       
       /* Configured answer. */
       if ((flags = is_local_answer(now, first, daemon->namebuff)))
@@ -521,15 +525,23 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
   /* could not send on, prepare to return */ 
   header->id = htons(forward->frec_src.orig_id);
   free_frec(forward); /* cancel */
+  ede = EDE_NETERR;
   
  reply:
   if (udpfd != -1)
     {
-      if (!(plen = make_local_answer(flags, gotname, plen, header, daemon->namebuff, limit, first, last)))
+      if (!(plen = make_local_answer(flags, gotname, plen, header, daemon->namebuff, limit, first, last, ede)))
 	return 0;
       
       if (oph)
-	plen = add_pseudoheader(header, plen, (unsigned char *)limit, daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
+	{
+	  u16 swap = htons((u16)ede);
+
+	  if (ede != -1)
+	    plen = add_pseudoheader(header, plen, (unsigned char *)limit, daemon->edns_pktsz, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
+	  else
+	    plen = add_pseudoheader(header, plen, (unsigned char *)limit, daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
+	}
       
 #if defined(HAVE_CONNTRACK) && defined(HAVE_UBUS)
       if (option_bool(OPT_CMARK_ALST_EN))
@@ -549,7 +561,7 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 
 static size_t process_reply(struct dns_header *header, time_t now, struct server *server, size_t n, int check_rebind, 
 			    int no_cache, int cache_secure, int bogusanswer, int ad_reqd, int do_bit, int added_pheader, 
-			    int check_subnet, union mysockaddr *query_source)
+			    int check_subnet, union mysockaddr *query_source, unsigned char *limit, int ede)
 {
   unsigned char *pheader, *sizep;
   char **sets = 0;
@@ -644,6 +656,7 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
     {
       union all_addr a;
       a.log.rcode = rcode;
+      a.log.ede = ede;
       log_query(F_UPSTREAM | F_RCODE, "error", &a, NULL);
       
       return resize_packet(header, n, pheader, plen);
@@ -666,6 +679,7 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
       SET_RCODE(header, NXDOMAIN);
       header->hb3 &= ~HB3_AA;
       cache_secure = 0;
+      ede = EDE_BLOCKED;
     }
   else 
     {
@@ -692,6 +706,7 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
 	  my_syslog(LOG_WARNING, _("possible DNS-rebind attack detected: %s"), daemon->namebuff);
 	  munged = 1;
 	  cache_secure = 0;
+	  ede = EDE_BLOCKED;
 	}
 
       if (doctored)
@@ -719,6 +734,12 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
     }
 #endif
 
+  if (pheader && ede != -1)
+    {
+      u16 swap = htons((u16)ede);
+      n = add_pseudoheader(header, n, limit, daemon->edns_pktsz, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 1);
+    }
+    
   /* do this after extract_addresses. Ensure NODATA reply and remove
      nameserver info. */
   if (munged)
@@ -1071,6 +1092,7 @@ static void return_reply(time_t now, struct frec *forward, struct dns_header *he
 {
   int check_rebind = 0, no_cache_dnssec = 0, cache_secure = 0, bogusanswer = 0;
   size_t nn;
+  int ede = -1;
 
   (void)status;
 
@@ -1085,6 +1107,7 @@ static void return_reply(time_t now, struct frec *forward, struct dns_header *he
 #ifdef HAVE_DNSSEC
   if (!STAT_ISEQUAL(status, STAT_OK))
     {
+      /* status is STAT_OK when validation not turned on. */
       no_cache_dnssec = 0;
       
       if (STAT_ISEQUAL(status, STAT_TRUNCATED))
@@ -1092,7 +1115,10 @@ static void return_reply(time_t now, struct frec *forward, struct dns_header *he
       else
 	{
 	  char *result, *domain = "result";
-	  
+	  union all_addr a;
+
+	  a.log.ede = ede = errflags_to_ede(status);
+
 	  if (STAT_ISEQUAL(status, STAT_ABANDONED))
 	    {
 	      result = "ABANDONED";
@@ -1101,18 +1127,18 @@ static void return_reply(time_t now, struct frec *forward, struct dns_header *he
 	  else
 	    result = (STAT_ISEQUAL(status, STAT_SECURE) ? "SECURE" : (STAT_ISEQUAL(status, STAT_INSECURE) ? "INSECURE" : "BOGUS"));
 	  
-	  if (STAT_ISEQUAL(status, STAT_BOGUS) && extract_request(header, n, daemon->namebuff, NULL))
-	    domain = daemon->namebuff;
+	  if (STAT_ISEQUAL(status, STAT_SECURE))
+	    cache_secure = 1;
+	  else if (STAT_ISEQUAL(status, STAT_BOGUS))
+	    {
+	      no_cache_dnssec = 1;
+	      bogusanswer = 1;
+	      
+	      if (extract_request(header, n, daemon->namebuff, NULL))
+		domain = daemon->namebuff;
+	    }
 	  
-	  log_query(F_SECSTAT, domain, NULL, result);
-	}
-      
-      if (STAT_ISEQUAL(status, STAT_SECURE))
-	cache_secure = 1;
-      else if (STAT_ISEQUAL(status, STAT_BOGUS))
-	{
-	  no_cache_dnssec = 1;
-	  bogusanswer = 1;
+	  log_query(F_SECSTAT, domain, &a, result);
 	}
     }
 #endif
@@ -1133,7 +1159,8 @@ static void return_reply(time_t now, struct frec *forward, struct dns_header *he
   
   if ((nn = process_reply(header, now, forward->sentto, (size_t)n, check_rebind, no_cache_dnssec, cache_secure, bogusanswer, 
 			  forward->flags & FREC_AD_QUESTION, forward->flags & FREC_DO_QUESTION, 
-			  forward->flags & FREC_ADDED_PHEADER, forward->flags & FREC_HAS_SUBNET, &forward->frec_src.source)))
+			  forward->flags & FREC_ADDED_PHEADER, forward->flags & FREC_HAS_SUBNET, &forward->frec_src.source,
+			  ((unsigned char *)header) + daemon->edns_pktsz, ede)))
     {
       struct frec_src *src;
       
@@ -1219,7 +1246,7 @@ static size_t answer_disallowed(struct dns_header *header, size_t qlen, u32 mark
     ubus_event_bcast_connmark_allowlist_refused(mark, name);
 #endif
   
-  setup_reply(header, /* flags: */ 0);
+  setup_reply(header, /* flags: */ 0, EDE_BLOCKED);
   
   if (!(p = skip_questions(header, qlen)))
     return 0;
@@ -1543,10 +1570,13 @@ void receive_query(struct listener *listen, time_t now)
 #ifdef HAVE_CONNTRACK
   else if (!allowed)
     {
+      u16 swap = htons(EDE_BLOCKED);
+
       m = answer_disallowed(header, (size_t)n, (u32)mark, is_single_query ? daemon->namebuff : NULL);
       
       if (have_pseudoheader && m != 0)
-	m = add_pseudoheader(header,  m,  ((unsigned char *) header) + udp_size, daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
+	m = add_pseudoheader(header,  m,  ((unsigned char *) header) + udp_size, daemon->edns_pktsz,
+			     EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
       
       if (m >= 1)
 	{
@@ -1824,7 +1854,7 @@ unsigned char *tcp_request(int confd, time_t now,
   int have_mark = 0;
   int first, last;
   unsigned int flags = 0;
-  
+    
   if (getpeername(confd, (struct sockaddr *)&peer_addr, &peer_len) == -1)
     return packet;
 
@@ -1875,6 +1905,8 @@ unsigned char *tcp_request(int confd, time_t now,
 
   while (1)
     {
+      int ede = -1;
+
       if (query_count == TCP_MAX_QUERIES ||
 	  !packet ||
 	  !read_write(confd, &c1, 1, 1) || !read_write(confd, &c2, 1, 1) ||
@@ -1960,10 +1992,13 @@ unsigned char *tcp_request(int confd, time_t now,
 #ifdef HAVE_CONNTRACK
       else if (!allowed)
 	{
+	  u16 swap = htons(EDE_BLOCKED);
+
 	  m = answer_disallowed(header, size, (u32)mark, is_single_query ? daemon->namebuff : NULL);
 	  
 	  if (have_pseudoheader && m != 0)
-	    m = add_pseudoheader(header,  m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
+	    m = add_pseudoheader(header,  m, ((unsigned char *) header) + 65536, daemon->edns_pktsz,
+				 EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
 	}
 #endif
 #ifdef HAVE_AUTH
@@ -1996,7 +2031,9 @@ unsigned char *tcp_request(int confd, time_t now,
 		  !strchr(daemon->namebuff, '.') &&
 		  strlen(daemon->namebuff) != 0)
 		flags = F_NOERR;
-	      else if (lookup_domain(daemon->namebuff, gotname, &first, &last) && !(flags = is_local_answer(now, first, daemon->namebuff)))
+	      else if (!lookup_domain(daemon->namebuff, gotname, &first, &last))
+		ede = EDE_NOT_READY;  /* No configured servers */
+	      else if (!(flags = is_local_answer(now, first, daemon->namebuff)))
 		{
 		  master = daemon->serverarray[first];
 		  
@@ -2026,7 +2063,10 @@ unsigned char *tcp_request(int confd, time_t now,
 		  
 		  /* Loop round available servers until we succeed in connecting to one. */
 		  if ((m = tcp_talk(first, last, start, packet, size, have_mark, mark, &serv)) == 0)
-		    break;
+		    {
+		      ede = EDE_NETERR;
+		      break;
+		    }
 		  
 		  /* get query name again for logging - may have been overwritten */
 		  if (!(gotname = extract_request(header, (unsigned int)size, daemon->namebuff, &qtype)))
@@ -2040,7 +2080,10 @@ unsigned char *tcp_request(int confd, time_t now,
 		      int status = tcp_key_recurse(now, STAT_OK, header, m, 0, daemon->namebuff, daemon->keyname, 
 						   serv, have_mark, mark, &keycount);
 		      char *result, *domain = "result";
-		      
+
+		      union all_addr a;
+		      a.log.ede = ede = errflags_to_ede(status);
+
 		      if (STAT_ISEQUAL(status, STAT_ABANDONED))
 			{
 			  result = "ABANDONED";
@@ -2049,19 +2092,18 @@ unsigned char *tcp_request(int confd, time_t now,
 		      else
 			result = (STAT_ISEQUAL(status, STAT_SECURE) ? "SECURE" : (STAT_ISEQUAL(status, STAT_INSECURE) ? "INSECURE" : "BOGUS"));
 		      
-		      if (STAT_ISEQUAL(status, STAT_BOGUS) && extract_request(header, m, daemon->namebuff, NULL))
-			domain = daemon->namebuff;
-		      
-		      log_query(F_SECSTAT, domain, NULL, result);
-		      
-		      if (STAT_ISEQUAL(status, STAT_BOGUS))
+		      if (STAT_ISEQUAL(status, STAT_SECURE))
+			cache_secure = 1;
+		      else if (STAT_ISEQUAL(status, STAT_BOGUS))
 			{
 			  no_cache_dnssec = 1;
 			  bogusanswer = 1;
+			  
+			  if (extract_request(header, m, daemon->namebuff, NULL))
+			    domain = daemon->namebuff;
 			}
 		      
-		      if (STAT_ISEQUAL(status, STAT_SECURE))
-			cache_secure = 1;
+		      log_query(F_SECSTAT, domain, &a, result);
 		    }
 #endif
 		  
@@ -2078,7 +2120,7 @@ unsigned char *tcp_request(int confd, time_t now,
 		  
 		  m = process_reply(header, now, serv, (unsigned int)m, 
 				    option_bool(OPT_NO_REBIND) && !norebind, no_cache_dnssec, cache_secure, bogusanswer,
-				    ad_reqd, do_bit, added_pheader, check_subnet, &peer_addr); 
+				    ad_reqd, do_bit, added_pheader, check_subnet, &peer_addr, ((unsigned char *)header) + 65536, ede); 
 		}
 	    }
 	}
@@ -2087,11 +2129,18 @@ unsigned char *tcp_request(int confd, time_t now,
       if (m == 0)
 	{
 	  if (!(m = make_local_answer(flags, gotname, size, header, daemon->namebuff,
-				      ((char *) header) + 65536, first, last)))
+				      ((char *) header) + 65536, first, last, ede)))
 	    break;
 	  
 	  if (have_pseudoheader)
-	    m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
+	    {
+	      u16 swap = htons((u16)ede);
+
+	       if (ede != -1)
+		 m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
+	       else
+		 m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
+	    }
 	}
       
       check_log_writer(1);
