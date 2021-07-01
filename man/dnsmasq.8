@@ -460,13 +460,22 @@ repeated domain or ipaddr parts as required.
 More specific domains take precedence over less specific domains, so:
 .B --server=/google.com/1.2.3.4
 .B --server=/www.google.com/2.3.4.5
-will send queries for *.google.com to 1.2.3.4, except *www.google.com,
-which will go to 2.3.4.5
+will send queries for google.com and gmail.google.com to 1.2.3.4, but www.google.com
+will go to 2.3.4.5
+
+Matching of domains is normally done on complete labels, so /google.com/ matches google.com and www.google.com
+but NOT supergoogle.com. This can be overridden with a * at the start of a pattern only: /*google.com/
+will match google.com and www.google.com AND supergoogle.com. The non-wildcard form has priority, so
+if /google.com/ and /*google.com/ are both specified then google.com and www.google.com will match /google.com/
+and /*google.com/ will only match supergoogle.com.
+
+For historical reasons, the pattern /.google.com/ is equivalent to /google.com/ if you wish to match any subdomain
+of google.com but NOT google.com itself, use /*.google.com/
 
 The special server address '#' means, "use the standard servers", so
 .B --server=/google.com/1.2.3.4
 .B --server=/www.google.com/#
-will send queries for *.google.com to 1.2.3.4, except *www.google.com which will
+will send queries for google.com and its subdomains to 1.2.3.4, except www.google.com (and its subdomains) which will
 be forwarded as usual.
 
 Also permitted is a -S
