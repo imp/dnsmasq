@@ -1612,10 +1612,11 @@ tried. This flag disables this check. Use with caution.
 Extra logging for DHCP: log all the options sent to DHCP clients and
 the tags used to determine them.
 .TP
-.B --quiet-dhcp, --quiet-dhcp6, --quiet-ra
+.B --quiet-dhcp, --quiet-dhcp6, --quiet-ra, --quiet-tftp
 Suppress logging of the routine operation of these protocols. Errors and
-problems will still be logged. \fB--quiet-dhcp\fP and quiet-dhcp6 are
-over-ridden by \fB--log-dhcp\fP.
+problems will still be logged. \fB--quiet-tftp\fP does not consider file not
+found to be an error. \fB--quiet-dhcp\fP and quiet-dhcp6 are over-ridden by
+\fB--log-dhcp\fP.
 .TP
 .B \-l, --dhcp-leasefile=<path>
 Use the specified file to store DHCP lease information.
