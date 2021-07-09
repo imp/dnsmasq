@@ -235,7 +235,6 @@ int create_helper(int event_fd, int err_fd, uid_t uid, gid_t gid, long max_fd)
 	}
        else 
 	continue;
-
       	
       /* stringify MAC into dhcp_buff */
       p = daemon->dhcp_buff;

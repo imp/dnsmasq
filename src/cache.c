@@ -1923,10 +1923,10 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg)
 	  else
 	    sprintf(daemon->addrbuff, "%u", rcode);
 
-	  if (addr->log.ede != -1)
+	  if (addr->log.ede != EDE_UNSET)
 	    {
 	      extra = daemon->addrbuff;
-	      sprintf(extra, " (EDE:%s)", edestr(addr->log.ede));
+	      sprintf(extra, " (EDE: %s)", edestr(addr->log.ede));
 	    }
 	}
       else
@@ -1974,10 +1974,10 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg)
     source = "reply";
   else if (flags & F_SECSTAT)
     {
-      if (addr && addr->log.ede != -1)
+      if (addr && addr->log.ede != EDE_UNSET)
 	{
 	  extra = daemon->addrbuff;
-	  sprintf(extra, " (EDE:%s)", edestr(addr->log.ede));
+	  sprintf(extra, " (EDE: %s)", edestr(addr->log.ede));
 	}
       source = "validation";
       dest = arg;
