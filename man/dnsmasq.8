@@ -2419,6 +2419,10 @@ following data is used to populate the authoritative zone.
 .B --mx-host, --srv-host, --dns-rr, --txt-record, --naptr-record, --caa-record,
 as long as the record names are in the authoritative domain.
 .PP
+.B --synth-domain
+as long as the domain is in the authoritative zone and, for
+reverse (PTR) queries, the address is in the relevant subnet.
+.PP
 .B --cname
 as long as the record name is in  the authoritative domain. If the
 target of the CNAME is unqualified, then it  is qualified with the
