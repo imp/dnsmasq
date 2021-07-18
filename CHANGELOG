@@ -76,6 +76,9 @@ version 2.86
 	Disallowed queries are not forwarded; they are rejected
 	with a REFUSED error code.
 
+	Allow smaller then 64 prefix lengths in synth-domain, with caveats.
+	--synth-domain=1234:4567::/56,example.com is now valid.
+
 	
 version 2.85
         Fix problem with DNS retries in 2.83/2.84.
