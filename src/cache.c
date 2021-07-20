@@ -1974,7 +1974,7 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg)
     source = "reply";
   else if (flags & F_SECSTAT)
     {
-      if (addr && addr->log.ede != EDE_UNSET)
+      if (addr && addr->log.ede != EDE_UNSET && option_bool(OPT_EXTRALOG))
 	{
 	  extra = daemon->addrbuff;
 	  sprintf(extra, " (EDE: %s)", edestr(addr->log.ede));
@@ -2023,5 +2023,5 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg)
 	}
     }
   else
-    my_syslog(LOG_INFO, "%s %s %s %s", source, name, verb, dest);
+    my_syslog(LOG_INFO, "%s %s %s %s%s", source, name, verb, dest, extra);
 }
