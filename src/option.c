@@ -968,7 +968,7 @@ static int domain_rev6(char *domain, struct in6_addr *addr, int msize)
 {
   int i;
 
-  if (msize%4)
+  if (msize > 128 || msize%4)
     return 0;
   
   *domain = 0;
@@ -2257,10 +2257,11 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	{
 	  char *d, *d_raw = arg;
 	  comma = split(arg);
-	  if (!(d = canonicalise_opt(arg)))
+	  if (!(d = canonicalise_opt(d_raw)))
 	    ret_err(gen_err);
 	  else
 	    {
+	      free(d); /* allocate this again below. */
 	      if (comma)
 		{
 		  struct cond_domain *new = opt_malloc(sizeof(struct cond_domain));
@@ -2280,7 +2281,12 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 			ret_err_free(gen_err, new);
 		      else if (inet_pton(AF_INET, comma, &new->start))
 			{
-			  int mask = (1 << (32 - msize)) - 1;
+			  int mask;
+
+			  if (msize > 32)
+			     ret_err_free(_("bad prefix length"), new);
+			  
+			  mask = (1 << (32 - msize)) - 1;
 			  new->is6 = 0; 			  
 			  new->start.s_addr = ntohl(htonl(new->start.s_addr) & ~mask);
 			  new->end.s_addr = new->start.s_addr | htonl(mask);
@@ -2311,8 +2317,13 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 			}
 		      else if (inet_pton(AF_INET6, comma, &new->start6))
 			{
-			  u64 mask = (1LLU << (128 - msize)) - 1LLU;
-			  u64 addrpart = addr6part(&new->start6);
+			  u64 mask, addrpart = addr6part(&new->start6);
+
+			  if (msize > 128)
+			    ret_err_free(_("bad prefix length"), new);
+
+			  mask = (1LLU << (128 - msize)) - 1LLU;
+
 			  new->is6 = 1;
 			  new->prefixlen = msize;
 			  
@@ -2324,9 +2335,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 			  setaddr6part(&new->start6, addrpart & ~mask);
 			  setaddr6part(&new->end6, addrpart | mask);
 			  
-			  if (msize < 64 && option  == 's')
-			    ret_err_free(gen_err, new);
-			  else if (arg)
+			  if (arg)
 			    {
 			      if (option != 's')
 				{
@@ -2386,7 +2395,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 			}
 		    }
 
-		  new->domain = d;
+		  new->domain = canonicalise_opt(d_raw);
 		  if (option  == 's')
 		    {
 		      new->next = daemon->cond_domain;
@@ -2402,14 +2411,14 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 			  *star = 0;
 			  new->indexed = 1;
 			  if (new->is6 && new->prefixlen < 64)
-			    ret_err_free(_("prefix too small"), new);
+			    ret_err_free(_("prefix length too small"), new);
 			}
 		      new->next = daemon->synth_domains;
 		      daemon->synth_domains = new;
 		    }
 		}
 	      else if (option == 's')
-		daemon->domain_suffix = d;
+		daemon->domain_suffix = canonicalise_opt(d_raw);
 	      else 
 		ret_err(gen_err);
 	    }
