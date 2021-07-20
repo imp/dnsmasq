@@ -654,7 +654,7 @@ static char *canonicalise_opt(char *s)
     return 0;
 
   if (strlen(s) == 0)
-    return "";
+    return opt_string_alloc("");
 
   unhide_metas(s);
   if (!(ret = canonicalise(s, &nomem)) && nomem)
