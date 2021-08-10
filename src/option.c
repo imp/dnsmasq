@@ -3612,7 +3612,9 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 		for (configs = daemon->dhcp_conf; configs; configs = configs->next) 
 		  if ((configs->flags & CONFIG_ADDR) && configs->addr.s_addr == in.s_addr)
 		    {
-		      sprintf(errstr, _("duplicate dhcp-host IP address %s"),  inet_ntoa(in));
+		      inet_ntop(AF_INET, &in, daemon->addrbuff, ADDRSTRLEN);
+		      sprintf(errstr, _("duplicate dhcp-host IP address %s"),
+			      daemon->addrbuff);
 		      return 0;
 		    }	      
 	      }
@@ -5234,7 +5236,8 @@ void read_opts(int argc, char **argv, char *compile_opts)
   daemon = opt_malloc(sizeof(struct daemon));
   memset(daemon, 0, sizeof(struct daemon));
   daemon->namebuff = buff;
-
+  daemon->addrbuff = safe_malloc(ADDRSTRLEN);
+  
   /* Set defaults - everything else is zero or NULL */
   daemon->cachesize = CACHESIZ;
   daemon->ftabsize = FTABSIZ;
