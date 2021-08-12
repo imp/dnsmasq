@@ -55,7 +55,8 @@ Don't read the hostnames in /etc/hosts.
 .B \-H, --addn-hosts=<file>
 Additional hosts file. Read the specified file as well as /etc/hosts. If \fB--no-hosts\fP is given, read
 only the specified file. This option may be repeated for more than one
-additional hosts file. If a directory is given, then read all the files contained in that directory. 
+additional hosts file. If a directory is given, then read all the files contained in that directory
+in alphabetical order.
 .TP
 .B --hostsdir=<path>
 Read all the hosts files contained in the directory. New or changed files
@@ -1165,7 +1166,7 @@ has both wired and wireless interfaces.
 .TP
 .B --dhcp-hostsfile=<path>
 Read DHCP host information from the specified file. If a directory
-is given, then read all the files contained in that directory. The file contains 
+is given, then read all the files contained in that directory in alphabetical order. The file contains 
 information about one host per line. The format of a line is the same
 as text to the right of '=' in \fB--dhcp-host\fP. The advantage of storing DHCP host information
 in this file is that it can be changed without re-starting dnsmasq:
@@ -1173,7 +1174,7 @@ the file will be re-read when dnsmasq receives SIGHUP.
 .TP
 .B --dhcp-optsfile=<path>
 Read DHCP option information from the specified file.  If a directory
-is given, then read all the files contained in that directory. The advantage of 
+is given, then read all the files contained in that directory in alphabetical order. The advantage of 
 using this option is the same as for \fB--dhcp-hostsfile\fP: the
 \fB--dhcp-optsfile\fP will be re-read when dnsmasq receives SIGHUP. Note that
 it is possible to encode the information in a
@@ -1188,7 +1189,8 @@ directory, and not an individual file. Changed or new files within
 the directory are read automatically, without the need to send SIGHUP.
 If a file is deleted or changed after it has been read by dnsmasq, then the
 host record it contained will remain until dnsmasq receives a SIGHUP, or 
-is restarted; ie host records are only added dynamically.
+is restarted; ie host records are only added dynamically. The order in which the
+files in a directory are read is not defined.
 .TP
 .B --dhcp-optsdir=<path>
 This is equivalent to \fB--dhcp-optsfile\fP, with the differences noted for \fB--dhcp-hostsdir\fP.

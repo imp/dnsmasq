@@ -86,6 +86,12 @@ version 2.86
 	conntrack is configured. Thanks to Yick Xie for spotting
 	the lack of this.
 
+	When --dhcp-hostsfile --dhcp-optsfile and --addn-hosts are
+	given a directory as argument, define the order in which
+	files within that directory are read (alphabetical order
+	of filename). Thanks to Ed Wildgoose for the initial patch
+	and motivation for this.
+
 	
 version 2.85
         Fix problem with DNS retries in 2.83/2.84.
