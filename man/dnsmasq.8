@@ -1,4 +1,4 @@
-.TH DNSMASQ 8 2020-04-05
+.TH DNSMASQ 8 2021-08-16
 .SH NAME
 dnsmasq \- A lightweight DHCP and caching DNS server.
 .SH SYNOPSIS
@@ -906,7 +906,7 @@ compiled in and the kernel must have conntrack support
 included and configured. This option cannot be combined with
 .B --query-port.
 .TP
-.B \-F, --dhcp-range=[tag:<tag>[,tag:<tag>],][set:<tag>,]<start-addr>[,<end-addr>|<mode>][,<netmask>[,<broadcast>]][,<lease time>]
+.B \-F, --dhcp-range=[tag:<tag>[,tag:<tag>],][set:<tag>,]<start-addr>[,<end-addr>|<mode>[,<netmask>[,<broadcast>]]][,<lease time>]
 .TP
 .B \-F, --dhcp-range=[tag:<tag>[,tag:<tag>],][set:<tag>,]<start-IPv6addr>[,<end-IPv6addr>|constructor:<interface>][,<mode>][,<prefix-len>][,<lease time>]
 
