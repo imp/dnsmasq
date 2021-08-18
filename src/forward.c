@@ -2274,7 +2274,7 @@ int allocate_rfd(struct randfd_list **fdlp, struct server *serv)
 	  }
       }
 
-  if (j == daemon->numrrand)
+  if (!rfd) /* should be when j == daemon->numrrand */
     {
       struct randfd_list *rfl_poll;
 
