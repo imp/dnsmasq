@@ -1435,6 +1435,12 @@ Any number of set: and tag: forms may appear, in any order.
 tag set by another
 .B --tag-if,
 the line which sets the tag must precede the one which tests it.
+
+As an extension, the tag:<tag> clauses support limited wildcard matching,
+similar to the matching in the \fB--interface\fP directive.  This allows, for
+example, using \fB--tag-if=set:ppp,tag:ppp*\fP to set the tag 'ppp' for all requests
+received on any matching interface (ppp0, ppp1, etc).  This can be used in conjunction
+with the tag:!<tag> format meaning that no tag matching the wildcard may be set.
 .TP
 .B \-J, --dhcp-ignore=tag:<tag>[,tag:<tag>]
 When all the given tags appear in the tag set ignore the host and do

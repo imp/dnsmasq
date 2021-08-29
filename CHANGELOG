@@ -163,6 +163,9 @@ version 2.85
 	Tweak TFTP code to check sender of all received packets, as
 	specified in RFC 1350 para 4.
 
+	Support some wildcard matching of input tags to --tag-if.
+	Thanks to Geoff Back for the idea and the patch.
+
 	
 version 2.84
 	Fix a problem, introduced in 2.83, which could see DNS replies
