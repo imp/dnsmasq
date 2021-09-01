@@ -503,7 +503,7 @@ static int find_soa(struct dns_header *header, size_t qlen, int *doctored)
 
 /* Print TXT reply to log */
 static int print_txt(struct dns_header *header, const size_t qlen, char *name,
-		     unsigned char *p, const int ardlen)
+		     unsigned char *p, const int ardlen, int secflag)
 {
   unsigned char *p1 = p;
   if (!CHECK_LEN(header, p1, qlen, ardlen))
@@ -526,7 +526,7 @@ static int print_txt(struct dns_header *header, const size_t qlen, char *name,
 	}
 
       *p3 = 0;
-      log_query(F_FORWARD | F_UPSTREAM, name, NULL, (char*)p1);
+      log_query(secflag | F_FORWARD | F_UPSTREAM, name, NULL, (char*)p1);
       /* restore */
       memmove(p1 + 1, p1, i);
       *p1 = len;
@@ -544,7 +544,7 @@ int extract_addresses(struct dns_header *header, size_t qlen, char *name, time_t
 		      int secure, int *doctored)
 {
   unsigned char *p, *p1, *endrr, *namep;
-  int i, j, qtype, qclass, aqtype, aqclass, ardlen, res, searched_soa = 0;
+  int j, qtype, qclass, aqtype, aqclass, ardlen, res, searched_soa = 0;
   unsigned long ttl = 0;
   union all_addr addr;
 #ifdef HAVE_IPSET
@@ -574,8 +574,8 @@ int extract_addresses(struct dns_header *header, size_t qlen, char *name, time_t
 	    return 0;
 #ifdef HAVE_DNSSEC
 	  if (option_bool(OPT_DNSSEC_VALID))
-	    for (i = 0; i < ntohs(header->ancount); i++)
-	      if (daemon->rr_status[i] != 0)
+	    for (j = 0; j < ntohs(header->ancount); j++)
+	      if (daemon->rr_status[j] != 0)
 		return 0;
 #endif
 	}
@@ -865,7 +865,7 @@ int extract_addresses(struct dns_header *header, size_t qlen, char *name, time_t
 	      
 	      if (aqtype == T_TXT)
 		{
-		  if (!print_txt(header, qlen, name, p1, ardlen))
+		  if (!print_txt(header, qlen, name, p1, ardlen, secflag))
 		    return 0;
 		}
 	      else
