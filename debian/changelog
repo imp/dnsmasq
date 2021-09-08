@@ -1,3 +1,9 @@
+dnsmasq (2.87-1) unstable; urgency=low
+
+   * New upstream.
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 08 Sep 2021 23:11:25 +0000
+
 dnsmasq (2.86-1) unstable; urgency=low
 
    * Fix debian/changelog format error. (closes: #986626)
