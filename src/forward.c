@@ -119,12 +119,12 @@ static void set_outgoing_mark(struct frec *forward, int fd)
 }
 #endif
 
-static void log_query_mysockaddr(unsigned int flags, char *name, union mysockaddr *addr, char *arg)
+static void log_query_mysockaddr(unsigned int flags, char *name, union mysockaddr *addr, char *arg, unsigned short type)
 {
   if (addr->sa.sa_family == AF_INET)
-    log_query(flags | F_IPV4, name, (union all_addr *)&addr->in.sin_addr, arg);
+    log_query(flags | F_IPV4, name, (union all_addr *)&addr->in.sin_addr, arg, type);
   else
-    log_query(flags | F_IPV6, name, (union all_addr *)&addr->in6.sin6_addr, arg);
+    log_query(flags | F_IPV6, name, (union all_addr *)&addr->in6.sin6_addr, arg, type);
 }
 
 static void server_send(struct server *server, int fd,
@@ -138,12 +138,13 @@ static void server_send(struct server *server, int fd,
 #ifdef HAVE_DNSSEC
 static void server_send_log(struct server *server, int fd,
 			const void *header, size_t plen, int dumpflags,
-			unsigned int logflags, char *name, char *arg)
+			unsigned int logflags, char *name, char *arg,
+			unsigned short type)
 {
 #ifdef HAVE_DUMPFILE
 	  dump_packet(dumpflags, (void *)header, (size_t)plen, NULL, &server->addr);
 #endif
-	  log_query_mysockaddr(logflags, name, &server->addr, arg);
+	  log_query_mysockaddr(logflags, name, &server->addr, arg, type);
 	  server_send(server, fd, header, plen, 0);
 }
 #endif
@@ -494,12 +495,12 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 		  if (!gotname)
 		    strcpy(daemon->namebuff, "query");
 		  log_query_mysockaddr(F_SERVER | F_FORWARD, daemon->namebuff,
-				       &srv->addr, NULL);
+				       &srv->addr, NULL, 0);
 		}
 #ifdef HAVE_DNSSEC
 	      else
 		log_query_mysockaddr(F_NOEXTRA | F_DNSSEC, daemon->namebuff, &srv->addr,
-				     querystr("dnssec-retry", (forward->flags & FREC_DNSKEY_QUERY) ? T_DNSKEY : T_DS));
+				     "dnssec-retry", (forward->flags & FREC_DNSKEY_QUERY) ? T_DNSKEY : T_DS);
 #endif
 
 	      srv->queries++;
@@ -653,7 +654,7 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
       union all_addr a;
       a.log.rcode = rcode;
       a.log.ede = ede;
-      log_query(F_UPSTREAM | F_RCODE, "error", &a, NULL);
+      log_query(F_UPSTREAM | F_RCODE, "error", &a, NULL, 0);
       
       return resize_packet(header, n, pheader, plen);
     }
@@ -889,7 +890,7 @@ static void dnssec_validate(struct frec *forward, struct dns_header *header,
 #endif
 		  server_send_log(server, fd, header, nn, DUMP_SEC_QUERY,
 				  F_NOEXTRA | F_DNSSEC, daemon->keyname,
-				  querystr("dnssec-query", STAT_ISEQUAL(status, STAT_NEED_KEY) ? T_DNSKEY : T_DS));
+				  "dnssec-query", STAT_ISEQUAL(status, STAT_NEED_KEY) ? T_DNSKEY : T_DS);
 		  server->queries++;
 		}
 	      
@@ -1136,7 +1137,7 @@ static void return_reply(time_t now, struct frec *forward, struct dns_header *he
 		domain = daemon->namebuff;
 	    }
 	  
-	  log_query(F_SECSTAT, domain, &a, result);
+	  log_query(F_SECSTAT, domain, &a, result, 0);
 	}
     }
 #endif
@@ -1202,7 +1203,7 @@ static void return_reply(time_t now, struct frec *forward, struct dns_header *he
 	    {
 	      daemon->log_display_id = src->log_id;
 	      daemon->log_source_addr = &src->source;
-	      log_query(F_UPSTREAM, "query", NULL, "duplicate");
+	      log_query(F_UPSTREAM, "query", NULL, "duplicate", 0);
 	    }
 	}
     }
@@ -1509,10 +1510,8 @@ void receive_query(struct listener *listen, time_t now)
 #ifdef HAVE_AUTH
       struct auth_zone *zone;
 #endif
-      char *types = querystr(auth_dns ? "auth" : "query", type);
-
       log_query_mysockaddr(F_QUERY | F_FORWARD, daemon->namebuff,
-			   &source_addr, types);
+			   &source_addr, auth_dns ? "auth" : "query", type);
       
 #ifdef HAVE_CONNTRACK
       is_single_query = 1;
@@ -1808,7 +1807,7 @@ static int tcp_key_recurse(time_t now, int status, struct dns_header *header, si
       daemon->log_display_id = ++daemon->log_id;
       
       log_query_mysockaddr(F_NOEXTRA | F_DNSSEC, keyname, &server->addr,
-			   querystr("dnssec-query", STAT_ISEQUAL(new_status, STAT_NEED_KEY) ? T_DNSKEY : T_DS));
+			   "dnssec-query", STAT_ISEQUAL(new_status, STAT_NEED_KEY) ? T_DNSKEY : T_DS);
             
       new_status = tcp_key_recurse(now, new_status, new_header, m, class, name, keyname, server, have_mark, mark, keycount);
 
@@ -1946,11 +1945,10 @@ unsigned char *tcp_request(int confd, time_t now,
 #ifdef HAVE_AUTH
 	  struct auth_zone *zone;
 #endif
-	  char *types = querystr(auth_dns ? "auth" : "query", qtype);
-	  
+
 	  log_query_mysockaddr(F_QUERY | F_FORWARD, daemon->namebuff,
-			       &peer_addr, types);
-	  
+			       &peer_addr, auth_dns ? "auth" : "query", qtype);
+
 #ifdef HAVE_CONNTRACK
 	  is_single_query = 1;
 #endif
@@ -2089,7 +2087,7 @@ unsigned char *tcp_request(int confd, time_t now,
 		  /* get query name again for logging - may have been overwritten */
 		  if (!(gotname = extract_request(header, (unsigned int)size, daemon->namebuff, &qtype)))
 		    strcpy(daemon->namebuff, "query");
-		  log_query_mysockaddr(F_SERVER | F_FORWARD, daemon->namebuff, &serv->addr, NULL);
+		  log_query_mysockaddr(F_SERVER | F_FORWARD, daemon->namebuff, &serv->addr, NULL, 0);
 		  
 #ifdef HAVE_DNSSEC
 		  if (option_bool(OPT_DNSSEC_VALID) && !checking_disabled && (master->flags & SERV_DO_DNSSEC))
@@ -2121,7 +2119,7 @@ unsigned char *tcp_request(int confd, time_t now,
 			    domain = daemon->namebuff;
 			}
 		      
-		      log_query(F_SECSTAT, domain, &a, result);
+		      log_query(F_SECSTAT, domain, &a, result, 0);
 		    }
 #endif
 		  
