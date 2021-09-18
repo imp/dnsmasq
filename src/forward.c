@@ -1863,7 +1863,7 @@ unsigned char *tcp_request(int confd, time_t now,
   int first, last;
   unsigned int flags = 0;
     
-  if (getpeername(confd, (struct sockaddr *)&peer_addr, &peer_len) == -1)
+  if (!packet || getpeername(confd, (struct sockaddr *)&peer_addr, &peer_len) == -1)
     return packet;
 
 #ifdef HAVE_CONNTRACK
