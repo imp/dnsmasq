@@ -505,13 +505,14 @@ source address specified but the port may be specified directly as
 part of the source address. Forcing queries to an interface is not
 implemented on all platforms supported by dnsmasq.
 .TP
-.B --rev-server=<ip-address>/<prefix-len>[,<ipaddr>][#<port>][@<interface>][@<source-ip>[#<port>]]
+.B --rev-server=<ip-address>[/<prefix-len>][,<ipaddr>][#<port>][@<interface>][@<source-ip>[#<port>]]
 This is functionally the same as 
 .B --server, 
 but provides some syntactic sugar to make specifying address-to-name queries easier. For example
 .B --rev-server=1.2.3.0/24,192.168.0.1
 is exactly equivalent to 
 .B --server=/3.2.1.in-addr.arpa/192.168.0.1
+Allowed prefix lengths are 1-32 (IPv4) and 1-128 (IPv6). If the prefix length is omitted, dnsmasq substitutes either 32 (IPv4) or 128 (IPv6).
 .TP
 .B \-A, --address=/<domain>[/<domain>...]/[<ipaddr>]
 Specify an IP address to return for any host in the given domains.
@@ -1923,7 +1924,6 @@ additional flag "local" may be supplied which has the effect of adding
 is identical to
 .B --domain=thekelleys.org.uk,192.168.0.0/24
 .B --local=/thekelleys.org.uk/ --local=/0.168.192.in-addr.arpa/
-The network size must be 8, 16 or 24 for this to be legal.
 .TP
 .B --dhcp-fqdn
 In the default mode, dnsmasq inserts the unqualified names of
