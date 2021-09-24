@@ -2715,7 +2715,7 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
       
     case LOPT_NO_REBIND: /*  --rebind-domain-ok */
       {
-	struct server *new;
+	struct rebind_domain *new;
 
 	unhide_metas(arg);
 
@@ -2724,9 +2724,8 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	
 	do {
 	  comma = split_chr(arg, '/');
-	  new = opt_malloc(sizeof(struct serv_local));
-	  new->domain = opt_string_alloc(arg);
-	  new->domain_len = strlen(arg);
+	  new = opt_malloc(sizeof(struct  rebind_domain));
+	  new->domain = canonicalise_opt(arg);
 	  new->next = daemon->no_rebind;
 	  daemon->no_rebind = new;
 	  arg = comma;
