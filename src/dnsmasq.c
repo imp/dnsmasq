@@ -346,6 +346,16 @@ int main (int argc, char **argv)
     }
 #endif
 
+#ifdef HAVE_NFTSET
+  if (daemon->nftsets)
+    {
+      nftset_init();
+#  ifdef HAVE_LINUX_NETWORK
+      need_cap_net_admin = 1;
+#  endif
+    }
+#endif
+
 #if  defined(HAVE_LINUX_NETWORK)
   netlink_warn = netlink_init();
 #elif defined(HAVE_BSD_NETWORK)

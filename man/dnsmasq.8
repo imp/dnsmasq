@@ -550,6 +550,15 @@ These IP sets must already exist. See
 .BR ipset (8)
 for more details.
 .TP
+.B --nftset=/<domain>[/<domain>...]/[(6|4)#[<family>#]<table>#<set>[,[(6|4)#[<family>#]<table>#<set>]...]
+Similar to the \fB--ipset\fP option, but accepts one or more nftables 
+sets to add IP addresses into.
+These sets must already exist. See
+.BR nft (8)
+for more details. The family, table and set are passed directly to the nft. If the spec starts with 4# or 6# then
+only A or AAAA records respectively are added to the set. Since an nftset can hold only IPv4 or IPv6 addresses, this
+avoids errors being logged for addresses of the wrong type.
+.TP
 .B --connmark-allowlist-enable[=<mask>]
 Enables filtering of incoming DNS queries with associated Linux connection track marks
 according to individual allowlists configured via a series of \fB--connmark-allowlist\fP
