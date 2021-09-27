@@ -60,6 +60,7 @@ Notes on configuring dnsmasq as packaged for Debian.
       nodbus      : omit DBus support.
       noconntrack : omit connection tracking support. 
       noipset     : omit IPset support.
+      nonftset    : omit nftset support.
       nortc       : compile alternate mode suitable for systems without an RTC.
       noi18n      : omit translations and internationalisation support.
       noidn       : omit international domain name support, must be

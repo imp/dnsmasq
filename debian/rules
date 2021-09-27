@@ -52,6 +52,10 @@ ifeq (,$(filter noidn, $(DEB_BUILD_OPTIONS)))
 	DEB_COPTS += -DHAVE_LIBIDN2
 endif
 
+ifeq (,$(filter nonftset, $(DEB_BUILD_OPTIONS)))
+	DEB_COPTS += -DHAVE_NFTSET
+endif
+
 ifeq (,$(filter noconntrack,$(DEB_BUILD_OPTIONS)))
 ifeq ($(DEB_HOST_ARCH_OS),linux)
      DEB_COPTS += -DHAVE_CONNTRACK
