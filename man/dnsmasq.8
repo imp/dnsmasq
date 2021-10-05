@@ -270,14 +270,16 @@ the address dnsmasq is listening on. When an interface is specified,
 it may be qualified with "/4" or "/6" to specify only the IPv4 or IPv6
 addresses associated with the interface. Since any defined authoritative zones are also available as part of the normal recusive DNS service supplied by dnsmasq, it can make sense to have an --auth-server declaration with no interfaces or address, but simply specifying the primary external nameserver.
 .TP
-.B --local-service
+.B --local-service[=net|host]
+Without parameter or with net parameter, restricts service to connected network.
 Accept DNS queries only from hosts whose address is on a local subnet,
-ie a subnet for which an interface exists on the server. This option
+ie a subnet for which an interface exists on the server. With host parameter, listens
+only on lo interface and accepts queries from localhost only. This option
 only has effect if there are no \fB--interface\fP, \fB--except-interface\fP,
 \fB--listen-address\fP or \fB--auth-server\fP options. It is intended to be set as
 a default on installation, to allow unconfigured installations to be
 useful but also safe from being used for DNS amplification attacks.
-.TP 
+.TP
 .B \-2, --no-dhcp-interface=<interface name>
 Do not provide DHCP, TFTP or router advertisement on the specified interface, but do provide DNS service.
 .TP
