@@ -518,9 +518,7 @@ Allowed prefix lengths are 1-32 (IPv4) and 1-128 (IPv6). If the prefix length is
 Specify an IP address to return for any host in the given domains.
 Queries in the domains are never forwarded and always replied to
 with the specified IP address which may be IPv4 or IPv6. To give
-both IPv4 and IPv6 addresses for a domain, use repeated \fB--address\fP flags.
-To include multiple IP addresses for a single query, use
-\fB--addn-hosts=<path>\fP instead.
+multiple addresses or both IPv4 and IPv6 addresses for a domain, use repeated \fB--address\fP flags.
 Note that /etc/hosts and DHCP leases override this for individual
 names. A common use of this is to redirect the entire doubleclick.net
 domain to some friendly local web server to avoid banner ads. The
