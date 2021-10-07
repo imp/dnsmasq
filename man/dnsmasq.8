@@ -348,6 +348,12 @@ the public DNS and can cause problems by triggering dial-on-demand links. This f
 to filter such requests. The requests blocked are for records of types SOA and SRV, and type ANY where the 
 requested name has underscores, to catch LDAP requests.
 .TP
+.B --filter-A
+Remove A records from answers. No IPv4 addresses will be returned.
+.TP
+.B --filter-AAAA
+Remove AAAA records from answers. No IPv6 addresses will be returned.
+.TP
 .B \-r, --resolv-file=<file>
 Read the IP addresses of the upstream nameservers from <file>, instead of
 /etc/resolv.conf. For the format of this file see

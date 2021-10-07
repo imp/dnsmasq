@@ -8,7 +8,10 @@ version 2.87
 	Add --nftset option, like --ipset but for the newer nftables.
 	Thanks to Chen Zhenge for the patch.
 	
-	
+	Add --filter-A and --filter-AAAA options, to remove IPv4 or IPv6
+	addresses from DNS answers.
+
+
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
 	Thanks to Aichun Li for spotting this omission, and the initial
