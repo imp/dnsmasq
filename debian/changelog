@@ -1,7 +1,8 @@
 dnsmasq (2.87-1) unstable; urgency=low
 
    * New upstream.
-   * Include new NFTset support in the build.  	
+   * Include new NFTset support in the build.
+   * Fix crash on netboot with DNS server disabled. (closes: #996332)
 
  -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 08 Sep 2021 23:11:25 +0000
 

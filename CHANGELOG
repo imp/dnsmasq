@@ -11,7 +11,11 @@ version 2.87
 	Add --filter-A and --filter-AAAA options, to remove IPv4 or IPv6
 	addresses from DNS answers.
 
+	Fix crash doing netbooting when --port is set to zero
+	to disable the DNS server. Thanks to Drexl Johannes
+	for the bug report.
 
+	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
 	Thanks to Aichun Li for spotting this omission, and the initial
