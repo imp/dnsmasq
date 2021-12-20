@@ -15,6 +15,10 @@ version 2.87
 	to disable the DNS server. Thanks to Drexl Johannes
 	for the bug report.
 
+	Generalise --dhcp-relay. Sending via broadcast/multicast is
+	now supported for both IPv4 and IPv6 and the configuration
+	syntax made easier (but backwards compatible).
+	
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.

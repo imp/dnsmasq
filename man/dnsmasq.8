@@ -1326,7 +1326,7 @@ DHCP options. This make extra space available in the DHCP packet for
 options but can, rarely, confuse old or broken clients. This flag
 forces "simple and safe" behaviour to avoid problems in such a case.
 .TP
-.B --dhcp-relay=<local address>,<server address>[,<interface]
+.B --dhcp-relay=<local address>[,<server address>][,<interface]
 Configure dnsmasq to do DHCP relay. The local address is an address
 allocated to an interface on the host running dnsmasq. All DHCP
 requests arriving on that interface will we relayed to a remote DHCP
@@ -1334,10 +1334,9 @@ server at the server address. It is possible to relay from a single local
 address to multiple remote servers by using multiple \fB--dhcp-relay\fP
 configs with the same local address and different server
 addresses. A server address must be an IP literal address, not a
-domain name. In the case of DHCPv6, the server address may be the
-ALL_SERVERS multicast address, ff05::1:3. In this case the interface
-must be given, not be wildcard, and is used to direct the multicast to the
-correct interface to reach the DHCP server. 
+domain name. If the server address is ommitted, the request will be
+forwarded by broadcast (IPv4) or multicast (IPv6). In this case the interface
+must be given and not be wildcard.
 
 Access control for DHCP clients has the same rules as for the DHCP
 server, see \fB--interface\fP, \fB--except-interface\fP, etc. The optional
