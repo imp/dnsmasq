@@ -21,6 +21,12 @@ version 2.87
 	
 	Add snooping of IPv6 prefix-delegations to the DHCP-relay system.
 
+	Finesse parsing of --dhcp-remoteid and --dhcp-subscrid. To be treated
+	as hex, the pattern must consist of only hex digits AND contain
+	at least one ':'. Thanks to Bengt-Erik Sandstrom who tripped
+	over a pattern consisting of a decimal number which was interpreted
+	surprisingly.
+
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
