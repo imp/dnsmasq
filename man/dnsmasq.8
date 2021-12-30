@@ -1356,6 +1356,11 @@ supported: the relay function will take precedence.
 
 Both DHCPv4 and DHCPv6 relay is supported. It's not possible to relay
 DHCPv4 to a DHCPv6 server or vice-versa.
+
+The DHCP relay function for IPv6 includes the ability to snoop
+prefix-delegation from relayed DHCP transactions. See
+.B --dhcp-script
+for details. 
 .TP
 .B \-U, --dhcp-vendorclass=set:<tag>,[enterprise:<IANA-enterprise number>,]<vendor-class>
 Map from a vendor-class string to a tag. Most DHCP clients provide a 
@@ -1766,15 +1771,25 @@ receives a HUP signal, the script will be invoked for existing leases
 with an "old" event.
 
 
-There are four further actions which may appear as the first argument
-to the script, "init", "arp-add", "arp-del" and "tftp". More may be added in the future, so
+There are five further actions which may appear as the first argument
+to the script, "init", "arp-add", "arp-del", "relay-snoop" and "tftp".
+More may be added in the future, so
 scripts should be written to ignore unknown actions. "init" is
 described below in 
 .B --leasefile-ro
+
 The "tftp" action is invoked when a TFTP file transfer completes: the
 arguments are the file size in bytes, the address to which the file
 was sent, and the complete pathname of the file.
- 
+
+The "relay-snoop" action is invoked when dnsmasq is configured as a DHCP
+relay for DHCPv6 and it relays a prefx delegation to a client. The arguments
+are the name of the interface where the client is conected, its (link-local)
+address on that interface and the delegated prefix. This information is
+sufficient to install routes to the delegated prefix of a router. See
+.B --dhcp-relay
+for more details on configuring DHCP relay.
+
 The "arp-add" and "arp-del" actions are only called if enabled with
 .B --script-arp
 They are are supplied with a MAC address and IP address as arguments. "arp-add" indicates

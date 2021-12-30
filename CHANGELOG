@@ -19,6 +19,8 @@ version 2.87
 	now supported for both IPv4 and IPv6 and the configuration
 	syntax made easier (but backwards compatible).
 	
+	Add snooping of IPv6 prefix-delegations to the DHCP-relay system.
+
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
