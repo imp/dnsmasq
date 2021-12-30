@@ -1757,8 +1757,8 @@ void dump_cache(time_t now)
     {
       struct crec *cache ;
       int i;
-      my_syslog(LOG_INFO, "Host                           Address                                  Flags      Expires");
-      my_syslog(LOG_INFO, "------------------------------ ---------------------------------------- ---------  ------------------------");
+      my_syslog(LOG_INFO, "Host                           Address                                  Flags      Expires                  Source");
+      my_syslog(LOG_INFO, "------------------------------ ---------------------------------------- ---------- ------------------------ ------------");
     
       for (i=0; i<hash_size; i++)
 	for (cache = hash_table[i]; cache; cache = cache->hash_next)
@@ -1816,7 +1816,10 @@ void dump_cache(time_t now)
 	    else if (cache->flags & F_DNSKEY)
 	      t = "K";
 #endif
-	    p += sprintf(p, "%-40.40s %s%s%s%s%s%s%s%s%s  ", a, t,
+	    else /* non-terminal */
+	      t = "!";
+
+	    p += sprintf(p, "%-40.40s %s%s%s%s%s%s%s%s%s%s ", a, t,
 			 cache->flags & F_FORWARD ? "F" : " ",
 			 cache->flags & F_REVERSE ? "R" : " ",
 			 cache->flags & F_IMMORTAL ? "I" : " ",
@@ -1824,14 +1827,16 @@ void dump_cache(time_t now)
 			 cache->flags & F_NEG ? "N" : " ",
 			 cache->flags & F_NXDOMAIN ? "X" : " ",
 			 cache->flags & F_HOSTS ? "H" : " ",
+			 cache->flags & F_CONFIG ? "C" : " ",
 			 cache->flags & F_DNSSECOK ? "V" : " ");
 #ifdef HAVE_BROKEN_RTC
-	    p += sprintf(p, "%lu", cache->flags & F_IMMORTAL ? 0: (unsigned long)(cache->ttd - now));
+	    p += sprintf(p, "%-24lu", cache->flags & F_IMMORTAL ? 0: (unsigned long)(cache->ttd - now));
 #else
-	    p += sprintf(p, "%s", cache->flags & F_IMMORTAL ? "\n" : ctime(&(cache->ttd)));
-	    /* ctime includes trailing \n - eat it */
-	    *(p-1) = 0;
+	    p += sprintf(p, "%-24.24s", cache->flags & F_IMMORTAL ? "" : ctime(&(cache->ttd)));
 #endif
+	    if(cache->flags & (F_HOSTS | F_CONFIG) && cache->uid > 0)
+		p += sprintf(p, " %s", record_source(cache->uid));
+
 	    my_syslog(LOG_INFO, "%s", daemon->namebuff);
 	  }
     }
