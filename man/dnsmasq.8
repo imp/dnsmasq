@@ -766,12 +766,13 @@ will add 1.2.3.0/24 for IPv4 requestors and ::/0 for IPv6 requestors.
 .B --add-subnet=1.2.3.4/24,1.2.3.4/24
 will add 1.2.3.0/24 for both IPv4 and IPv6 requestors.
 .TP
-.B --umbrella[=deviceid:<deviceid>[,orgid:<orgid>]]
+.B --umbrella[=[deviceid:<deviceid>][,orgid:<orgid>][,assetid:<id>]]
 Embeds the requestor's IP address in DNS queries forwarded upstream.
-If device id or organization id are specified, the information is
+If device id or, asset id or organization id are specified, the information is
 included in the forwarded queries and may be able to be used in
-filtering policies and reporting. The order of the deviceid and orgid
-attributes is irrelevant, but must be separated by a comma.
+filtering policies and reporting. The order of the id
+attributes is irrelevant, but they must be separated by a comma. Deviceid is
+a sixteen digit hexadecimal number, org and asset ids are decimal numbers.
 .TP
 .B \-c, --cache-size=<cachesize>
 Set the size of dnsmasq's cache. The default is 150 names. Setting the cache size to zero disables caching. Note: huge cache size impacts performance.
