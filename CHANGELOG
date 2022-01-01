@@ -27,6 +27,10 @@ version 2.87
 	over a pattern consisting of a decimal number which was interpreted
 	surprisingly.
 
+	Include client address in TFTP file-not-found error reports.
+	Thanks to Stefan Rink for the initial patch, which has been
+	re-worked by me (srk). All bugs mine.
+
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
