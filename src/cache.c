@@ -1951,12 +1951,13 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, 
   char *source, *dest = arg;
   char *verb = "is";
   char *extra = "";
+  char portstring[7]; /* space for #<portnum> */
   
   if (!option_bool(OPT_LOG))
     return;
 
   /* build query type string if requested */
-  if(type > 0)
+  if (!(flags & (F_SERVER | F_IPSET)) && type > 0)
     arg = querystr(arg, type);
 
 #ifdef HAVE_DNSSEC
@@ -1992,8 +1993,15 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, 
 	    }
 	}
       else if (flags & (F_IPV4 | F_IPV6))
-	inet_ntop(flags & F_IPV4 ? AF_INET : AF_INET6,
-		  addr, daemon->addrbuff, ADDRSTRLEN);
+	{
+	  inet_ntop(flags & F_IPV4 ? AF_INET : AF_INET6,
+		    addr, daemon->addrbuff, ADDRSTRLEN);
+	  if ((flags & F_SERVER) && type != NAMESERVER_PORT)
+	    {
+	      extra = portstring;
+	      sprintf(portstring, "#%u", type);
+	    }
+	}
       else
 	dest = arg;
     }

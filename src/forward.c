@@ -123,9 +123,17 @@ static void set_outgoing_mark(struct frec *forward, int fd)
 static void log_query_mysockaddr(unsigned int flags, char *name, union mysockaddr *addr, char *arg, unsigned short type)
 {
   if (addr->sa.sa_family == AF_INET)
-    log_query(flags | F_IPV4, name, (union all_addr *)&addr->in.sin_addr, arg, type);
+    {
+      if (flags & F_SERVER)
+	type = ntohs(addr->in.sin_port);
+      log_query(flags | F_IPV4, name, (union all_addr *)&addr->in.sin_addr, arg, type);
+    }
   else
-    log_query(flags | F_IPV6, name, (union all_addr *)&addr->in6.sin6_addr, arg, type);
+    {
+      if (flags & F_SERVER)
+	type = ntohs(addr->in6.sin6_port);
+      log_query(flags | F_IPV6, name, (union all_addr *)&addr->in6.sin6_addr, arg, type);
+    }
 }
 
 static void server_send(struct server *server, int fd,
@@ -959,8 +967,8 @@ static void dnssec_validate(struct frec *forward, struct dns_header *header,
 		    set_outgoing_mark(orig, fd);
 #endif
 		  server_send_log(server, fd, header, nn, DUMP_SEC_QUERY,
-				  F_NOEXTRA | F_DNSSEC, daemon->keyname,
-				  "dnssec-query", STAT_ISEQUAL(status, STAT_NEED_KEY) ? T_DNSKEY : T_DS);
+				  F_NOEXTRA | F_DNSSEC | F_SERVER, daemon->keyname,
+				  STAT_ISEQUAL(status, STAT_NEED_KEY) ? "dnssec-query[DNSKEY]" : "dnssec-query[DS]", 0);
 		  server->queries++;
 		  return;
 		}
@@ -1882,8 +1890,8 @@ static int tcp_key_recurse(time_t now, int status, struct dns_header *header, si
       log_save = daemon->log_display_id;
       daemon->log_display_id = ++daemon->log_id;
       
-      log_query_mysockaddr(F_NOEXTRA | F_DNSSEC, keyname, &server->addr,
-			   "dnssec-query", STAT_ISEQUAL(new_status, STAT_NEED_KEY) ? T_DNSKEY : T_DS);
+      log_query_mysockaddr(F_NOEXTRA | F_DNSSEC | F_SERVER, keyname, &server->addr,
+			    STAT_ISEQUAL(status, STAT_NEED_KEY) ? "dnssec-query[DNSKEY]" : "dnssec-query[DS]", 0);
             
       new_status = tcp_key_recurse(now, new_status, new_header, m, class, name, keyname, server, have_mark, mark, keycount);
 
