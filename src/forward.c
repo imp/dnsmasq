@@ -19,7 +19,9 @@
 static struct frec *get_new_frec(time_t now, struct server *serv, int force);
 static struct frec *lookup_frec(unsigned short id, int fd, void *hash, int *firstp, int *lastp);
 static struct frec *lookup_frec_by_query(void *hash, unsigned int flags, unsigned int flagmask);
+#ifdef HAVE_DNSSEC
 static struct frec *lookup_frec_dnssec(char *target, int class, int flags, struct dns_header *header);
+#endif
 
 static unsigned short get_id(void);
 static void free_frec(struct frec *f);
@@ -2629,6 +2631,7 @@ static struct frec *lookup_frec_by_query(void *hash, unsigned int flags, unsigne
   return NULL;
 }
 
+#ifdef HAVE_DNSSEC
 /* DNSSEC frecs have the complete query in the block stash.
    Search for an existing query using that. */
 static struct frec *lookup_frec_dnssec(char *target, int class, int flags, struct dns_header *header)
@@ -2657,7 +2660,7 @@ static struct frec *lookup_frec_dnssec(char *target, int class, int flags, struc
 
    return NULL;
 }
-
+#endif
 
 /* Send query packet again, if we can. */
 void resend_query()
