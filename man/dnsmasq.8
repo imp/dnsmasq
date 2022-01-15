@@ -742,6 +742,9 @@ have security and privacy implications. The warning about caching
 given for \fB--add-subnet\fP applies to \fB--add-mac\fP too. An alternative encoding of the
 MAC, as base64, is enabled by adding the "base64" parameter and a human-readable encoding of hex-and-colons is enabled by added the "text" parameter.
 .TP
+.B --strip-mac
+Remove any MAC address information already in downstream queries before forwarding upstream.  
+.TP
 .B --add-cpe-id=<string>
 Add an arbitrary identifying string to DNS queries which are
 forwarded upstream.
@@ -766,6 +769,11 @@ will add the /24 and /96 subnets of the requestor for IPv4 and IPv6 requestors, 
 will add 1.2.3.0/24 for IPv4 requestors and ::/0 for IPv6 requestors.
 .B --add-subnet=1.2.3.4/24,1.2.3.4/24
 will add 1.2.3.0/24 for both IPv4 and IPv6 requestors.
+.TP
+.B --strip-subnet
+Remove any subnet address already present in a downstream query before forwarding it upstream. If --add-subnet is set this also
+ensures that any downstream-provided subnet is replaced by the one added by dnsmasq. Otherwise, dnsmaaq will NOT replace an
+existing subnet in the query.
 .TP
 .B --umbrella[=[deviceid:<deviceid>][,orgid:<orgid>][,assetid:<id>]]
 Embeds the requestor's IP address in DNS queries forwarded upstream.
