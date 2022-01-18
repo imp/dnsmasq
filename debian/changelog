@@ -1,6 +1,6 @@
 dnsmasq (2.87-1) unstable; urgency=low
 
-   * New upstream. (closes: #1001209)
+   * New upstream. (closes: #1001209, #1003156)
    * Include new NFTset support in the build.
    * Fix crash on netboot with DNS server disabled. (closes: #996332)
    * Fix rare lockup in DNSSEC. (closes: #1001576)
