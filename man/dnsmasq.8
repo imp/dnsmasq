@@ -734,7 +734,7 @@ Specify the location of a pcap-format file which dnsmasq uses to dump copies of 
 .TP
 .B --dumpmask=<mask>
 Specify which types of packets should be added to the dumpfile. The argument should be the OR of the bitmasks for each type of packet to be dumped: it can be specified in hex by preceding the number with 0x in  the normal way. Each time a packet is written to the dumpfile, dnsmasq logs the packet sequence and the mask
-representing its type. The current types are: 0x0001 - DNS queries from clients 0x0002 DNS replies to clients 0x0004 - DNS queries to upstream 0x0008 - DNS replies from upstream 0x0010 - queries send upstream for DNSSEC validation 0x0020 - replies to queries for DNSSEC validation 0x0040 - replies to client queries which fail DNSSEC validation 0x0080 replies to queries for DNSSEC validation which fail validation.
+representing its type. The current types are: 0x0001 - DNS queries from clients, 0x0002 DNS replies to clients, 0x0004 - DNS queries to upstream, 0x0008 - DNS replies from upstream, 0x0010 - queries send upstream for DNSSEC validation, 0x0020 - replies to queries for DNSSEC validation, 0x0040 - replies to client queries which fail DNSSEC validation, 0x0080 replies to queries for DNSSEC validation which fail validation, 0x1000 - DHCPv4, 0x2000 - DHCPv6, 0x8000 - TFTP.
 .TP
 .B --add-mac[=base64|text]
 Add the MAC address of the requestor to DNS queries which are
