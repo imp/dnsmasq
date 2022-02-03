@@ -39,6 +39,14 @@ version 2.87
 	a local NODATA answer. The pre-2.86 behaviour is still available,
 	by configuring --address=/example.com/1.2.3.4 --local=/example.com/
 
+        Fix problem with binding DHCP sockets to an individual interface.
+	Despite the fact that the system call tales the interface _name_ as
+	a parameter, it actually, binds the socket to interface _index_.
+	Deleting the interface and creating a new one with the same name
+	leaves the socket bound to the old index. (Creating new sockets
+	always allocates a fresh index, they are not reused). We now
+	take this behaviour into account and keep up with changing indexes.
+
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
