@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2021 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2022 Simon Kelley
  
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define COPYRIGHT "Copyright (c) 2000-2021 Simon Kelley"
+#define COPYRIGHT "Copyright (c) 2000-2022 Simon Kelley"
 
 /* We do defines that influence behavior of stdio.h, so complain
    if included too early. */
@@ -690,14 +690,18 @@ struct hostsfile {
 };
 
 /* packet-dump flags */
-#define DUMP_QUERY     0x0001
-#define DUMP_REPLY     0x0002
-#define DUMP_UP_QUERY  0x0004
-#define DUMP_UP_REPLY  0x0008
-#define DUMP_SEC_QUERY 0x0010
-#define DUMP_SEC_REPLY 0x0020
-#define DUMP_BOGUS     0x0040
-#define DUMP_SEC_BOGUS 0x0080
+#define DUMP_QUERY         0x0001
+#define DUMP_REPLY         0x0002
+#define DUMP_UP_QUERY      0x0004 
+#define DUMP_UP_REPLY      0x0008
+#define DUMP_SEC_QUERY     0x0010
+#define DUMP_SEC_REPLY     0x0020
+#define DUMP_BOGUS         0x0040 
+#define DUMP_SEC_BOGUS     0x0080
+#define DUMP_DHCP          0x1000
+#define DUMP_DHCPV6        0x2000
+#define DUMP_RA            0x4000
+#define DUMP_TFTP          0x8000
 
 /* DNSSEC status values. */
 #define STAT_SECURE             0x10000
@@ -1085,7 +1089,7 @@ struct dhcp_relay {
     struct snoop_record *next;
   } *snoop_records;
 #endif
-  struct dhcp_relay *current, *next;
+  struct dhcp_relay *next;
 };
 
 extern struct daemon {
@@ -1678,7 +1682,7 @@ void get_client_mac(struct in6_addr *client, int iface, unsigned char *mac,
 unsigned short dhcp6_reply(struct dhcp_context *context, int interface, char *iface_name,  
 			   struct in6_addr *fallback, struct in6_addr *ll_addr, struct in6_addr *ula_addr,
 			   size_t sz, struct in6_addr *client_addr, time_t now);
-void relay_upstream6(struct dhcp_relay *relay, ssize_t sz, struct in6_addr *peer_address, 
+int relay_upstream6(int iface_index, ssize_t sz, struct in6_addr *peer_address, 
 		     u32 scope_id, time_t now);
 
 int relay_reply6( struct sockaddr_in6 *peer, ssize_t sz, char *arrival_interface);
@@ -1711,7 +1715,7 @@ struct dhcp_config *find_config(struct dhcp_config *configs,
 int config_has_mac(struct dhcp_config *config, unsigned char *hwaddr, int len, int type);
 #ifdef HAVE_LINUX_NETWORK
 char *whichdevice(void);
-void bindtodevice(char *device, int fd);
+int bind_dhcp_devices(char *bound_device);
 #endif
 #  ifdef HAVE_DHCP6
 void display_opts6(void);
@@ -1794,7 +1798,8 @@ int do_arp_script_run(void);
 /* dump.c */
 #ifdef HAVE_DUMPFILE
 void dump_init(void);
-void dump_packet(int mask, void *packet, size_t len, union mysockaddr *src, union mysockaddr *dst);
+void dump_packet(int mask, void *packet, size_t len, union mysockaddr *src,
+		 union mysockaddr *dst, int port);
 #endif
 
 /* domain-match.c */
