@@ -2141,6 +2141,23 @@ A special case of
 which differs in two respects. Firstly, only \fB--server\fP and \fB--rev-server\fP are allowed
 in the configuration file included. Secondly, the file is re-read and the configuration
 therein is updated when dnsmasq receives SIGHUP.
+.TP
+.B \--conf-script=<file>[ <arg]
+Execute <file>, and treat what it emits to stdout as the contents of a configuration file.
+If the script exits with a non-zero exit code, dnsmasq treats this as a fatal error.
+The script can be passed arguments, space seperated from the filename and each other so, for instance
+.B --conf-dir="/etc/dnsmasq-uncompress-ads /share/ads-domains.gz"
+
+with /etc/dnsmasq-uncompress-ads containing 
+
+set -e
+
+zcat ${1} | sed -e "s:^:address=/:" -e "s:$:/:" 
+
+exit 0
+
+and /share/ads-domains.gz containing a compressed
+list of ad server domains will save disk space with large ad-server blocklists.
 .SH CONFIG FILE
 At startup, dnsmasq reads
 .I /etc/dnsmasq.conf,
@@ -2537,7 +2554,9 @@ file/directory, permissions).
 5 - Other miscellaneous problem.
 .PP
 11 or greater - a non zero return code was received from the
-lease-script process "init" call. The exit code from dnsmasq is the
+lease-script process "init" call or a
+.B \--conf-script
+file. The exit code from dnsmasq is the
 script's exit code with 10 added. 
 
 .SH LIMITS

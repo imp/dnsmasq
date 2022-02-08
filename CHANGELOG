@@ -47,6 +47,8 @@ version 2.87
 	always allocates a fresh index, they are not reused). We now
 	take this behaviour into account and keep up with changing indexes.
 
+	Add --conf-script configuration option.
+
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
