@@ -304,7 +304,8 @@ Return answers to DNS queries from /etc/hosts and \fB--interface-name\fP and \fB
 received. If a name has more than one address associated with
 it, and at least one of those addresses is on the same subnet as the
 interface to which the query was sent, then return only the
-address(es) on that subnet. This allows for a server  to have multiple
+address(es) on that subnet and return all the available addresses otherwise.
+This allows for a server  to have multiple
 addresses in /etc/hosts corresponding to each of its interfaces, and
 hosts will get the correct address based on which network they are
 attached to. Currently this facility is limited to IPv4.
