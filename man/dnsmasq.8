@@ -1935,7 +1935,7 @@ is the address of the relay and the second, as before, specifies an extra subnet
 addresses may be allocated from.
 
 .TP
-.B \-s, --domain=<domain>[,<address range>[,local]]
+.B \-s, --domain=<domain>[[,<address range>[,local]]|<interface>]
 Specifies DNS domains for the DHCP server. Domains may be be given 
 unconditionally (without the IP range) or for limited IP ranges. This has two effects;
 firstly it causes the DHCP server to return the domain to any hosts
@@ -1969,6 +1969,11 @@ additional flag "local" may be supplied which has the effect of adding
 is identical to
 .B --domain=thekelleys.org.uk,192.168.0.0/24
 .B --local=/thekelleys.org.uk/ --local=/0.168.192.in-addr.arpa/
+
+The address range can also be given as a network interface name, in which case
+all of the subnets currently assigned to the interface are used in matching the
+address. This allows hosts on different physical subnets to be given different
+domains in a way which updates automatically as the interface addresses change.
 .TP
 .B --dhcp-fqdn
 In the default mode, dnsmasq inserts the unqualified names of

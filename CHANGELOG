@@ -49,6 +49,12 @@ version 2.87
 
 	Add --conf-script configuration option.
 
+	Enhance --domain to accept, for instance,
+	--domain=net2.thekelleys.org.uk,eth2 so that hosts get a domain
+	which relects the interface they are attached to in a way which
+	doesn't require hard-coding addresses. Thanks to Sten Spans for
+	the idea.
+
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
