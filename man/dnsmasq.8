@@ -1712,7 +1712,13 @@ If dnsmasq was compiled with HAVE_BROKEN_RTC, then
 the length of the lease (in seconds) is stored in
 DNSMASQ_LEASE_LENGTH, otherwise the time of lease expiry is stored in
 DNSMASQ_LEASE_EXPIRES. The number of seconds until lease expiry is
-always stored in DNSMASQ_TIME_REMAINING. 
+always stored in DNSMASQ_TIME_REMAINING.
+
+DNSMASQ_DATA_MISSING is set to "1" during "old" events for existing
+leases generated at startup to indicate that data not stored in the
+persistent lease database will not be present. This comprises everything
+other than IP address, hostname, MAC address, DUID, IAID and lease length
+or expiry time.
 
 If a lease used to have a hostname, which is
 removed, an "old" event is generated with the new state of the lease, 
