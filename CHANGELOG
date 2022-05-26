@@ -58,6 +58,14 @@ version 2.87
 	Fix write-after-free error in DHCPv6 server code.
 	CVE-2022-0934 refers.
 	
+	Add the ability to specify destination port in
+	DHCP-relay mode. This change also removes a previous bug
+	where --dhcp-alternate-port would affect the port used
+	to relay _to_ as well as the port being listened on.
+	The new feature allows configuration to provide bug-for-bug
+	compatibility, if required. Thanks to Damian Kaczkowski 
+	for the feature suggestion.
+	
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
