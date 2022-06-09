@@ -443,6 +443,34 @@ struct dhcp_config *config_find_by_address6(struct dhcp_config *configs, struct 
   return NULL;
 }
 
+int is_invalid_address_from_static_range(struct dhcp_context *context, struct in6_addr *taddr)
+{
+    struct dhcp_context *c;
+    struct dhcp_config *config;
+    int    range_matched = 0;
+    for (c = context; c; c = c->current) {
+        if (!is_same_net6(&c->start6, taddr, c->prefix)) {
+            continue;
+        }
+
+        range_matched = 1;
+        if (c->flags & (CONTEXT_STATIC)) {
+            config = config_find_by_address6(daemon->dhcp_conf, &c->start6, c->prefix, addr6part(taddr));
+            if (config) {
+                return 1;
+            }
+        } 
+    }
+
+    /* return fail only when target address match static dhcp range, but it's not static configed */
+    if (range_matched) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
+
 struct dhcp_context *address6_allocate(struct dhcp_context *context,  unsigned char *clid, int clid_len, int temp_addr,
 				       unsigned int iaid, int serial, struct dhcp_netid *netids, int plain_range, struct in6_addr *ans)
 {
