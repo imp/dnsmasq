@@ -107,6 +107,10 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
   subnet_addr.s_addr = override.s_addr = 0;
 
   /* set tag with name == interface */
+  known_id.flags = LOCAL_DHCP_NETID;
+  iface_id.flags = LOCAL_DHCP_NETID;
+  cpewan_id.flags = LOCAL_DHCP_NETID;
+
   iface_id.net = iface_name;
   iface_id.next = NULL;
   netid = &iface_id; 
