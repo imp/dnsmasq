@@ -1743,6 +1743,11 @@ DNSMASQ_LOG_DHCP is set if
 .B --log-dhcp
 is in effect.
 
+DNSMASQ_REQUESTED_OPTIONS a string containing the decimal values in the Parameter Request List option, comma separated, if the parameter request list option is provided by the client.
+
+DNSMASQ_MUD_URL the Manufacturer Usage Description URL if provided by the client. (See RFC8520 for details.)
+
+
 For IPv4 only:
 
 DNSMASQ_CLIENT_ID if the host provided a client-id.
@@ -1751,8 +1756,6 @@ DNSMASQ_CIRCUIT_ID, DNSMASQ_SUBSCRIBER_ID, DNSMASQ_REMOTE_ID if a
 DHCP relay-agent added any of these options.
  
 If the client provides vendor-class, DNSMASQ_VENDOR_CLASS.
-
-DNSMASQ_REQUESTED_OPTIONS a string containing the decimal values in the Parameter Request List option, comma separated, if the parameter request list option is provided by the client.
 
 For IPv6 only:
 
