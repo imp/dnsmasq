@@ -65,6 +65,12 @@ version 2.87
 	The new feature allows configuration to provide bug-for-bug
 	compatibility, if required. Thanks to Damian Kaczkowski 
 	for the feature suggestion.
+
+	Bound the value of UDP packet size in the EDNS0 header of
+	forwarded queries to the configured or default value of
+	edns-packet-max. There's no point letting a client set a larger
+	value if we're unable to return the answer. Thanks to Bertie
+	Taylor for pointing out the problem and supplying the patch.
 	
 	
 version 2.86
