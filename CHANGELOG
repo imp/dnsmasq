@@ -80,7 +80,7 @@ version 2.87
 	forwarding the query via the default server.
 
 	
-	version 2.86
+version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.
 	Thanks to Aichun Li for spotting this omission, and the initial
 	patch.
