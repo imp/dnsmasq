@@ -180,7 +180,15 @@ specific UDP port <query_port> instead of using random ports. NOTE
 that using this option will make dnsmasq less secure against DNS
 spoofing attacks but it may be faster and use less resources.  Setting this option
 to zero makes dnsmasq use a single port allocated to it by the
-OS: this was the default behaviour in versions prior to 2.43. 
+OS: this was the default behaviour in versions prior to 2.43.
+.TP
+.B --port-limit=<#ports>
+By default, when sending a query via random ports to multiple upstream servers or
+retrying a query dnsmasq will use a single random port for all the tries/retries.
+This option allows a larger number of ports to be used, which can increase robustness
+in certain network configurations. Note that increasing this to more than
+two or three can have security and resource implications and should only
+be done with understanding of those.
 .TP
 .B --min-port=<port>
 Do not use ports less than that given as source for outbound DNS
