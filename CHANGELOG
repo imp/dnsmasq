@@ -84,6 +84,12 @@ version 2.87
 	client facing network. Thanks to Luis Thomas for spotting this
 	and initial patch.
 
+	Add --fast-dns-retry option. This gives dnsmasq the ability
+	to originate retries for upstream DNS queries itself, rather
+	than relying on the downstream client. This is most useful
+	when doing DNSSEC over unreliable upstream network. It comes
+	with some cost in memory usage and network bandwidth.
+
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.

@@ -105,6 +105,13 @@ Dnsmasq limits the value of this option to one hour, unless recompiled.
 .B --auth-ttl=<time>
 Set the TTL value returned in answers from the authoritative server.
 .TP
+.B --fast-dns-retry=<time in ms>
+Under normal circumstances, dnsmasq relies on DNS clients to do retries; it
+does not generate timeouts itself. Setting this option
+instructs dnsmasq to generate its own retries after the specified time, which
+must be greater than 500ms. Using this option increases memory usage and
+network bandwidth.
+.TP
 .B \-k, --keep-in-foreground
 Do not go into the background at startup but otherwise run as
 normal. This is intended for use when dnsmasq is run under daemontools
