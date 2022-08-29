@@ -2015,9 +2015,6 @@ static void check_dns_listeners(time_t now)
 	      
 	      buff = tcp_request(confd, now, &tcp_addr, netmask, auth_dns);
 	       
-	      shutdown(confd, SHUT_RDWR);
-	      close(confd);
-	      
 	      if (buff)
 		free(buff);
 	      

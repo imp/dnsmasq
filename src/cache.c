@@ -374,6 +374,10 @@ static int is_outdated_cname_pointer(struct crec *crecp)
 
 static int is_expired(time_t now, struct crec *crecp)
 {
+  /* Don't dump expired entries if we're using them, cache becomes strictly LRU in that case. */
+  if (option_bool(OPT_STALE_CACHE))
+    return 0;
+
   if (crecp->flags & F_IMMORTAL)
     return 0;
 
@@ -2079,6 +2083,8 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, 
       name = arg;
       verb = daemon->addrbuff;
     }
+  else if (flags & F_STALE)
+    source = "cached-stale";
   else
     source = "cached";
   

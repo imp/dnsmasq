@@ -90,6 +90,16 @@ version 2.87
 	when doing DNSSEC over unreliable upstream network. It comes
 	with some cost in memory usage and network bandwidth.
 
+	Add -use-stale-cache option. When set, if a DNS name exists
+	in the cache, but its time-to-live has expired, dnsmasq will
+	return the data anyway. (It attempts to refresh the
+	data with an upstream query after returning the stale data.)
+	This can improve speed and reliability. It comes 
+	at the expense of sometimes returning out-of-date data and
+	less efficient cache utilisation, since old data cannot be
+	flushed when its TTL expires, so the cache becomes
+	strictly least-recently-used.
+
 	
 version 2.86
 	Handle DHCPREBIND requests in the DHCPv6 server code.

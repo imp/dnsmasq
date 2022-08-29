@@ -1183,11 +1183,6 @@ void reply_query(int fd, time_t now)
 	      else if (udp_size < PACKETSZ)
 		udp_size = PACKETSZ; /* Sanity check - can't reduce below default. RFC 6891 6.2.3 */
 	      
-	      if (!is_sign &&
-		  (nn = resize_packet(header, (size_t)n, pheader, plen)) &&
-		  (forward->flags & FREC_DO_QUESTION))
-		add_do_bit(header, nn,  (unsigned char *)pheader + plen);
-	      
 	      header->ancount = htons(0);
 	      header->nscount = htons(0);
 	      header->arcount = htons(0);
@@ -1197,6 +1192,11 @@ void reply_query(int fd, time_t now)
 		header->hb4 |= HB4_CD;
 	      if (forward->flags & FREC_AD_QUESTION)
 		header->hb4 |= HB4_AD;
+
+	      if (!is_sign &&
+		  (nn = resize_packet(header, (size_t)n, pheader, plen)) &&
+		  (forward->flags & FREC_DO_QUESTION))
+		add_do_bit(header, nn,  (unsigned char *)pheader + plen);
 	    }
 	}
       
@@ -1343,10 +1343,6 @@ static void return_reply(time_t now, struct frec *forward, struct dns_header *he
 	{
 	  header->id = htons(src->orig_id);
 	  
-#ifdef HAVE_DUMPFILE
-	  dump_packet_udp(DUMP_REPLY, daemon->packet, (size_t)nn, NULL, &src->source, src->fd);
-#endif
-	  
 #if defined(HAVE_CONNTRACK) && defined(HAVE_UBUS)
 	  if (option_bool(OPT_CMARK_ALST_EN))
 	    {
@@ -1357,14 +1353,20 @@ static void return_reply(time_t now, struct frec *forward, struct dns_header *he
 	    }
 #endif
 	  
-	  send_from(src->fd, option_bool(OPT_NOWILD) || option_bool (OPT_CLEVERBIND), daemon->packet, nn, 
-		    &src->source, &src->dest, src->iface);
-	  
-	  if (option_bool(OPT_EXTRALOG) && src != &forward->frec_src)
+	  if (src->fd != -1)
 	    {
-	      daemon->log_display_id = src->log_id;
-	      daemon->log_source_addr = &src->source;
-	      log_query(F_UPSTREAM, "query", NULL, "duplicate", 0);
+#ifdef HAVE_DUMPFILE
+	      dump_packet_udp(DUMP_REPLY, daemon->packet, (size_t)nn, NULL, &src->source, src->fd);
+#endif 
+	      send_from(src->fd, option_bool(OPT_NOWILD) || option_bool (OPT_CLEVERBIND), daemon->packet, nn, 
+			&src->source, &src->dest, src->iface);
+	      
+	      if (option_bool(OPT_EXTRALOG) && src != &forward->frec_src)
+		{
+		  daemon->log_display_id = src->log_id;
+		  daemon->log_source_addr = &src->source;
+		  log_query(F_UPSTREAM, "query", NULL, "duplicate", 0);
+		}
 	    }
 	}
     }
@@ -1454,7 +1456,7 @@ void receive_query(struct listener *listen, time_t now)
   int family = listen->addr.sa.sa_family;
    /* Can always get recvd interface for IPv6 */
   int check_dst = !option_bool(OPT_NOWILD) || family == AF_INET6;
-
+  
   /* packet buffer overwritten */
   daemon->srv_save = NULL;
 
@@ -1777,13 +1779,17 @@ void receive_query(struct listener *listen, time_t now)
 #endif
   else
     {
+      int stale;
       int ad_reqd = do_bit;
+      u16 hb3 = header->hb3, hb4 = header->hb4;
+      int fd = listen->fd;
+      
       /* RFC 6840 5.7 */
       if (header->hb4 & HB4_AD)
 	ad_reqd = 1;
       
       m = answer_request(header, ((char *) header) + udp_size, (size_t)n, 
-			 dst_addr_4, netmask, now, ad_reqd, do_bit, have_pseudoheader);
+			 dst_addr_4, netmask, now, ad_reqd, do_bit, have_pseudoheader, &stale);
       
       if (m >= 1)
 	{
@@ -1798,11 +1804,36 @@ void receive_query(struct listener *listen, time_t now)
 		    (char *)header, m, &source_addr, &dst_addr, if_index);
 	  daemon->metrics[METRIC_DNS_LOCAL_ANSWERED]++;
 	}
-      else if (forward_query(listen->fd, &source_addr, &dst_addr, if_index,
-			     header, (size_t)n,  ((char *) header) + udp_size, now, NULL, ad_reqd, do_bit))
-	daemon->metrics[METRIC_DNS_QUERIES_FORWARDED]++;
-      else
-	daemon->metrics[METRIC_DNS_LOCAL_ANSWERED]++;
+      
+      if (m == 0 || stale)
+	{
+	  if (m != 0)
+	    {
+	      size_t plen;
+	      
+	      /* We answered with stale cache data, so forward the query anyway to
+		 refresh that. Restore the query from the answer packet. */
+	      pheader = find_pseudoheader(header, (size_t)m, &plen, NULL, NULL, NULL);
+	      
+	      header->hb3 = hb3;
+	      header->hb4 = hb4;
+	      header->ancount = htons(0);
+	      header->nscount = htons(0);
+	      header->arcount = htons(0);
+
+	      m = resize_packet(header, m, pheader, plen);
+
+	      /* We've already answered the client, so don't send it the answer 
+		 when it comes back. */
+	      fd = -1;
+	    }
+	  
+	  if (forward_query(fd, &source_addr, &dst_addr, if_index,
+			    header, (size_t)n,  ((char *) header) + udp_size, now, NULL, ad_reqd, do_bit))
+	    daemon->metrics[METRIC_DNS_QUERIES_FORWARDED]++;
+	  else
+	    daemon->metrics[METRIC_DNS_LOCAL_ANSWERED]++;
+	}
     }
 }
 
@@ -2029,8 +2060,9 @@ unsigned char *tcp_request(int confd, time_t now,
   unsigned char *pheader;
   unsigned int mark = 0;
   int have_mark = 0;
-  int first, last;
+  int first, last, stale, do_stale = 0;
   unsigned int flags = 0;
+  u16 hb3, hb4;
     
   if (!packet || getpeername(confd, (struct sockaddr *)&peer_addr, &peer_len) == -1)
     return packet;
@@ -2085,13 +2117,37 @@ unsigned char *tcp_request(int confd, time_t now,
     {
       int ede = EDE_UNSET;
 
-      if (query_count == TCP_MAX_QUERIES ||
-	  !packet ||
-	  !read_write(confd, &c1, 1, 1) || !read_write(confd, &c2, 1, 1) ||
-	  !(size = c1 << 8 | c2) ||
-	  !read_write(confd, payload, size, 1))
-       	return packet; 
-  
+      if (query_count == TCP_MAX_QUERIES)
+	return packet;
+
+      if (do_stale)
+	{
+	  size_t plen;
+
+	  /* We answered the last query with stale data. Now try and get fresh data.
+	     Restore query from answer. */
+	  pheader = find_pseudoheader(header, m, &plen, NULL, NULL, NULL);
+	  
+	  header->hb3 = hb3;
+	  header->hb4 = hb4;
+	  header->ancount = htons(0);
+	  header->nscount = htons(0);
+	  header->arcount = htons(0);
+	  
+	  size = resize_packet(header, m, pheader, plen);
+	}
+      else
+	{
+	  if (!read_write(confd, &c1, 1, 1) || !read_write(confd, &c2, 1, 1) ||
+	      !(size = c1 << 8 | c2) ||
+	      !read_write(confd, payload, size, 1))
+	    return packet;
+	  
+	  /* for stale-answer processing. */
+	  hb3 = header->hb3;
+	  hb4 = header->hb4;
+	}
+      
       if (size < (int)sizeof(struct dns_header))
 	continue;
 
@@ -2116,24 +2172,27 @@ unsigned char *tcp_request(int confd, time_t now,
 	  struct auth_zone *zone;
 #endif
 
-	  log_query_mysockaddr(F_QUERY | F_FORWARD, daemon->namebuff,
-			       &peer_addr, auth_dns ? "auth" : "query", qtype);
-
 #ifdef HAVE_CONNTRACK
 	  is_single_query = 1;
 #endif
-	  
+
+	  if (!do_stale)
+	    {
+	      log_query_mysockaddr(F_QUERY | F_FORWARD, daemon->namebuff,
+				   &peer_addr, auth_dns ? "auth" : "query", qtype);
+	      
 #ifdef HAVE_AUTH
-	  /* find queries for zones we're authoritative for, and answer them directly */
-	  if (!auth_dns && !option_bool(OPT_LOCALISE))
-	    for (zone = daemon->auth_zones; zone; zone = zone->next)
-	      if (in_zone(zone, daemon->namebuff, NULL))
-		{
-		  auth_dns = 1;
-		  local_auth = 1;
-		  break;
-		}
+	      /* find queries for zones we're authoritative for, and answer them directly */
+	      if (!auth_dns && !option_bool(OPT_LOCALISE))
+		for (zone = daemon->auth_zones; zone; zone = zone->next)
+		  if (in_zone(zone, daemon->namebuff, NULL))
+		    {
+		      auth_dns = 1;
+		      local_auth = 1;
+		      break;
+		    }
 #endif
+	    }
 	}
       
       norebind = domain_no_rebind(daemon->namebuff);
@@ -2189,11 +2248,14 @@ unsigned char *tcp_request(int confd, time_t now,
 	   /* RFC 6840 5.7 */
 	   if (header->hb4 & HB4_AD)
 	     ad_reqd = 1;
+
+	   if (do_stale)
+	     m = 0;
+	   else
+	     /* m > 0 if answered from cache */
+	     m = answer_request(header, ((char *) header) + 65536, (size_t)size, 
+				dst_addr_4, netmask, now, ad_reqd, do_bit, have_pseudoheader, &stale);
 	   
-	   /* m > 0 if answered from cache */
-	   m = answer_request(header, ((char *) header) + 65536, (size_t)size, 
-			      dst_addr_4, netmask, now, ad_reqd, do_bit, have_pseudoheader);
-	  
 	  /* Do this by steam now we're not in the select() loop */
 	  check_log_writer(1); 
 	  
@@ -2311,6 +2373,9 @@ unsigned char *tcp_request(int confd, time_t now,
 	    }
 	}
 	
+      if (do_stale)
+	break;
+    
       /* In case of local answer or no connections made. */
       if (m == 0)
 	{
@@ -2321,11 +2386,11 @@ unsigned char *tcp_request(int confd, time_t now,
 	  if (have_pseudoheader)
 	    {
 	      u16 swap = htons((u16)ede);
-
-	       if (ede != EDE_UNSET)
-		 m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
-	       else
-		 m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
+	      
+	      if (ede != EDE_UNSET)
+		m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
+	      else
+		m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
 	    }
 	}
       
@@ -2342,8 +2407,26 @@ unsigned char *tcp_request(int confd, time_t now,
 #endif
       if (!read_write(confd, packet, m + sizeof(u16), 0))
 	break;
+      
+      /* If we answered with stale data, this process will now try and get fresh data into
+	 the cache then and cannot therefore accept new queries. Close the incoming
+	 connection to signal that to the client. Then set do_stale and loop round
+	 once more to try and get fresh data, after which we exit. */
+      if (stale)
+	{
+	  shutdown(confd, SHUT_RDWR);
+	  close(confd);
+	  do_stale = 1;
+	}
     }
-  
+
+  /* If we ran once to get fresh data, confd is already closed. */
+  if (!do_stale)
+    {
+      shutdown(confd, SHUT_RDWR);
+      close(confd);
+    }
+
   return packet;
 }
 
