@@ -252,6 +252,11 @@ GetMetrics
 
 Returns an array with various metrics for DNS and DHCP.
 
+GetServerMetrics
+----------------
+
+Returns per-DNS-server metrics.
+
 
 2. SIGNALS
 ----------
