@@ -389,8 +389,10 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 #endif
 	{
 	  /* retry on existing query, from original source. Send to all available servers  */
-	  if (!fast_retry)
+	  if (udpfd == -1 && !fast_retry)
 	    forward->sentto->failed_queries++;
+	  else
+	    forward->sentto->retrys++;
 	  
 	  if (!filter_servers(forward->sentto->arrayposn, F_SERVER, &first, &last))
 	    goto reply;
