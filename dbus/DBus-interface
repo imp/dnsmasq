@@ -257,6 +257,10 @@ GetServerMetrics
 
 Returns per-DNS-server metrics.
 
+ClearMetrics
+------------
+
+Clear call metric counters, global and per-server.
 
 2. SIGNALS
 ----------
