@@ -6,7 +6,7 @@ dnsmasq (2.87-1) unstable; urgency=low
    * Fix rare lockup in DNSSEC. (closes: #1001576)
    * Close old bug. (closes: #902963)
 
- -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 08 Sep 2021 23:11:25 +0000
+ -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 25 Sep 2022 23:11:25 +0000
 
 dnsmasq (2.86-1.1) unstable; urgency=medium
 
