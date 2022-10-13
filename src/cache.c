@@ -374,6 +374,11 @@ static int is_outdated_cname_pointer(struct crec *crecp)
 
 static int is_expired(time_t now, struct crec *crecp)
 {
+  /* Don't dump expired entries if we're using them, cache becomes strictly LRU in that case.
+     Never use expired DS or DNSKEY entries. */
+  if (option_bool(OPT_STALE_CACHE) && !(crecp->flags & (F_DS | F_DNSKEY)))
+    return 0;
+
   if (crecp->flags & F_IMMORTAL)
     return 0;
 
@@ -553,7 +558,7 @@ static struct crec *really_insert(char *name, union all_addr *addr, unsigned sho
 {
   struct crec *new, *target_crec = NULL;
   union bigname *big_name = NULL;
-  int freed_all = flags & F_REVERSE;
+  int freed_all = (flags & F_REVERSE);
   int free_avail = 0;
   unsigned int target_uid;
   
@@ -628,8 +633,12 @@ static struct crec *really_insert(char *name, union all_addr *addr, unsigned sho
 	{
 	  /* For DNSSEC records, uid holds class. */
 	  free_avail = 1; /* Must be free space now. */
+	  
+	  /* condition valid when stale-caching */
+	  if (difftime(now, new->ttd) < 0)
+	    daemon->metrics[METRIC_DNS_CACHE_LIVE_FREED]++;
+	  
 	  cache_scan_free(cache_get_name(new), &new->addr, new->uid, now, new->flags, NULL, NULL);
-	  daemon->metrics[METRIC_DNS_CACHE_LIVE_FREED]++;
 	}
       else
 	{
@@ -1725,6 +1734,8 @@ void dump_cache(time_t now)
 	    daemon->cachesize, daemon->metrics[METRIC_DNS_CACHE_LIVE_FREED], daemon->metrics[METRIC_DNS_CACHE_INSERTED]);
   my_syslog(LOG_INFO, _("queries forwarded %u, queries answered locally %u"), 
 	    daemon->metrics[METRIC_DNS_QUERIES_FORWARDED], daemon->metrics[METRIC_DNS_LOCAL_ANSWERED]);
+  if (option_bool(OPT_STALE_CACHE))
+    my_syslog(LOG_INFO, _("queries answered from stale cache %u"), daemon->metrics[METRIC_DNS_STALE_ANSWERED]);
 #ifdef HAVE_AUTH
   my_syslog(LOG_INFO, _("queries for authoritative zones %u"), daemon->metrics[METRIC_DNS_AUTH_ANSWERED]);
 #endif
@@ -1739,16 +1750,23 @@ void dump_cache(time_t now)
     if (!(serv->flags & SERV_MARK))
       {
 	int port;
-	unsigned int queries = 0, failed_queries = 0;
+	unsigned int queries = 0, failed_queries = 0, nxdomain_replies = 0, retrys = 0;
+	unsigned int sigma_latency = 0, count_latency = 0;
+
 	for (serv1 = serv; serv1; serv1 = serv1->next)
 	  if (!(serv1->flags & SERV_MARK) && sockaddr_isequal(&serv->addr, &serv1->addr))
 	    {
 	      serv1->flags |= SERV_MARK;
 	      queries += serv1->queries;
 	      failed_queries += serv1->failed_queries;
+	      nxdomain_replies += serv1->nxdomain_replies;
+	      retrys += serv1->retrys;
+	      sigma_latency += serv1->query_latency;
+	      count_latency++;
 	    }
 	port = prettyprint_addr(&serv->addr, daemon->addrbuff);
-	my_syslog(LOG_INFO, _("server %s#%d: queries sent %u, retried or failed %u"), daemon->addrbuff, port, queries, failed_queries);
+	my_syslog(LOG_INFO, _("server %s#%d: queries sent %u, retried %u, failed %u, nxdomain replies %u, avg. latency %ums"),
+		  daemon->addrbuff, port, queries, retrys, failed_queries, nxdomain_replies, sigma_latency/count_latency);
       }
 
   if (option_bool(OPT_DEBUG) || option_bool(OPT_LOG))
@@ -2079,6 +2097,8 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, 
       name = arg;
       verb = daemon->addrbuff;
     }
+  else if (flags & F_STALE)
+    source = "cached-stale";
   else
     source = "cached";
   

@@ -181,6 +181,9 @@ struct myoption {
 #define LOPT_STRIP_MAC     372
 #define LOPT_CONF_OPT      373
 #define LOPT_CONF_SCRIPT   374
+#define LOPT_RANDPORT_LIM  375
+#define LOPT_FAST_RETRY    376
+#define LOPT_STALE_CACHE   377
 
 #ifdef HAVE_GETOPT_LONG
 static const struct option opts[] =  
@@ -366,6 +369,9 @@ static const struct myoption opts[] =
     { "log-debug", 0, 0, LOPT_LOG_DEBUG },
     { "umbrella", 2, 0, LOPT_UMBRELLA },
     { "quiet-tftp", 0, 0, LOPT_QUIET_TFTP },
+    { "port-limit", 1, 0, LOPT_RANDPORT_LIM },
+    { "fast-dns-retry", 2, 0, LOPT_FAST_RETRY },
+    { "use-stale-cache", 0, 0 , LOPT_STALE_CACHE },
     { NULL, 0, 0, 0 }
   };
 
@@ -423,6 +429,7 @@ static struct {
   { 'M', ARG_DUP, "<bootp opts>", gettext_noop("Specify BOOTP options to DHCP server."), NULL },
   { 'n', OPT_NO_POLL, NULL, gettext_noop("Do NOT poll %s file, reload only on SIGHUP."), RESOLVFILE }, 
   { 'N', OPT_NO_NEG, NULL, gettext_noop("Do NOT cache failed search results."), NULL },
+  { LOPT_STALE_CACHE, OPT_STALE_CACHE, NULL, gettext_noop("Use expired cache data for faster reply."), NULL },
   { 'o', OPT_ORDER, NULL, gettext_noop("Use nameservers strictly in the order given in %s."), RESOLVFILE },
   { 'O', ARG_DUP, "<optspec>", gettext_noop("Specify options to be sent to DHCP clients."), NULL },
   { LOPT_FORCE, ARG_DUP, "<optspec>", gettext_noop("DHCP option sent even if the client does not request it."), NULL},
@@ -430,6 +437,7 @@ static struct {
   { 'P', ARG_ONE, "<integer>", gettext_noop("Maximum supported UDP packet size for EDNS.0 (defaults to %s)."), "*" },
   { 'q', ARG_DUP, NULL, gettext_noop("Log DNS queries."), NULL },
   { 'Q', ARG_ONE, "<integer>", gettext_noop("Force the originating port for upstream DNS queries."), NULL },
+  { LOPT_RANDPORT_LIM, ARG_ONE, "#ports", gettext_noop("Set maximum number of random originating ports for a query."), NULL },
   { 'R', OPT_NO_RESOLV, NULL, gettext_noop("Do NOT read resolv.conf."), NULL },
   { 'r', ARG_DUP, "<path>", gettext_noop("Specify path to resolv.conf (defaults to %s)."), RESOLVFILE }, 
   { LOPT_SERVERS_FILE, ARG_ONE, "<path>", gettext_noop("Specify path to file with server= options"), NULL },
@@ -443,6 +451,7 @@ static struct {
   { LOPT_MAXTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live in seconds for maximum TTL to send to clients."), NULL },
   { LOPT_MAXCTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live ceiling for cache."), NULL },
   { LOPT_MINCTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live floor for cache."), NULL },
+  { LOPT_FAST_RETRY, ARG_ONE, "<milliseconds>", gettext_noop("Retry DNS queries after this many milliseconds."), NULL},
   { 'u', ARG_ONE, "<username>", gettext_noop("Change to this user after startup. (defaults to %s)."), CHUSER }, 
   { 'U', ARG_DUP, "set:<tag>,<class>", gettext_noop("Map DHCP vendor class to tag."), NULL },
   { 'v', 0, NULL, gettext_noop("Display dnsmasq version and copyright information."), NULL },
@@ -3179,6 +3188,11 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
       if (daemon->query_port == 0)
 	daemon->osport = 1;
       break;
+
+    case LOPT_RANDPORT_LIM: /* --port-limit */
+      if (!atoi_check(arg, &daemon->randport_limit) || (daemon->randport_limit < 1))
+	ret_err(gen_err);
+      break;
       
     case 'T':         /* --local-ttl */
     case LOPT_NEGTTL: /* --neg-ttl */
@@ -3214,7 +3228,30 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
 	  daemon->local_ttl = (unsigned long)ttl;
 	break;
       }
+
+    case LOPT_FAST_RETRY:
+      daemon->fast_retry_timeout = TIMEOUT;
       
+      if (!arg)
+	daemon->fast_retry_time = DEFAULT_FAST_RETRY;
+      else
+	{
+	  int retry;
+	  
+	  comma = split(arg);
+	  if (!atoi_check(arg, &retry) || retry < 50)
+	    ret_err(gen_err);
+	  daemon->fast_retry_time = retry;
+	  
+	  if (comma)
+	    {
+	      if (!atoi_check(comma, &retry))
+		ret_err(gen_err);
+	      daemon->fast_retry_timeout = retry/1000;
+	    }
+	}
+      break;
+            
 #ifdef HAVE_DHCP
     case 'X': /* --dhcp-lease-max */
       if (!atoi_check(arg, &daemon->dhcp_max))
@@ -5494,7 +5531,8 @@ void read_opts(int argc, char **argv, char *compile_opts)
   daemon->soa_refresh = SOA_REFRESH;
   daemon->soa_retry = SOA_RETRY;
   daemon->soa_expiry = SOA_EXPIRY;
-  
+  daemon->randport_limit = 1;
+    
 #ifndef NO_ID
   add_txt("version.bind", "dnsmasq-" VERSION, 0 );
   add_txt("authors.bind", "Simon Kelley", 0);

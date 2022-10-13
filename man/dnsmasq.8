@@ -105,6 +105,16 @@ Dnsmasq limits the value of this option to one hour, unless recompiled.
 .B --auth-ttl=<time>
 Set the TTL value returned in answers from the authoritative server.
 .TP
+.B --fast-dns-retry=[<initial retry delay in ms>[,<time to continue retries in ms>]]
+Under normal circumstances, dnsmasq relies on DNS clients to do retries; it
+does not generate timeouts itself. Setting this option
+instructs dnsmasq to generate its own retries starting after a delay
+which defaults to 1000ms. If the second parameter is given this controls
+how long the retries will continue for
+otherwise this defaults to 10000ms. Retries are repeated with exponential
+backoff. Using this option increases memory usage and
+network bandwidth.
+.TP
 .B \-k, --keep-in-foreground
 Do not go into the background at startup but otherwise run as
 normal. This is intended for use when dnsmasq is run under daemontools
@@ -180,7 +190,15 @@ specific UDP port <query_port> instead of using random ports. NOTE
 that using this option will make dnsmasq less secure against DNS
 spoofing attacks but it may be faster and use less resources.  Setting this option
 to zero makes dnsmasq use a single port allocated to it by the
-OS: this was the default behaviour in versions prior to 2.43. 
+OS: this was the default behaviour in versions prior to 2.43.
+.TP
+.B --port-limit=<#ports>
+By default, when sending a query via random ports to multiple upstream servers or
+retrying a query dnsmasq will use a single random port for all the tries/retries.
+This option allows a larger number of ports to be used, which can increase robustness
+in certain network configurations. Note that increasing this to more than
+two or three can have security and resource implications and should only
+be done with understanding of those.
 .TP
 .B --min-port=<port>
 Do not use ports less than that given as source for outbound DNS
@@ -796,6 +814,12 @@ Set the size of dnsmasq's cache. The default is 150 names. Setting the cache siz
 Disable negative caching. Negative caching allows dnsmasq to remember
 "no such domain" answers from upstream nameservers and answer
 identical queries without forwarding them again. 
+.TP
+.B --use-stale-cache
+When set, if a DNS name exists in the cache, but its time-to-live has expired, dnsmasq will return the data anyway. (It attempts to refresh the
+data with an upstream query after returning the stale data.) This can improve speed and reliability. It comes at the expense
+of sometimes returning out-of-date data and less efficient cache utilisation, since old data cannot be flushed when its TTL expires, so the cache becomes
+strictly least-recently-used.
 .TP
 .B \-0, --dns-forward-max=<queries>
 Set the maximum number of concurrent DNS queries. The default value is
