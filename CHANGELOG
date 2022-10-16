@@ -18,6 +18,10 @@ version 2.88
 	flushed when its TTL expires, so the cache becomes
 	strictly least-recently-used.
 
+	Make --hostsdir (but NOT --dhcp-hostsdir and --dhcp-optsdir)
+	handle removal of whole files or entries within files.
+	Thanks to Dominik Derigs for the initial patches for this.
+
 	
 version 2.87
         Allow arbitrary prefix lengths in --rev-server and
