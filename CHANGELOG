@@ -22,7 +22,17 @@ version 2.88
 	handle removal of whole files or entries within files.
 	Thanks to Dominik Derigs for the initial patches for this.
 
-	
+	Fix bug, introduced in 2.87, which could result in DNS
+	servers being removed from the configuration when reloading
+	server configuration from DBus, or re-reading /etc/resolv.conf
+	Only servers from the same source should be replaced, but some
+	servers from other sources (ie hard coded or another dynamic source)
+	could mysteriously disappear. Thanks to all reporting this,
+	but especially Christopher J. Masden who reduced the problem
+	to an easily reproducible case which saved mucg labour in
+	finding it.
+
+
 version 2.87
         Allow arbitrary prefix lengths in --rev-server and
 	--domain=....,local
