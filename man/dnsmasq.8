@@ -816,6 +816,12 @@ Disable negative caching. Negative caching allows dnsmasq to remember
 "no such domain" answers from upstream nameservers and answer
 identical queries without forwarding them again. 
 .TP
+.B --no-round-robin
+Dnsmasq normally permutes the order of A or AAAA records for the same
+name on successive queries, for load-balancing. This turns off that
+behaviour, so that the records are always returned in the order
+that they are received from upstream.
+.TP
 .B --use-stale-cache
 When set, if a DNS name exists in the cache, but its time-to-live has expired, dnsmasq will return the data anyway. (It attempts to refresh the
 data with an upstream query after returning the stale data.) This can improve speed and reliability. It comes at the expense

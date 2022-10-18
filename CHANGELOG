@@ -32,7 +32,9 @@ version 2.88
 	to an easily reproducible case which saved mucg labour in
 	finding it.
 
+	Add --no-round-robin option.
 
+	
 version 2.87
         Allow arbitrary prefix lengths in --rev-server and
 	--domain=....,local
