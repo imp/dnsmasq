@@ -1,3 +1,11 @@
+dnsmasq (2.88-1) unstable; urgency=low
+
+   * New upstream.
+   * Fix loss of server configuration (closes: #1020830)
+     Git commit 930428fb970f4991e5c2933fd5a5d2504c18a551
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Wed, 2 Nov 2022 22:15:45 +0000
+
 dnsmasq (2.87-1) unstable; urgency=low
 
    * New upstream. (closes: #1001209, #1003156)
