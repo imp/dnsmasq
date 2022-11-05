@@ -34,8 +34,18 @@ version 2.88
 
 	Add --no-round-robin option.
 
+	Allow domain names as well as IP addresses when specifying
+	upstream DNS servers. There are some gotchas associated with this,
+	(it will mysteriously fail to work if the dnsmasq instance
+	being started is in the path from the system resolver to the DNS)
+	and a seemingly sensible configuration like
+	--server=domain.name@1.2.3.4 is unactionable if domain.name
+	only resolves to an IPv6 address). There are, however,
+	cases where is can be useful. Thanks to Dominik Derigs for
+	the patch.
+
 	
-version 2.87
+(version 2.87
         Allow arbitrary prefix lengths in --rev-server and
 	--domain=....,local
 
