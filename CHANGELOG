@@ -44,8 +44,13 @@ version 2.88
 	cases where is can be useful. Thanks to Dominik Derigs for
 	the patch.
 
+	Handle DS records for unsupported crypto algorithms correctly.
+	Such a DS, as long as it is validated, should allow answers
+	in the domain is attests to be returned as unvalidated, and not
+	as a validation error.
+
 	
-(version 2.87
+version 2.87
         Allow arbitrary prefix lengths in --rev-server and
 	--domain=....,local
 
