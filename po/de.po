@@ -10,10 +10,10 @@
 # Simon Kelley <simon@thekelleys.org.uk>, 2005.
 msgid ""
 msgstr ""
-"Project-Id-Version: dnsmasq 2.87test8\n"
+"Project-Id-Version: dnsmasq 2.88\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-03-20 00:00+0000\n"
-"PO-Revision-Date: 2022-02-28 14:49+0100\n"
+"PO-Revision-Date: 2022-11-17 20:08+0100\n"
 "Last-Translator: Conrad Kostecki <conrad@kostecki.com>\n"
 "Language-Team: German <de@li.org>\n"
 "Language: de\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.2\n"
 
 #: cache.c:572
 msgid "Internal error in cache."
@@ -1400,7 +1400,7 @@ msgstr "Domäne"
 #: network.c:1607
 #, c-format
 msgid "using nameserver %s#%d for %s %s%s %s"
-msgstr "benutze Namensserver %s#%d für %s %s %s %s"
+msgstr "benutze Namensserver %s#%d für %s %s%s %s"
 
 #: network.c:1611
 #, c-format
