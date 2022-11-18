@@ -5,10 +5,10 @@ version 2.88
 	Add --fast-dns-retry option. This gives dnsmasq the ability
 	to originate retries for upstream DNS queries itself, rather
 	than relying on the downstream client. This is most useful
-	when doing DNSSEC over unreliable upstream network. It comes
+	when doing DNSSEC over unreliable upstream networks. It comes
 	with some cost in memory usage and network bandwidth.
 
-	Add -use-stale-cache option. When set, if a DNS name exists
+	Add --use-stale-cache option. When set, if a DNS name exists
 	in the cache, but its time-to-live has expired, dnsmasq will
 	return the data anyway. (It attempts to refresh the
 	data with an upstream query after returning the stale data.)
@@ -26,18 +26,18 @@ version 2.88
 	servers being removed from the configuration when reloading
 	server configuration from DBus, or re-reading /etc/resolv.conf
 	Only servers from the same source should be replaced, but some
-	servers from other sources (ie hard coded or another dynamic source)
+	servers from other sources (i.e., hard coded or another dynamic source)
 	could mysteriously disappear. Thanks to all reporting this,
-	but especially Christopher J. Masden who reduced the problem
-	to an easily reproducible case which saved mucg labour in
+	but especially Christopher J. Madsen who reduced the problem
+	to an easily reproducible case which saved much labour in
 	finding it.
 
 	Add --no-round-robin option.
 
 	Allow domain names as well as IP addresses when specifying
-	upstream DNS servers. There are some gotchas associated with this,
+	upstream DNS servers. There are some gotchas associated with this
 	(it will mysteriously fail to work if the dnsmasq instance
-	being started is in the path from the system resolver to the DNS)
+	being started is in the path from the system resolver to the DNS),
 	and a seemingly sensible configuration like
 	--server=domain.name@1.2.3.4 is unactionable if domain.name
 	only resolves to an IPv6 address). There are, however,
@@ -46,7 +46,7 @@ version 2.88
 
 	Handle DS records for unsupported crypto algorithms correctly.
 	Such a DS, as long as it is validated, should allow answers
-	in the domain is attests to be returned as unvalidated, and not
+	in the domain it attests to be returned as unvalidated, and not
 	as a validation error.
 
 	
