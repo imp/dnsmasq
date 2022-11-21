@@ -1166,7 +1166,8 @@ given in a
 .B --dhcp-host
 option, but aliases are possible by using CNAMEs. (See 
 .B --cname
-).
+). Note that /etc/hosts is NOT used when the DNS server side of dnsmasq
+is disabled by setting the DNS server port to zero.
 
 More than one
 .B --dhcp-host
