@@ -5753,7 +5753,10 @@ void read_opts(int argc, char **argv, char *compile_opts)
 #endif
   add_txt("servers.bind", NULL, TXT_STAT_SERVERS);
 #endif
-
+  
+  /* See comment above make_servers(). Optimises server-read code. */
+  mark_servers(0);
+  
   while (1) 
     {
 #ifdef HAVE_GETOPT_LONG
