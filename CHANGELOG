@@ -59,6 +59,9 @@ version 2.88
 	needed is O(n^2). Handle this case more intelligently.
 	Thanks to Ye Zhou for spotting the problem and an initial patch.
 	
+	If we detect that a DNS reply from upstream is malformed don't
+	return it to the requestor; send a SEVFAIL rcode instead.
+
 	
 version 2.87
         Allow arbitrary prefix lengths in --rev-server and
