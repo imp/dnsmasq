@@ -1,10 +1,10 @@
-version 2.98
+version 2.89
         Fix bug introduced in 2.88 (commit fe91134b) which can result
 	in corruption of the DNS cache internal data structures and
 	logging of "cache internal error". This has only been seen
 	in one place in the wild, and it took considerable effort
 	to even generate a test case to reproduce it, but there's
-	no way to be sure it won't strike, and the effect to to break
+	no way to be sure it won't strike, and the effect is to break
 	the cache badly. Installations with DNSSEC enabled are more
 	likely to see the problem, but not running DNSSEC does not
 	guarantee that it won't happen. Thanks to Timo van Roermund
