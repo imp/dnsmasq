@@ -1,3 +1,14 @@
+version 2.90
+	Fix reversion in --rev-server introduced in 2.88 which
+	caused breakage if the prefix length is not exactly divisible
+	by 8 (IPv4) or 4 (IPv6).
+
+	Fix possible SEGV when there server(s) for a particular
+	domain are configured, but no server which is not qualified
+	for a particular domain. Thanks to Daniel Danzberger for
+	spotting this bug.
+	
+
 version 2.89
         Fix bug introduced in 2.88 (commit fe91134b) which can result
 	in corruption of the DNS cache internal data structures and
