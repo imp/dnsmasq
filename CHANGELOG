@@ -7,8 +7,15 @@ version 2.90
 	domain are configured, but no server which is not qualified
 	for a particular domain. Thanks to Daniel Danzberger for
 	spotting this bug.
-	
 
+	Set the default maximum DNS UDP packet sice to 1232. This
+	has been the recommended value since 2020 because it's the
+	largest value that avoid fragmentation, and fragmentation
+	is just not reliable on the modern internet, especially
+	for IPv6. It's still possible to override this with
+	--edns-packet-max for special circumstances.
+
+	
 version 2.89
         Fix bug introduced in 2.88 (commit fe91134b) which can result
 	in corruption of the DNS cache internal data structures and

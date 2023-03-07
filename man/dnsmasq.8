@@ -183,7 +183,8 @@ to zero completely disables DNS function, leaving only DHCP and/or TFTP.
 .TP
 .B \-P, --edns-packet-max=<size>
 Specify the largest EDNS.0 UDP packet which is supported by the DNS
-forwarder. Defaults to 4096, which is the RFC5625-recommended size.
+forwarder. Defaults to 1232, which is the recommended size following the
+DNS flag day in 2020. Only increase if you know what you are doing.
 .TP
 .B \-Q, --query-port=<query_port>
 Send outbound DNS queries from, and listen for their replies on, the
