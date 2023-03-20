@@ -519,7 +519,7 @@ static int print_txt(struct dns_header *header, const size_t qlen, char *name,
       /* make counted string zero-term and sanitise */
       for (i = 0; i < len; i++)
 	{
-	  if (!isprint((int)*(p3+1)))
+	  if (!isprint((unsigned char)*(p3+1)))
 	    break;
 	  *p3 = *(p3+1);
 	  p3++;
@@ -880,7 +880,18 @@ int extract_addresses(struct dns_header *header, size_t qlen, char *name, time_t
 		    return 2;
 		}
 	      else
-		log_query(flags | F_FORWARD | secflag | F_UPSTREAM, name, &addr, NULL, aqtype);
+		{
+		  int negflag = F_UPSTREAM;
+
+		  /* We're filtering this RRtype. It will be removed from the 
+		     returned packet in process_reply() but gets cached here anyway
+		     and will be filtered again on the way out of the cache. Here,
+		     we just need to alter the logging. */
+		  if (((flags & F_IPV4) && option_bool(OPT_FILTER_A)) || ((flags & F_IPV6) && option_bool(OPT_FILTER_AAAA)))
+		    negflag = F_NEG | F_CONFIG;
+		  
+		  log_query(negflag | flags | F_FORWARD | secflag, name, &addr, NULL, aqtype);
+		}
 	    }
 	  
 	  p1 = endrr;
@@ -894,9 +905,8 @@ int extract_addresses(struct dns_header *header, size_t qlen, char *name, time_t
 	    {
 	      flags &= ~(F_IPV4 | F_IPV6 | F_SRV);
 	      
-	      /* Can store NXDOMAIN reply to CNAME or ANY query. */
-	      if (qtype == T_CNAME || qtype == T_ANY)
-		insert = 1;
+	      /* Can store NXDOMAIN reply for any qtype. */
+	      insert = 1;
 	    }
 	  
 	  log_query(F_UPSTREAM | F_FORWARD | F_NEG | flags | (secure ? F_DNSSECOK : 0), name, NULL, NULL, 0);
@@ -1409,7 +1419,7 @@ static int cache_validated(const struct crec *crecp)
 size_t answer_request(struct dns_header *header, char *limit, size_t qlen,  
 		      struct in_addr local_addr, struct in_addr local_netmask, 
 		      time_t now, int ad_reqd, int do_bit, int have_pseudoheader,
-		      int *stale) 
+		      int *stale, int *filtered) 
 {
   char *name = daemon->namebuff;
   unsigned char *p, *ansp;
@@ -1427,6 +1437,9 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 
   if (stale)
     *stale = 0;
+
+  if (filtered)
+    *filtered = 0;
   
   /* never answer queries with RD unset, to avoid cache snooping. */
   if (ntohs(header->ancount) != 0 ||
@@ -1695,8 +1708,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 			  /* don't answer wildcard queries with data not from /etc/hosts or dhcp leases */
 			  if (qtype == T_ANY && !(crecp->flags & (F_HOSTS | F_DHCP)))
 			    continue;
-			  
-			  
+			  			  
 			  if (!(crecp->flags & F_DNSSECOK))
 			    sec_data = 0;
 			  
@@ -1864,8 +1876,24 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 			
 			if (!(crecp->flags & F_DNSSECOK))
 			  sec_data = 0;
-			
-			if (crecp->flags & F_NEG)
+
+			if (!(crecp->flags & (F_HOSTS | F_DHCP)))
+			  auth = 0;
+
+			if ((((flag & F_IPV4) && option_bool(OPT_FILTER_A)) || ((flag & F_IPV6) && option_bool(OPT_FILTER_AAAA))) &&
+			    !(crecp->flags & (F_HOSTS | F_DHCP | F_CONFIG | F_NEG)))
+			  {
+			    /* We have a cached answer but we're filtering it. */
+			    ans = 1;
+			    sec_data = 0;
+			    
+			    if (!dryrun)
+			      log_query(F_NEG | F_CONFIG | flag, name, NULL, NULL, 0);
+
+			    if (filtered)
+			      *filtered = 1;
+			  }
+			else if (crecp->flags & F_NEG)
 			  {
 			    ans = 1;
 			    auth = 0;
@@ -1882,9 +1910,6 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 				(crecp->flags & F_HOSTS) &&
 				!is_same_net(crecp->addr.addr4, local_addr, local_netmask))
 			      continue;
-			    
-			    if (!(crecp->flags & (F_HOSTS | F_DHCP)))
-			      auth = 0;
 			    
 			    ans = 1;
 			    if (!dryrun)
@@ -1911,6 +1936,27 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 			anscount++;
 		    }
 		}
+	      else if (((flag & F_IPV4) && option_bool(OPT_FILTER_A)) || ((flag & F_IPV6) && option_bool(OPT_FILTER_AAAA)))
+		{
+		  /* We don't have a cached answer and when we get an answer from upstream we're going to
+		     filter it anyway. If we have a cached answer for the domain for another RRtype then
+		     that may be enough to tell us if the answer should be NODATA and save the round trip.
+		     Cached NXDOMAIN has already been handled, so here we look for any record for the domain,
+		     since its existence allows us to return a NODATA answer. Note that we never set the AD flag,
+		     since we didn't authentucate the record. */
+
+		  if (cache_find_by_name(NULL, name, now, F_IPV4 | F_IPV6 | F_SRV))
+		    {
+		      ans = 1;
+		      sec_data = auth = 0;
+		      
+		      if (!dryrun)
+			log_query(F_NEG | F_CONFIG | flag, name, NULL, NULL, 0);
+
+		      if (filtered)
+			*filtered = 1;
+		    }
+		}
 	    }
 
 	  if (qtype == T_MX || qtype == T_ANY)
@@ -1921,6 +1967,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 		  {
 		    ans = found = 1;
 		    sec_data = 0;
+		    
 		    if (!dryrun)
 		      {
 			int offset;
@@ -2081,7 +2128,22 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 	}
 
       if (!ans)
-	return 0; /* failed to answer a question */
+	{
+	  /* We may know that the domain doesn't exist for any RRtype. */
+	  if ((crecp = cache_find_by_name(NULL, name, now, F_NXDOMAIN)))
+	    {
+	      ans = nxdomain = 1;
+	      auth = 0;
+
+	      if (!(crecp->flags & F_DNSSECOK)) 
+		sec_data = 0;
+	      
+	      if (!dryrun)
+		log_query(F_NXDOMAIN | F_NEG, name, NULL, NULL, 0);
+	    }
+	  else
+	    return 0; /* failed to answer a question */
+	}
     }
   
   if (dryrun)
