@@ -376,6 +376,13 @@ Remove A records from answers. No IPv4 addresses will be returned.
 .B --filter-AAAA
 Remove AAAA records from answers. No IPv6 addresses will be returned.
 .TP
+.B --cache-rr=<rrtype>[,<rrtype>...]
+By default, dnsmasq caches A, AAAA, CNAME and SRV DNS record types.
+This option adds other record types to the cache. The RR-type can be given
+as a name such as TXT or MX or a decimal number. A single --cache-rr option
+can take a comma-separated list or RR-types and more than one --cache-rr option
+is allowed.
+.TP
 .B \-r, --resolv-file=<file>
 Read the IP addresses of the upstream nameservers from <file>, instead of
 /etc/resolv.conf. For the format of this file see
