@@ -376,6 +376,9 @@ Remove A records from answers. No IPv4 addresses will be returned.
 .B --filter-AAAA
 Remove AAAA records from answers. No IPv6 addresses will be returned.
 .TP
+.B --filter-rr=<rrtype>[,<rrtype>...]
+Remove records of the specified type(s) from answers.
+.TP
 .B --cache-rr=<rrtype>[,<rrtype>...]
 By default, dnsmasq caches A, AAAA, CNAME and SRV DNS record types.
 This option adds other record types to the cache. The RR-type can be given
