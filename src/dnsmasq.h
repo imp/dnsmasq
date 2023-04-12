@@ -664,9 +664,11 @@ struct listener {
 struct iname {
   char *name;
   union mysockaddr addr;
-  int used;
+  int flags;
   struct iname *next;
 };
+
+#define  INAME_USED  1
 
 struct rrlist {
   unsigned short rr;
