@@ -15,6 +15,9 @@ version 2.90
 	for IPv6. It's still possible to override this with
 	--edns-packet-max for special circumstances.
 
+	Add --no-dhcpv4-interface and --no-dhcpv6-interface for
+	better control over which inetrfaces are providing DHCP service.
+	
 	
 version 2.89
         Fix bug introduced in 2.88 (commit fe91134b) which can result

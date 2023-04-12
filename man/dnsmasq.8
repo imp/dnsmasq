@@ -279,7 +279,14 @@ a default on installation, to allow unconfigured installations to be
 useful but also safe from being used for DNS amplification attacks.
 .TP 
 .B \-2, --no-dhcp-interface=<interface name>
-Do not provide DHCP or TFTP on the specified interface, but do provide DNS service.
+Do not provide DHCP, TFTP or router advertisement on the specified interface, but do provide DNS service.
+.TP
+.B --no-dhcpv4-interface=<interface name>
+Disable only IPv4 DHCP on the specified interface.
+.TP
+.B 
+--no-dhcpv6-interface=<interface name>
+Disable IPv6 DHCP and router advertisement on the specified interface.
 .TP
 .B \-a, --listen-address=<ipaddr>
 Listen on the given IP address(es). Both 
