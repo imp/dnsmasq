@@ -243,7 +243,7 @@
 
 # Always give the host with Ethernet address 11:22:33:44:55:66
 # the name fred and IP address 192.168.0.60 and lease time 45 minutes
-#dhcp-host=11:22:33:44:55:66,fred,192.168.0.60,45m
+#dhcp-host=11:22:33:44:55:66,192.168.0.60,fred,45m
 
 # Give a host with Ethernet address 11:22:33:44:55:66 or
 # 12:34:56:78:90:12 the IP address 192.168.0.60. Dnsmasq will assume
