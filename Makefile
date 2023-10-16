@@ -102,9 +102,9 @@ clean : mostly_clean
 	rm -f core */core
 	rm -f *~ contrib/*/*~ */*~
 
-install : all install-common
+install : install-common
 
-install-common :
+install-common : all
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man8
 	$(INSTALL) -m 644 $(MAN)/dnsmasq.8 $(DESTDIR)$(MANDIR)/man8 
