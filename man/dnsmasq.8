@@ -2254,6 +2254,10 @@ example command to query this, using the
 utility would be
 
 dig +short chaos txt cachesize.bind
+.TP
+.B --max-tcp-connections=<number>
+The maximum number of concurrent TCP connections. The application forks to
+handle each TCP request. The default maximum is 20.
 
 .SH CONFIG FILE
 At startup, dnsmasq reads

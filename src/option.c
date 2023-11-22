@@ -190,6 +190,7 @@ struct myoption {
 #define LOPT_FILTER_RR     381
 #define LOPT_NO_DHCP6      382
 #define LOPT_NO_DHCP4      383
+#define LOPT_MAX_PROCS     384
 
 #ifdef HAVE_GETOPT_LONG
 static const struct option opts[] =  
@@ -384,6 +385,7 @@ static const struct myoption opts[] =
     { "fast-dns-retry", 2, 0, LOPT_FAST_RETRY },
     { "use-stale-cache", 2, 0 , LOPT_STALE_CACHE },
     { "no-ident", 0, 0, LOPT_NO_IDENT },
+    { "max-tcp-connections", 1, 0, LOPT_MAX_PROCS },
     { NULL, 0, 0, 0 }
   };
 
@@ -585,6 +587,7 @@ static struct {
   { LOPT_NORR, OPT_NORR, NULL, gettext_noop("Suppress round-robin ordering of DNS records."), NULL },
   { LOPT_NO_IDENT, OPT_NO_IDENT, NULL, gettext_noop("Do not add CHAOS TXT records."), NULL },
   { LOPT_CACHE_RR, ARG_DUP, "<RR-type>", gettext_noop("Cache this DNS resource record type."), NULL },
+  { LOPT_MAX_PROCS, ARG_ONE, "<integer>", gettext_noop("Maximum number of concurrent tcp connections."), NULL },
   { 0, 0, NULL, NULL, NULL }
 }; 
 
@@ -5313,7 +5316,17 @@ err:
 	break;
       }
 #endif
-		
+
+    case LOPT_MAX_PROCS: /* --max-tcp-connections */
+      {
+	int max_procs;
+	/* Don't accept numbers less than 1. */
+	if (!atoi_check(arg, &max_procs) || max_procs < 1)
+	  ret_err(gen_err);
+	daemon->max_procs = max_procs;
+	break;
+      }
+
     default:
       ret_err(_("unsupported option (check that dnsmasq was compiled with DHCP/TFTP/DNSSEC/DBus support)"));
       
@@ -5841,6 +5854,7 @@ void read_opts(int argc, char **argv, char *compile_opts)
   daemon->soa_expiry = SOA_EXPIRY;
   daemon->randport_limit = 1;
   daemon->host_index = SRC_AH;
+  daemon->max_procs = MAX_PROCS;
   
   /* See comment above make_servers(). Optimises server-read code. */
   mark_servers(0);
