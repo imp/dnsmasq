@@ -2,13 +2,16 @@
 set -e
 
 # Create the dnsmasq user in dnsmasq-base, so that Dbus doesn't complain.
-      
-# create a user to run as (code stolen from dovecot-common)
+
 if [ "$1" = "configure" ]; then
+  # Create the user to run as.
   if [ -z "`id -u dnsmasq 2> /dev/null`" ]; then
-    adduser --system  --home /var/lib/misc --gecos "dnsmasq" \
-            --no-create-home --disabled-password \
-            --quiet dnsmasq || true
+    useradd --system \
+            --gid nogroup \
+            --comment dnsmasq \
+            --home-dir /var/lib/misc --no-create-home \
+            --shell /usr/sbin/nologin \
+            dnsmasq
   fi
 
   # Make the directory where we keep the pid file - this
@@ -16,9 +19,12 @@ if [ "$1" = "configure" ]; then
   # This is only actually used by the dnsmasq binary package, not
   # dnsmasq-base, but it's much easier to create it here so that
   # we don't have synchronisation issues with the creation of the
-  # dnsmasq user. 
+  # dnsmasq user.
   if [ ! -d /run/dnsmasq ]; then
     mkdir /run/dnsmasq
     chown dnsmasq:nogroup /run/dnsmasq
   fi
 fi
+
+#DEBHELPER#
+

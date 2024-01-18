@@ -1,64 +1,66 @@
 Source: dnsmasq
 Section: net
 Priority: optional
-Build-depends: gettext, libnetfilter-conntrack-dev [linux-any],
-               libidn2-dev, libdbus-1-dev (>=0.61), libgmp-dev, 
+Build-Depends: dh-exec, gettext, libnetfilter-conntrack-dev [linux-any],
+               libidn2-dev, libdbus-1-dev (>=0.61), libgmp-dev,
                nettle-dev (>=2.4-3), libbsd-dev [kfreebsd-any],
-	       liblua5.2-dev, dh-runit, debhelper-compat (= 10),
+	       liblua5.4-dev, dh-runit, debhelper-compat (= 13),
                pkg-config, libnftables-dev
 Maintainer: Simon Kelley <simon@thekelleys.org.uk>
-Homepage: http://www.thekelleys.org.uk/dnsmasq/doc.html
-Vcs-Git: http://thekelleys.org.uk/git/dnsmasq.git
-Vcs-Browser: http://thekelleys.org.uk/gitweb/?p=dnsmasq.git
-Standards-Version: 3.9.8
+Homepage: https://www.thekelleys.org.uk/dnsmasq/doc.html
+Vcs-Git: https://thekelleys.org.uk/git/dnsmasq.git
+Vcs-Browser: https://thekelleys.org.uk/gitweb/?p=dnsmasq.git
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
 
 Package: dnsmasq
 Architecture: all
+Pre-Depends: ${misc:Pre-Depends}
 Depends: netbase, dnsmasq-base,
-         init-system-helpers (>= 1.18~), lsb-base (>= 3.0-6), ${misc:Depends}
+         ${misc:Depends}
 Suggests: resolvconf
 Breaks: ${runit:Breaks}
 Conflicts: resolvconf (<<1.15), ${runit:Conflicts}
-Description: Small caching DNS proxy and DHCP/TFTP server
+Description: Small caching DNS proxy and DHCP/TFTP server - system daemon
  Dnsmasq is a lightweight, easy to configure, DNS forwarder and DHCP
- server. It is designed to provide DNS and optionally, DHCP, to a 
- small network. It can serve the names of local machines which are 
- not in the global DNS. The DHCP server integrates with the DNS 
+ server. It is designed to provide DNS and optionally, DHCP, to a
+ small network. It can serve the names of local machines which are
+ not in the global DNS. The DHCP server integrates with the DNS
  server and allows machines with DHCP-allocated addresses
  to appear in the DNS with names configured either in each host or
- in a central configuration file. Dnsmasq supports static and dynamic 
+ in a central configuration file. Dnsmasq supports static and dynamic
  DHCP leases and BOOTP/TFTP for network booting of diskless machines.
 
 Package: dnsmasq-base
 Architecture: any
-Depends: adduser, ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Breaks: dnsmasq (<< 2.63-1~)
 Replaces: dnsmasq (<< 2.63-1~), dnsmasq-base
 Recommends: dns-root-data
 Provides: dnsmasq-base
 Conflicts: dnsmasq-base-lua
-Description: Small caching DNS proxy and DHCP/TFTP server
+Description: Small caching DNS proxy and DHCP/TFTP server - executable
  This package contains the dnsmasq executable and documentation, but
  not the infrastructure required to run it as a system daemon. For
  that, install the dnsmasq package.
 
 Package: dnsmasq-base-lua
 Architecture: any
-Depends: adduser, ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Breaks: dnsmasq (<< 2.63-1~)
 Replaces: dnsmasq (<< 2.63-1~), dnsmasq-base
 Recommends: dns-root-data
 Provides: dnsmasq-base
 Conflicts: dnsmasq-base
-Description: Small caching DNS proxy and DHCP/TFTP server
+Description: Small caching DNS proxy and DHCP/TFTP server - executable, Lua-enabled
  This package contains the dnsmasq executable and documentation, but
  not the infrastructure required to run it as a system daemon. For
  that, install the dnsmasq package. This package is an alternative
- to dnsmasq-base which includes the LUA interpreter.
- 
+ to dnsmasq-base which includes the Lua interpreter.
+
 Package: dnsmasq-utils
 Architecture: linux-any
-Depends: ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Conflicts: dnsmasq (<<2.40)
 Description: Utilities for manipulating DHCP leases
  Small utilities to query a DHCP server's lease database and

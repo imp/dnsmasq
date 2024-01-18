@@ -10,19 +10,19 @@ Type=forking
 PIDFile=/run/dnsmasq/dnsmasq.pid
 
 # Test the config file and refuse starting if it is not valid.
-ExecStartPre=/etc/init.d/dnsmasq checkconfig
+ExecStartPre=/usr/share/dnsmasq/systemd-helper checkconfig
 
-# We run dnsmasq via the /etc/init.d/dnsmasq script which acts as a
-# wrapper picking up extra configuration files and then execs dnsmasq
-# itself, when called with the "systemd-exec" function.
-ExecStart=/etc/init.d/dnsmasq systemd-exec
+# We run dnsmasq via the /usr/share/dnsmasq/systemd-helper script which acts
+# as a wrapper picking up extra configuration files and then execs dnsmasq
+# itself, when called with the "exec" function.
+ExecStart=/usr/share/dnsmasq/systemd-helper exec
 
-# The systemd-*-resolvconf functions configure (and deconfigure)
+# The *-resolvconf functions configure (and deconfigure)
 # resolvconf to work with the dnsmasq DNS server. They're called like
 # this to get correct error handling (ie don't start-resolvconf if the
 # dnsmasq daemon fails to start).
-ExecStartPost=/etc/init.d/dnsmasq systemd-start-resolvconf
-ExecStop=/etc/init.d/dnsmasq systemd-stop-resolvconf
+ExecStartPost=/usr/share/dnsmasq/systemd-helper start-resolvconf
+ExecStop=/usr/share/dnsmasq/systemd-helper stop-resolvconf
 
 
 ExecReload=/bin/kill -HUP $MAINPID

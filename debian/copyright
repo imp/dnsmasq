@@ -1,21 +1,54 @@
-dnsmasq is Copyright (c) 2000-2024 Simon Kelley
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: dnsmasq
+Upstream-Contact: Simon Kelley <simon@thekelleys.org.uk>
+Source: https://thekelleys.org.uk/dnsmasq/
 
-It was downloaded from: http://www.thekelleys.org.uk/dnsmasq/
+Files: *
+Copyright: 2000-2021 Simon Kelley <simon@thekelleys.org.uk>
+License: GPL-2 or GPL-3
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; version 2 dated June, 1991, or
-   (at your option) version 3 dated 29 June, 2007.
- 
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+Files: debian/*
+Copyright: 2004-2023 Simon Kelley <simon@thekelleys.org.uk>
+           2012      Lars Bahner <bahner@debian.org>
+           2023      Sven Geuer <debmaint@g-e-u-e-r.de>
+License: GPL-2 or GPL-3
 
-On Debian GNU/Linux systems, the text of the GNU general public license is 
-available in the file /usr/share/common-licenses/GPL-2 or 
-/usr/share/common-licenses/GPL-3
+License: GPL-2
+ This program is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public
+ License as published by the Free Software Foundation;
+ version 2 dated June, 1991.
+ .
+ This program is distributed in the hope that it will be
+ useful, but WITHOUT ANY WARRANTY; without even the implied
+ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the GNU General Public License for more
+ details.
+ .
+ You should have received a copy of the GNU General Public
+ License along with this program.  If not, see
+ <https://www.gnu.org/licenses/gpl-2.0>.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License can be found in the file
+ `/usr/share/common-licenses/GPL-2'.
 
-The Debian package of dnsmasq was created by Simon Kelley with assistance 
-from Lars Bahner.
-
+License: GPL-3
+ This program is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public
+ License as published by the Free Software Foundation;
+ version 3 dated 29 June, 2007.
+ .
+ This program is distributed in the hope that it will be
+ useful, but WITHOUT ANY WARRANTY; without even the implied
+ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the GNU General Public License for more
+ details.
+ .
+ You should have received a copy of the GNU General Public
+ License along with this program.  If not, see
+ <https://www.gnu.org/licenses/gpl-3.0>.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License can be found in the file
+ `/usr/share/common-licenses/GPL-3'.

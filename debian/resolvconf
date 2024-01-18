@@ -48,7 +48,7 @@ RSLVCNFFILES=""
 for F in $(/lib/resolvconf/list-records --after "lo.$MY_NAME_FOR_RESOLVCONF") ; do
 	case "$F" in
 	    "lo.$MY_NAME_FOR_RESOLVCONF")
-		# Omit own record	 
+		# Omit own record
 		;;
 	    lo.*)
 		# Include no more records after one for a local nameserver
