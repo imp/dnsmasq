@@ -4,11 +4,15 @@ Upstream-Contact: Simon Kelley <simon@thekelleys.org.uk>
 Source: https://thekelleys.org.uk/dnsmasq/
 
 Files: *
-Copyright: 2000-2021 Simon Kelley <simon@thekelleys.org.uk>
+Copyright: 2000-2024 Simon Kelley <simon@thekelleys.org.uk>
 License: GPL-2 or GPL-3
 
+Files: src/dnssec.c
+Copyright: 2012-2024 Simon Kelley <simon@thekelleys.org.uk>
+           2012      Giovanni Bajo <rasky@develer.com>
+
 Files: debian/*
-Copyright: 2004-2023 Simon Kelley <simon@thekelleys.org.uk>
+Copyright: 2004-2024 Simon Kelley <simon@thekelleys.org.uk>
            2012      Lars Bahner <bahner@debian.org>
            2023      Sven Geuer <debmaint@g-e-u-e-r.de>
 License: GPL-2 or GPL-3
