@@ -1,3 +1,10 @@
+dnsmasq (2.90-1) unstable; urgency=low
+
+  * New upstream. (closes: #1033165)
+  * Bump LUA version to 5.4 (closes: #1050750)
+
+ -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 19 Jan 2024 22:35:01 +0000
+
 dnsmasq (2.89-1.1) UNRELEASED; urgency=medium
 
   * Non-maintainer upload.
