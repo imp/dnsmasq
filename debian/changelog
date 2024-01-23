@@ -78,7 +78,7 @@ dnsmasq (2.90-1) experimental; urgency=medium
   * Introduce d/u/metadata.
   * Fix lintian issue duplicate-short-description.
   * Fix lintian issue capitalization-error-in-description.
-  * Bump LUA version to 5.4 (Closes: #1050750).
+  * Bump LUA version to 5.4 (closes: #1050750).
     Modified files:
     - d/control
     - d/t/functions.d/log.patterns
