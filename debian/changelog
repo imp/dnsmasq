@@ -1,22 +1,17 @@
-dnsmasq (2.90-1) unstable; urgency=low
+dnsmasq (2.90-1) experimental; urgency=medium
 
+  [ Simon Kelley ]
   * New upstream. (closes: #1033165)
-  * Bump LUA version to 5.4 (closes: #1050750)
-
- -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 19 Jan 2024 22:35:01 +0000
-
-dnsmasq (2.89-1.1) UNRELEASED; urgency=medium
-
-  * Non-maintainer upload.
-  * Introduce autokpgtests per d/tests/* (Closes: #1034135).
-  * Switch to dpkg-source 3.0 (quilt) format (Closes: #1007041).
+  [ Sven Geuer ]
+  * Introduce autokpgtests per d/tests/* (closes: #1034135).
+  * Switch to dpkg-source 3.0 (quilt) format (closes: #1007041).
   * doc.html: Add patch to eliminate privacy breaches leaving the Donations
     paragraph as untouched as possible.
   * Prepend dnsmasq. to default, init, preinst, postinst, prerm, postrm.
   * Rename d/systemd.service to d/dnsmasq.service.
   * Rename d/systemd@.service to d/dnsmasq@.service.
   * Refactor d/rules to use the DH sequencer and fix major lintian issues
-    (Closes: #844989, #1040923).
+    (closes: #844989, #1040923).
     Modified files:
     - d/rules
         Complete rewrite making use of debhelper and its tools, fixes lintian
@@ -75,7 +70,7 @@ dnsmasq (2.89-1.1) UNRELEASED; urgency=medium
     Modified files:
     - d/control
     - d/dnsmasq.post{inst,rm}
-  * Refactor d/copyright to comply with DEP 5 (Closes: #966505).
+  * Refactor d/copyright to comply with DEP 5 (closes: #966505).
   * Remove trailing whitespace from various files under debian/.
   * Bump Standards-Version to 4.6.2.
   * Specify Rules-Requires-Root.
@@ -83,21 +78,18 @@ dnsmasq (2.89-1.1) UNRELEASED; urgency=medium
   * Introduce d/u/metadata.
   * Fix lintian issue duplicate-short-description.
   * Fix lintian issue capitalization-error-in-description.
-  * Bump Lua version to 5.4 (Closes: #1050750).
+  * Bump LUA version to 5.4 (Closes: #1050750).
     Modified files:
     - d/control
     - d/t/functions.d/log.patterns
-    - d/p/series
-   New files:
-    - d/p/bump-lua-version.patch
 
- -- Sven Geuer <debmaint@g-e-u-e-r.de>  Fri, 12 Jan 2024 20:31:44 +0100
+ -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 23 Jan 2024 22:52:01 +0000
 
 dnsmasq (2.89-1) unstable; urgency=low
 
    * New upstream.
 
- -- Simon Kelley <simon@thekelleys.org.uk>  Fri, 13 Jan 2023 21:57:01 +0000
+ -- Simon Kelley <simon@thekelleys.org.uk>  Tue, 13 Jan 2023 21:57:01 +0000
 
 dnsmasq (2.88-1) unstable; urgency=low
 
