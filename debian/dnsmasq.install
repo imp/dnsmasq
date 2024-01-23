@@ -5,5 +5,4 @@ debian/init-system-common => /usr/share/dnsmasq/init-system-common
 debian/systemd-helper => /usr/share/dnsmasq/systemd-helper
 dnsmasq.conf.example => /etc/dnsmasq.conf
 debian/readme.dnsmasq.d => /etc/dnsmasq.d/README
-debian/tmpfiles.conf => /usr/lib/tmpfiles.d/dnsmasq.conf
 debian/insserv => /etc/insserv.conf.d/dnsmasq
