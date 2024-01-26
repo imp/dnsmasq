@@ -87,7 +87,7 @@ override_dh_auto_install:
 		BUILDDIR=debian/auto-build/dnsmasq-base-lua \
 		DESTDIR=$(CURDIR)/debian/dnsmasq-base-lua \
 		PREFIX=$(PREFIX) CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
-		COPTS="$(COPTS) -DHAVE_LUASCRIPT"
+		LUA=lua5.4 COPTS="$(COPTS) -DHAVE_LUASCRIPT"
 	dh_auto_build -p dnsmasq-utils -D contrib/lease-tools
 
 override_dh_auto_clean:

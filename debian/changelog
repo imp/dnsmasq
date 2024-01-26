@@ -2,6 +2,8 @@ dnsmasq (2.90~test3-1) experimental; urgency=medium
 
   [ Simon Kelley ]
   * New upstream. (closes: #1033165)
+  * Move hard-coding of Lua version from the upstream Makefile
+    to  d/rules.
   [ Sven Geuer ]
   * Introduce autokpgtests per d/tests/* (closes: #1034135).
   * Switch to dpkg-source 3.0 (quilt) format (closes: #1007041).
