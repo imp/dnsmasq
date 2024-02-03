@@ -687,14 +687,13 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
 {
   unsigned char *pheader, *sizep;
   struct ipsets *ipsets = NULL, *nftsets = NULL;
-  int munged = 0, is_sign;
+  int is_sign;
   unsigned int rcode = RCODE(header);
   size_t plen; 
     
   (void)ad_reqd;
   (void)do_bit;
-  (void)bogusanswer;
-
+ 
 #ifdef HAVE_IPSET
   if (daemon->ipsets && extract_request(header, n, daemon->namebuff, NULL))
     ipsets = domain_find_sets(daemon->ipsets, daemon->namebuff);
@@ -785,64 +784,64 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
   if (header->hb3 & HB3_TC)
     {
       log_query(F_UPSTREAM, NULL, NULL, "truncated", 0);
-      munged = 1;
+      header->ancount = htons(0);
+      header->nscount = htons(0);
+      header->arcount = htons(0);
     }
-  else  if (daemon->bogus_addr && rcode != NXDOMAIN &&
-	    check_for_bogus_wildcard(header, n, daemon->namebuff, now))
+
+  if  (!(header->hb3 & HB3_TC) && (!bogusanswer || (header->hb4 & HB4_CD)))
     {
-      munged = 1;
-      SET_RCODE(header, NXDOMAIN);
-      header->hb3 &= ~HB3_AA;
-      cache_secure = 0;
-      ede = EDE_BLOCKED;
-    }
-  else 
-    {
-      if (rcode == NXDOMAIN && 
-	  extract_request(header, n, daemon->namebuff, NULL))
+      if (rcode == NXDOMAIN && extract_request(header, n, daemon->namebuff, NULL) &&
+	  (check_for_local_domain(daemon->namebuff, now) || lookup_domain(daemon->namebuff, F_CONFIG, NULL, NULL)))
 	{
-	  if (check_for_local_domain(daemon->namebuff, now) ||
-	      lookup_domain(daemon->namebuff, F_CONFIG, NULL, NULL))
-	    {
-	      /* if we forwarded a query for a locally known name (because it was for 
-		 an unknown type) and the answer is NXDOMAIN, convert that to NODATA,
-		 since we know that the domain exists, even if upstream doesn't */
-	      munged = 1;
-	      header->hb3 |= HB3_AA;
-	      SET_RCODE(header, NOERROR);
-	      cache_secure = 0;
-	    }
+	  /* if we forwarded a query for a locally known name (because it was for 
+	     an unknown type) and the answer is NXDOMAIN, convert that to NODATA,
+	     since we know that the domain exists, even if upstream doesn't */
+	  header->hb3 |= HB3_AA;
+	  SET_RCODE(header, NOERROR);
+	  cache_secure = 0;
 	}
       
-      if (!bogusanswer)
+      if (daemon->doctors && do_doctor(header, n, daemon->namebuff))
+	cache_secure = 0;
+      
+      /* check_for_bogus_wildcard() does it's own caching, so
+	 don't call extract_addresses() if it triggers. */
+      if (daemon->bogus_addr && rcode != NXDOMAIN &&
+	  check_for_bogus_wildcard(header, n, daemon->namebuff, now))
 	{
-	  if (daemon->doctors && !do_doctor(header, n))
+	  header->ancount = htons(0);
+	  header->nscount = htons(0);
+	  header->arcount = htons(0);
+	  SET_RCODE(header, NXDOMAIN);
+	  header->hb3 &= ~HB3_AA;
+	  cache_secure = 0;
+	  ede = EDE_BLOCKED;
+	}
+      else
+	{
+	  int rc = extract_addresses(header, n, daemon->namebuff, now, ipsets, nftsets, is_sign, check_rebind, no_cache, cache_secure);
+
+	  if (rc != 0)
 	    {
-	      /* do_doctors found malformed answer. */
-	      munged = 1;
-	      SET_RCODE(header, SERVFAIL);
+	      header->ancount = htons(0);
+	      header->nscount = htons(0);
+	      header->arcount = htons(0);
 	      cache_secure = 0;
-	      ede = EDE_OTHER;
 	    }
 	  
-	  if (RCODE(header) != SERVFAIL)
-	    switch (extract_addresses(header, n, daemon->namebuff, now, ipsets, nftsets, is_sign, check_rebind, no_cache, cache_secure))
-	      {
-	      case 1:
-		my_syslog(LOG_WARNING, _("possible DNS-rebind attack detected: %s"), daemon->namebuff);
-		munged = 1;
-		cache_secure = 0;
-		ede = EDE_BLOCKED;
-		break;
-		
-		/* extract_addresses() found a malformed answer. */
-	      case 2:
-		munged = 1;
-		SET_RCODE(header, SERVFAIL);
-		cache_secure = 0;
-		ede = EDE_OTHER;
-		break;
-	      }
+	  if (rc == 1)
+	    {
+	      my_syslog(LOG_WARNING, _("possible DNS-rebind attack detected: %s"), daemon->namebuff);
+	      ede = EDE_BLOCKED;
+	    }
+
+	  if (rc == 2)
+	    {
+	      /* extract_addresses() found a malformed answer. */
+	      SET_RCODE(header, SERVFAIL);
+	      ede = EDE_OTHER;
+	    }
 	}
       
       if (RCODE(header) == NOERROR && rrfilter(header, &n, RRFILTER_CONF) > 0) 
@@ -850,18 +849,21 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
     }
   
 #ifdef HAVE_DNSSEC
-  if (bogusanswer && !(header->hb4 & HB4_CD) && !option_bool(OPT_DNSSEC_DEBUG))
-    {
-      /* Bogus reply, turn into SERVFAIL */
-      SET_RCODE(header, SERVFAIL);
-      munged = 1;
-    }
-
   if (option_bool(OPT_DNSSEC_VALID))
     {
-      header->hb4 &= ~HB4_AD;
-      
-      if (!(header->hb4 & HB4_CD) && ad_reqd && cache_secure)
+      if (bogusanswer)
+	{
+	  if (!(header->hb4 & HB4_CD) && !option_bool(OPT_DNSSEC_DEBUG))
+	    {
+	      /* Bogus reply, turn into SERVFAIL */
+	      SET_RCODE(header, SERVFAIL);
+	      header->ancount = htons(0);
+	      header->nscount = htons(0);
+	      header->arcount = htons(0);
+	      ede = EDE_DNSSEC_BOGUS;
+	    }
+	}
+      else if (!(header->hb4 & HB4_CD) && ad_reqd && cache_secure)
 	header->hb4 |= HB4_AD;
       
       /* If the requestor didn't set the DO bit, don't return DNSSEC info. */
@@ -869,19 +871,9 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
 	rrfilter(header, &n, RRFILTER_DNSSEC);
     }
 #endif
-
-  /* do this after extract_addresses. Ensure NODATA reply and remove
-     nameserver info. */
-  if (munged)
-    {
-      header->ancount = htons(0);
-      header->nscount = htons(0);
-      header->arcount = htons(0);
-    }
   
-  /* the bogus-nxdomain stuff, doctor and NXDOMAIN->NODATA munging can all elide
-     sections of the packet. Find the new length here and put back pseudoheader
-     if it was removed. */
+  /* the code above can elide sections of the packet. Find the new length here 
+     and put back pseudoheader if it was removed. */
   n = resize_packet(header, n, pheader, plen);
 
   if (pheader && ede != EDE_UNSET)
