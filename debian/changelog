@@ -1,4 +1,4 @@
-dnsmasq (2.90~test3-1) experimental; urgency=medium
+dnsmasq (2.90~test4-1) experimental; urgency=medium
 
   [ Simon Kelley ]
   * New upstream. (closes: #1033165)
@@ -13,7 +13,7 @@ dnsmasq (2.90~test3-1) experimental; urgency=medium
   * Rename d/systemd.service to d/dnsmasq.service.
   * Rename d/systemd@.service to d/dnsmasq@.service.
   * Refactor d/rules to use the DH sequencer and fix major lintian issues
-    (closes: #844989, #1040923).
+    (closes: #844989, #1040923, #1063551).
     Modified files:
     - d/rules
         Complete rewrite making use of debhelper and its tools, fixes lintian
