@@ -386,7 +386,11 @@ Remove A records from answers. No IPv4 addresses will be returned.
 Remove AAAA records from answers. No IPv6 addresses will be returned.
 .TP
 .B --filter-rr=<rrtype>[,<rrtype>...]
-Remove records of the specified type(s) from answers.
+Remove records of the specified type(s) from answers. The otherwise-nonsensical --filter-rr=ANY has
+a special meaning: it filters replies to queries for type ANY. Everything other than A, AAAA, MX and CNAME
+records are removed. Since ANY queries with forged source addresses can be used in DNS amplification attacks
+(replies to ANY queries can be large) this defangs such attacks, whilst still supporting the
+one remaining possible use of ANY queries. See RFC 8482 para 4.3 for details.
 .TP
 .B --cache-rr=<rrtype>[,<rrtype>...]
 By default, dnsmasq caches A, AAAA, CNAME and SRV DNS record types.

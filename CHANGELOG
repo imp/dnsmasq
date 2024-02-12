@@ -25,6 +25,12 @@ version 2.90
 	end up in the query also. This bug only seems to cause problems
 	when the usptream server is a DOH/DOT proxy. Thanks to Justin He
 	for the bug report.
+
+	Add configurable caching for arbitrary RR-types.
+
+	Add --filter-rr option, to filter arbitrary RR-types.
+	--filter-rr=ANY has a special meaning: it filters the
+	answers to queries for the ANY RR-type.
 	
 	
 version 2.89
