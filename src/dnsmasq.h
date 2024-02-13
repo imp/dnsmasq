@@ -757,6 +757,9 @@ struct dyndir {
 #define DNSSEC_FAIL_NONSEC      0x0040 /* No NSEC */
 #define DNSSEC_FAIL_NODSSUP     0x0080 /* no supported DS algo. */
 #define DNSSEC_FAIL_NOKEY       0x0100 /* no DNSKEY */
+#define DNSSEC_FAIL_NSEC3_ITERS 0x0200 /* too many iterations in NSEC3 */
+#define DNSSEC_FAIL_BADPACKET   0x0400 /* bad packet */
+#define DNSSEC_FAIL_WORK        0x0800 /* too much crypto */
 
 #define STAT_ISEQUAL(a, b)  (((a) & 0xffff0000) == (b))
 
@@ -794,7 +797,7 @@ struct frec {
   struct blockdata *stash; /* Saved reply, whilst we validate */
   size_t stash_len;
 #ifdef HAVE_DNSSEC 
-  int class, work_counter;
+  int class, work_counter, validate_counter;
   struct frec *dependent; /* Query awaiting internally-generated DNSKEY or DS query */
   struct frec *next_dependent; /* list of above. */
   struct frec *blocking_query; /* Query which is blocking us. */
@@ -830,6 +833,12 @@ struct frec {
 #define LEASE_TA            64  /* IPv6 temporary lease */
 #define LEASE_HAVE_HWADDR  128  /* Have set hwaddress */
 #define LEASE_EXP_CHANGED  256  /* Lease expiry time changed */
+
+#define LIMIT_SIG_FAIL    0
+#define LIMIT_CRYPTO      1
+#define LIMIT_WORK        2
+#define LIMIT_NSEC3_ITERS 3
+#define LIMIT_MAX         4
 
 struct dhcp_lease {
   int clid_len;          /* length of client identifier */
@@ -1240,6 +1249,7 @@ extern struct daemon {
   int rr_status_sz;
   int dnssec_no_time_check;
   int back_to_the_future;
+  int limit[LIMIT_MAX];
 #endif
   struct frec *frec_list;
   struct frec_src *free_frec_src;
@@ -1415,10 +1425,12 @@ int in_zone(struct auth_zone *zone, char *name, char **cut);
 /* dnssec.c */
 #ifdef HAVE_DNSSEC
 size_t dnssec_generate_query(struct dns_header *header, unsigned char *end, char *name, int class, int type, int edns_pktsz);
-int dnssec_validate_by_ds(time_t now, struct dns_header *header, size_t plen, char *name, char *keyname, int class);
-int dnssec_validate_ds(time_t now, struct dns_header *header, size_t plen, char *name, char *keyname, int class);
+int dnssec_validate_by_ds(time_t now, struct dns_header *header, size_t plen, char *name,
+			  char *keyname, int class, int *validate_count);
+int dnssec_validate_ds(time_t now, struct dns_header *header, size_t plen, char *name,
+		       char *keyname, int class, int *validate_count);
 int dnssec_validate_reply(time_t now, struct dns_header *header, size_t plen, char *name, char *keyname, int *class,
-			  int check_unsigned, int *neganswer, int *nons, int *nsec_ttl);
+			  int check_unsigned, int *neganswer, int *nons, int *nsec_ttl, int *validate_count);
 int dnskey_keytag(int alg, int flags, unsigned char *key, int keylen);
 size_t filter_rrsigs(struct dns_header *header, size_t plen);
 int setup_timestamp(void);

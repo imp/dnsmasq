@@ -834,7 +834,18 @@ void cache_end_insert(void)
   if (daemon->pipe_to_parent != -1)
     {
       ssize_t m = -1;
+
       read_write(daemon->pipe_to_parent, (unsigned char *)&m, sizeof(m), 0);
+
+#ifdef HAVE_DNSSEC
+      /* Sneak out possibly updated crypto HWM values. */
+      m = daemon->metrics[METRIC_CRYPTO_HWM];
+      read_write(daemon->pipe_to_parent, (unsigned char *)&m, sizeof(m), 0);
+      m = daemon->metrics[METRIC_SIG_FAIL_HWM];
+      read_write(daemon->pipe_to_parent, (unsigned char *)&m, sizeof(m), 0);
+      m = daemon->metrics[METRIC_WORK_HWM];
+      read_write(daemon->pipe_to_parent, (unsigned char *)&m, sizeof(m), 0);
+#endif
     }
       
   new_chain = NULL;
@@ -853,7 +864,7 @@ int cache_recv_insert(time_t now, int fd)
   
   cache_start_insert();
   
-  while(1)
+  while (1)
     {
  
       if (!read_write(fd, (unsigned char *)&m, sizeof(m), 1))
@@ -861,6 +872,21 @@ int cache_recv_insert(time_t now, int fd)
       
       if (m == -1)
 	{
+#ifdef HAVE_DNSSEC
+	  /* Sneak in possibly updated crypto HWM. */
+	  if (!read_write(fd, (unsigned char *)&m, sizeof(m), 1))
+	    return 0;
+	  if (m > daemon->metrics[METRIC_CRYPTO_HWM])
+	    daemon->metrics[METRIC_CRYPTO_HWM] = m;
+	  if (!read_write(fd, (unsigned char *)&m, sizeof(m), 1))
+	    return 0;
+	  if (m > daemon->metrics[METRIC_SIG_FAIL_HWM])
+	    daemon->metrics[METRIC_SIG_FAIL_HWM] = m;
+	  if (!read_write(fd, (unsigned char *)&m, sizeof(m), 1))
+	    return 0;
+	  if (m > daemon->metrics[METRIC_WORK_HWM])
+	    daemon->metrics[METRIC_WORK_HWM] = m;
+#endif
 	  cache_end_insert();
 	  return 1;
 	}
@@ -1893,6 +1919,11 @@ void dump_cache(time_t now)
 #ifdef HAVE_AUTH
   my_syslog(LOG_INFO, _("queries for authoritative zones %u"), daemon->metrics[METRIC_DNS_AUTH_ANSWERED]);
 #endif
+#ifdef HAVE_DNSSEC
+  my_syslog(LOG_INFO, _("DNSSEC per-query subqueries HWM %u"), daemon->metrics[METRIC_WORK_HWM]);
+  my_syslog(LOG_INFO, _("DNSSEC per-query crypto work HWM %u"), daemon->metrics[METRIC_CRYPTO_HWM]);
+  my_syslog(LOG_INFO, _("DNSSEC per-RRSet signature fails HWM %u"), daemon->metrics[METRIC_SIG_FAIL_HWM]);
+#endif
 
   blockdata_report();
   my_syslog(LOG_INFO, _("child processes for TCP requests: in use %zu, highest since last SIGUSR1 %zu, max allowed %zu."),
@@ -2052,6 +2083,11 @@ static char *edestr(int ede)
     case EDE_NO_AUTH:                     return "no reachable authority";
     case EDE_NETERR:                      return "network error";
     case EDE_INVALID_DATA:                return "invalid data";
+    case EDE_SIG_E_B_V:                   return "signature expired before valid";
+    case EDE_TOO_EARLY:                   return "too early";
+    case EDE_UNS_NS3_ITER:                return "unsupported NSEC3 iterations value";
+    case EDE_UNABLE_POLICY:               return "uanble to conform to policy";
+    case EDE_SYNTHESIZED:                 return "synthesized";
     default:                              return "unknown";
     }
 }
