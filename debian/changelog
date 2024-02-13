@@ -1,9 +1,11 @@
-dnsmasq (2.90~test4-1) experimental; urgency=medium
+dnsmasq (2.90-1) unstable; urgency=medium
 
   [ Simon Kelley ]
   * New upstream. (closes: #1033165)
   * Move hard-coding of Lua version from the upstream Makefile
     to  d/rules.
+  * Security fixes for Keytrap - DNSSEC validation CPU exhaustion.
+    CVE-2023-50387 and CVE-2023-50868
   [ Sven Geuer ]
   * Introduce autokpgtests per d/tests/* (closes: #1034135).
   * Switch to dpkg-source 3.0 (quilt) format (closes: #1007041).
