@@ -15,6 +15,7 @@
 */
 
 #include "dnsmasq.h"
+#include <stdbool.h>
 
 #ifdef HAVE_DHCP
 
@@ -67,12 +68,13 @@ struct dhcp_boot *find_boot(struct dhcp_netid *netid);
 static int pxe_uefi_workaround(int pxe_arch, struct dhcp_netid *netid, struct dhcp_packet *mess, struct in_addr local, time_t now, int pxe);
 static void apply_delay(u32 xid, time_t recvtime, struct dhcp_netid *netid);
 static int is_pxe_client(struct dhcp_packet *mess, size_t sz, const char **pxe_vendor);
+static void option_put_char(struct dhcp_packet *mess, unsigned char *end, int opt, int len, unsigned char *val);
 
 size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
 		  size_t sz, time_t now, int unicast_dest, int loopback,
 		  int *is_inform, int pxe, struct in_addr fallback, time_t recvtime)
 {
-  unsigned char *opt, *clid = NULL;
+  unsigned char *opt, *clid = NULL, *option_clid = NULL;
   struct dhcp_lease *ltmp, *lease = NULL;
   struct dhcp_vendor *vendor;
   struct dhcp_mac *mac;
@@ -100,6 +102,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
   struct dhcp_opt *o;
   unsigned char pxe_uuid[17];
   unsigned char *oui = NULL, *serial = NULL;
+  bool Flag_CID = false;
 #ifdef HAVE_SCRIPT
   unsigned char *class = NULL;
 #endif
@@ -239,8 +242,12 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
       /* If there is no client identifier option, use the hardware address */
       if (!option_bool(OPT_IGNORE_CLID) && (opt = option_find(mess, sz, OPTION_CLIENT_ID, 1)))
 	{
-	  clid_len = option_len(opt);
+	  clid_len= option_len(opt);
+	  option_clid = whine_malloc(clid_len);
 	  clid = option_ptr(opt, 0);
+	  memcpy(option_clid, clid, clid_len);
+	  Flag_CID = true ;
+
 	}
 
       /* do we have a lease in store? */
@@ -919,7 +926,11 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
 		"%s.%d", service->basename, layer);
 	  
 	  option_put(mess, end, OPTION_MESSAGE_TYPE, 1, DHCPACK);
-	  option_put(mess, end, OPTION_SERVER_IDENTIFIER, INADDRSZ, htonl(context->local.s_addr));
+	  if(true == Flag_CID)
+	{
+		option_put_char(mess, end, OPTION_CLIENT_ID, clid_len, option_clid);
+	}
+
 	  pxe_misc(mess, end, uuid, pxevendor);
 	  
 	  prune_vendor_opts(tagif_netid);
@@ -1169,6 +1180,11 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
       clear_packet(mess, end);
       option_put(mess, end, OPTION_MESSAGE_TYPE, 1, DHCPOFFER);
       option_put(mess, end, OPTION_SERVER_IDENTIFIER, INADDRSZ, ntohl(server_id(context, override, fallback).s_addr));
+	   if(true == Flag_CID)
+ 	{
+ 		 option_put_char(mess, end, OPTION_CLIENT_ID, clid_len, option_clid);
+ 	}
+
       option_put(mess, end, OPTION_LEASE_TIME, 4, time);
       /* T1 and T2 are required in DHCPOFFER by HP's wacky Jetdirect client. */
       do_options(context, mess, end, req_options, offer_hostname, get_domain(mess->yiaddr), 
@@ -1177,7 +1193,7 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
       return dhcp_packet_size(mess, agent_id, real_end);
 	
 
-    case DHCPREQUEST:
+    case DHCPREQUEST:-
       if (ignore || have_config(config, CONFIG_DISABLE))
 	return 0;
       if ((opt = option_find(mess, sz, OPTION_REQUESTED_IP, INADDRSZ)))
@@ -1361,6 +1377,11 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
 	  clear_packet(mess, end);
 	  option_put(mess, end, OPTION_MESSAGE_TYPE, 1, DHCPNAK);
 	  option_put(mess, end, OPTION_SERVER_IDENTIFIER, INADDRSZ, ntohl(server_id(context, override, fallback).s_addr));
+	   if(true == Flag_CID)
+	{
+		 option_put_char(mess, end, OPTION_CLIENT_ID, clid_len, option_clid);
+	}
+
 	  option_put_string(mess, end, OPTION_MESSAGE, message, borken_opt);
 	  /* This fixes a problem with the DHCP spec, broadcasting a NAK to a host on 
 	     a distant subnet which unicast a REQ to us won't work. */
@@ -1518,6 +1539,11 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
 	  clear_packet(mess, end);
 	  option_put(mess, end, OPTION_MESSAGE_TYPE, 1, DHCPACK);
 	  option_put(mess, end, OPTION_SERVER_IDENTIFIER, INADDRSZ, ntohl(server_id(context, override, fallback).s_addr));
+	   if(true == Flag_CID)
+	{
+		 option_put_char(mess, end, OPTION_CLIENT_ID, clid_len, option_clid);
+	}
+
 	  option_put(mess, end, OPTION_LEASE_TIME, 4, time);
 	  if (rapid_commit)
 	     option_put(mess, end, OPTION_RAPID_COMMIT, 0, 0);
@@ -1573,6 +1599,11 @@ size_t dhcp_reply(struct dhcp_context *context, char *iface_name, int int_index,
       clear_packet(mess, end);
       option_put(mess, end, OPTION_MESSAGE_TYPE, 1, DHCPACK);
       option_put(mess, end, OPTION_SERVER_IDENTIFIER, INADDRSZ, ntohl(server_id(context, override, fallback).s_addr));
+	   if(true == Flag_CID)
+	{
+		 option_put_char(mess, end, OPTION_CLIENT_ID, clid_len, option_clid);
+	}
+
      
       /* RFC 2131 says that DHCPINFORM shouldn't include lease-time parameters, but 
 	 we supply a utility which makes DHCPINFORM requests to get this information.
@@ -1969,6 +2000,17 @@ static void option_put(struct dhcp_packet *mess, unsigned char *end, int opt, in
   if (p) 
     for (i = 0; i < len; i++)
       *(p++) = val >> (8 * (len - (i + 1)));
+}
+
+static void option_put_char(struct dhcp_packet *mess, unsigned char *end, int opt, int len, unsigned char * val)
+{
+ int i;
+ unsigned char *p = free_space(mess, end, opt, len);
+
+ if (p)
+ for (i = 0; i < len; i++)
+ *(p++) = val[i];
+ free(val);
 }
 
 static void option_put_string(struct dhcp_packet *mess, unsigned char *end, int opt, 
