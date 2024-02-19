@@ -69,6 +69,13 @@ version 2.90
 	Note that the is a security vulnerablity only when DNSSEC validation
 	is enabled.
 	
+	Fix memory-leak when attempting to cache SRV records with zero TTL.
+	Thanks to Damian Sawicki for the bug report.
+
+	Add --max-tcp-connections option to make limit on TCP handling
+	processes configurable.  Also keep stats on how near the limit
+	we're getting, to help with tuning. Patch from Damian Sawicki.
+
 	
 version 2.89
         Fix bug introduced in 2.88 (commit fe91134b) which can result
