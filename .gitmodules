@@ -1,0 +1,3 @@
+[submodule "debian"]
+	path = debian
+	url = git://thekelleys.org.uk/dnsmasq-debian.git
