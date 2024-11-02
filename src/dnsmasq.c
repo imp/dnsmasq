@@ -410,7 +410,6 @@ int main (int argc, char **argv)
     {
       cache_init();
       blockdata_init();
-      hash_questions_init();
 
       /* Scale random socket pool by ftabsize, but
 	 limit it based on available fds. */

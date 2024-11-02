@@ -63,12 +63,8 @@ ct_cflags =     `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_CONNTRACK $(PKG_CON
 ct_libs =       `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_CONNTRACK $(PKG_CONFIG) --libs libnetfilter_conntrack`
 lua_cflags =    `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_LUASCRIPT $(PKG_CONFIG) --cflags $(LUA)` 
 lua_libs =      `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_LUASCRIPT $(PKG_CONFIG) --libs $(LUA)` 
-nettle_cflags = `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_DNSSEC     $(PKG_CONFIG) --cflags 'nettle hogweed' \
-                                                        HAVE_CRYPTOHASH $(PKG_CONFIG) --cflags nettle \
-                                                        HAVE_NETTLEHASH $(PKG_CONFIG) --cflags nettle`
-nettle_libs =   `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_DNSSEC     $(PKG_CONFIG) --libs 'nettle hogweed' \
-                                                        HAVE_CRYPTOHASH $(PKG_CONFIG) --libs nettle \
-                                                        HAVE_NETTLEHASH $(PKG_CONFIG) --libs nettle`
+nettle_cflags = `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_DNSSEC     $(PKG_CONFIG) --cflags 'nettle hogweed'`
+nettle_libs =   `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_DNSSEC     $(PKG_CONFIG) --libs 'nettle hogweed'`
 gmp_libs =      `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_DNSSEC NO_GMP --copy -lgmp`
 sunos_libs =    `if uname | grep SunOS >/dev/null 2>&1; then echo -lsocket -lnsl -lposix4; fi`
 nft_cflags =    `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_NFTSET $(PKG_CONFIG) --cflags libnftables` 
@@ -85,7 +81,7 @@ objs = cache.o rfc1035.o util.o option.o forward.o network.o \
        dhcp-common.o outpacket.o radv.o slaac.o auth.o ipset.o pattern.o \
        domain.o dnssec.o blockdata.o tables.o loop.o inotify.o \
        poll.o rrfilter.o edns0.o arp.o crypto.o dump.o ubus.o \
-       metrics.o hash-questions.o domain-match.o nftset.o
+       metrics.o domain-match.o nftset.o
 
 hdrs = dnsmasq.h config.h dhcp-protocol.h dhcp6-protocol.h \
        dns-protocol.h radv-protocol.h ip6addr.h metrics.h
