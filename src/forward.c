@@ -1025,8 +1025,7 @@ static void dnssec_validate(struct frec *forward, struct dns_header *header,
 		  new->dependent = forward;
 		  /* Make consistent, only replace query copy with unvalidated answer
 		     when we set ->blocking_query. */
-		  if (forward->stash)
-		    blockdata_free(forward->stash);
+		  blockdata_free(forward->stash);
 		  forward->blocking_query = new;
 		  forward->stash_len = plen;
 		  forward->stash = stash;
@@ -1075,8 +1074,7 @@ static void dnssec_validate(struct frec *forward, struct dns_header *header,
 		  /* Make consistent, only replace query copy with unvalidated answer
 		     when we set ->blocking_query. */
 		  forward->blocking_query = new; 
-		  if (forward->stash)
-		    blockdata_free(forward->stash);
+		  blockdata_free(forward->stash);
 		  forward->stash_len = plen;
 		  forward->stash = stash;
 		  
@@ -1957,6 +1955,7 @@ static ssize_t tcp_talk(int first, int last, int start, unsigned char *packet,  
   unsigned int rsize;
   int class, rclass, type, rtype;
   unsigned char *p;
+  struct blockdata *saved_question;
   
   (void)mark;
   (void)have_mark;
@@ -1967,7 +1966,11 @@ static ssize_t tcp_talk(int first, int last, int start, unsigned char *packet,  
     return 0;
   GETSHORT(type, p); 
   GETSHORT(class, p);
-    
+
+  /* Save question for retry. */
+  if (!(saved_question = blockdata_alloc((char *)header, (size_t)qsize)))
+    return 0;
+  
   while (1) 
     {
       int data_sent = 0, timedout = 0;
@@ -1989,6 +1992,8 @@ static ssize_t tcp_talk(int first, int last, int start, unsigned char *packet,  
       serv = daemon->serverarray[start];
       
     retry:
+      blockdata_retrieve(saved_question, qsize, header);
+      
       *length = htons(qsize);
       
       if (serv->tcpfd == -1)
@@ -2071,9 +2076,11 @@ static ssize_t tcp_talk(int first, int last, int start, unsigned char *packet,  
       serv->flags |= SERV_GOT_TCP;
       
       *servp = serv;
+      blockdata_free(saved_question);
       return rsize;
     }
-
+  
+  blockdata_free(saved_question);
   return 0;
 }
 		  
@@ -2131,7 +2138,7 @@ int tcp_from_udp(time_t now, int status, struct dns_header *header, ssize_t *ple
 
 	  if (n >= daemon->edns_pktsz)
 	    {
-	      /* still too bug, strip optional sections and try again. */
+	      /* still too bIg, strip optional sections and try again. */
 	      new_header->nscount = htons(0);
 	      new_header->arcount = htons(0);
 	      n = resize_packet(new_header, n, NULL, 0);
@@ -2151,8 +2158,8 @@ int tcp_from_udp(time_t now, int status, struct dns_header *header, ssize_t *ple
 	}
     }
   
-   daemon->log_display_id = log_save;
-   free(packet);
+  daemon->log_display_id = log_save;
+  free(packet);
   return new_status;
 }			    
  
@@ -2463,7 +2470,7 @@ unsigned char *tcp_request(int confd, time_t now,
 	       if (saved_question)
 		 blockdata_free(saved_question);
 	       
-	       saved_question = blockdata_alloc((char *) header, (size_t)size);
+	       saved_question = blockdata_alloc((char *)header, (size_t)size);
 	       saved_size = size;
 	       
 	       /* m > 0 if answered from cache */
@@ -2670,8 +2677,7 @@ unsigned char *tcp_request(int confd, time_t now,
       close(confd);
     }
 
-  if (saved_question)
-    blockdata_free(saved_question);
+  blockdata_free(saved_question);
   
   return packet;
 }
