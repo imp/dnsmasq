@@ -1,7 +1,15 @@
 version 2.91
 	Fix spurious "resource limit exceeded messages". Thanks to 
 	Dominik Derigs for the bug report.
-	
+
+	Fix out-of-bounds heap read in order_qsort().
+	We only need to order two server records on the ->serial field.
+	Literal address records are smaller and don't have
+	this field and don't need to be ordered on it.
+	To actually provoke this bug seems to need the same server-literal
+	to be repeated twice, eg --address=/a/1.1.1.1 --address-/a/1.1.1.1
+	which is clearly rare in the wild, but if it did exist it could
+	provoke a SIGSEV. Thanks to Daniel Rhea for fuzzing this one.
 
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which
