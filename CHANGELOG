@@ -11,6 +11,10 @@ version 2.91
 	which is clearly rare in the wild, but if it did exist it could
 	provoke a SIGSEV. Thanks to Daniel Rhea for fuzzing this one.
 
+	Fix buffer overflow when configured lease-change script name
+	is too long.
+	Thanks to Daniel Rhea for finding this one.
+
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which
 	caused breakage if the prefix length is not exactly divisible
