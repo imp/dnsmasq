@@ -166,8 +166,7 @@ static int domain_no_rebind(char *domain)
 static int forward_query(int udpfd, union mysockaddr *udpaddr,
 			 union all_addr *dst_addr, unsigned int dst_iface,
 			 struct dns_header *header, size_t plen,  char *limit, time_t now, 
-			 struct frec *forward, int ad_reqd, int do_bit, int fast_retry,
-			 struct blockdata *saved_question)
+			 struct frec *forward, int ad_reqd, int do_bit, int fast_retry)
 {
   unsigned int flags = 0;
   unsigned int fwd_flags = 0;
@@ -183,9 +182,6 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
   (void)do_bit;
   unsigned short rrtype;
 
-  if (saved_question)
-    blockdata_retrieve(saved_question, plen, header);
-  
   gotname = extract_request(header, plen, daemon->namebuff, &rrtype);
   oph = find_pseudoheader(header, plen, NULL, NULL, NULL, NULL);
 
@@ -272,11 +268,11 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 	     it's safe to wait for the reply from the first without
 	     forwarding the second. */
 	  if (difftime(now, forward->time) < 2)
-	    {
-	      blockdata_free(saved_question);
-	      return 0;
-	    }
+	    return 0;
 	}
+      
+      /* use our id when resending */
+      header->id = ntohs(forward->new_id);
     }
   
   /* new query */
@@ -346,25 +342,25 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 	    PUTSHORT(SAFE_PKTSZ, pheader);
 	}
       
-      /* Keep copy of query. */
-      if (saved_question)
+      /* Do these before saving query. */
+      forward->frec_src.orig_id = ntohs(header->id);
+      forward->new_id = get_id();
+      header->id = ntohs(forward->new_id);
+            
+      /* Keep copy of query for retries and move to TCP */
+      if (!(forward->stash = blockdata_alloc((char *)header, plen)))
 	{
-	  forward->stash = saved_question;
-	  saved_question = NULL; /* don't free */
+	  free_frec(forward);
+	  goto reply; /* no mem. return REFUSED */
 	}
-      else if (!(forward->stash = blockdata_alloc((char *)header, plen)))
-	goto reply; /* no mem. return REFUSED */
-
+      
       forward->stash_len = plen;
       forward->frec_src.log_id = daemon->log_id;
       forward->frec_src.source = *udpaddr;
-      forward->frec_src.orig_id = ntohs(header->id);
       forward->frec_src.dest = *dst_addr;
       forward->frec_src.iface = dst_iface;
       forward->frec_src.next = NULL;
       forward->frec_src.fd = udpfd;
-      forward->new_id = get_id();
-      header->id = htons(forward->new_id);
       forward->forwardall = 0;
       forward->flags = fwd_flags;
       if (domain_no_rebind(daemon->namebuff))
@@ -426,11 +422,8 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 	  
 	  /* Find suitable servers: should never fail. */
 	  if (!filter_servers(forward->sentto->arrayposn, F_DNSSECOK, &first, &last))
-	    {
-	      blockdata_free(saved_question);
-	      return 0;
-	    }
-	  
+	    return 0;
+	    	  
 	  is_dnssec = 1;
 	  forward->forwardall = 1;
 	}
@@ -567,7 +560,6 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
   if (forwarded || is_dnssec)
     {
       forward->forward_timestamp = dnsmasq_milliseconds();
-      blockdata_free(saved_question);
       return 1;
     }
   
@@ -580,10 +572,7 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
   if (udpfd != -1)
     {
       if (!(plen = make_local_answer(flags, gotname, plen, header, daemon->namebuff, limit, first, last, ede)))
-	{
-	  blockdata_free(saved_question);
-	  return 0;
-	}
+	return 0;
       
       if (oph)
 	{
@@ -608,7 +597,6 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
       send_from(udpfd, option_bool(OPT_NOWILD) || option_bool(OPT_CLEVERBIND), (char *)header, plen, udpaddr, dst_addr, dst_iface);
     }
   
-  blockdata_free(saved_question);
   return 0;
 }
 
@@ -655,7 +643,7 @@ int fast_retry(time_t now)
 		daemon->log_source_addr = NULL;
 		
 		forward_query(-1, NULL, NULL, 0, header, f->stash_len, ((char *) header) + udp_size, now, f,
-			      f->flags & FREC_AD_QUESTION, f->flags & FREC_DO_QUESTION, 1, NULL);
+			      f->flags & FREC_AD_QUESTION, f->flags & FREC_DO_QUESTION, 1);
 
 		to_run = f->forward_delay = 2 * f->forward_delay;
 	      }
@@ -941,23 +929,7 @@ static void dnssec_validate(struct frec *forward, struct dns_header *header,
 	      /* Don't count failed UDP attempt AND TCP */
 	      if (status != STAT_OK)
 		orig->work_counter++;
-	      else
-		{
-		  /* repeat changes made as packet forwarded over UDP */
-		  int cacheable;
-
-		  header->id = htons(forward->new_id);
-      
-		  plen = add_edns0_config(header, plen, ((unsigned char *)header) + PACKETSZ, &forward->frec_src.source, now, &cacheable);
-		  plen = add_do_bit(header, plen, ((unsigned char *) header) + PACKETSZ);
-		  
-		  /* For debugging, set Checking Disabled, otherwise, have the upstream check too,
-		     this allows it to select auth servers when one is returning bad data. */
-		  if (option_bool(OPT_DNSSEC_DEBUG))
-		    header->hb4 |= HB4_CD;
-		  
-		}
-
+	      
 	      /* NOTE: Can't move connection marks from UDP to TCP */
 	      plen = forward->stash_len;
 	      status = swap_to_tcp(forward, now, status, header, &plen, forward->class, forward->sentto, &orig->work_counter, &orig->validate_counter);
@@ -1277,7 +1249,7 @@ void reply_query(int fd, time_t now)
 	GETSHORT(udp_size, udpsz);
 	      
       forward_query(-1, NULL, NULL, 0, header, forward->stash_len, ((char *) header) + udp_size, now, forward,
-		    forward->flags & FREC_AD_QUESTION, forward->flags & FREC_DO_QUESTION, 0, NULL);
+		    forward->flags & FREC_AD_QUESTION, forward->flags & FREC_DO_QUESTION, 0);
       return;
     }
 
@@ -1935,8 +1907,11 @@ void receive_query(struct listener *listen, time_t now)
 	{
 	  if (m == 0)
 	    {
+	      /* Get the question back, since it may have been mangled by answer_request() */
+	      blockdata_retrieve(saved_question, (size_t)n, (void *)header);
+	      blockdata_free(saved_question);
 	      if (forward_query(fd, &source_addr, &dst_addr, if_index, header, (size_t)n,
-				((char *) header) + udp_size, now, NULL, ad_reqd, do_bit, 0, saved_question))
+				((char *) header) + udp_size, now, NULL, ad_reqd, do_bit, 0))
 		daemon->metrics[METRIC_DNS_QUERIES_FORWARDED]++;
 	      else
 		daemon->metrics[METRIC_DNS_LOCAL_ANSWERED]++;
