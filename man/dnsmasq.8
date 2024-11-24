@@ -114,7 +114,8 @@ which defaults to 1000ms. If the second parameter is given this controls
 how long the retries will continue for
 otherwise this defaults to 10000ms. Retries are repeated with exponential
 backoff. Using this option increases memory usage and
-network bandwidth.
+network bandwidth. If not otherwise configured, this option is activated
+with the default parameters when \fB--dnssec\fP is set.
 .TP
 .B \-k, --keep-in-foreground
 Do not go into the background at startup but otherwise run as
