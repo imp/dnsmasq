@@ -553,9 +553,9 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
 	  u16 swap = htons((u16)ede);
 
 	  if (ede != EDE_UNSET)
-	    plen = add_pseudoheader(header, plen, (unsigned char *)(header + replylimit), 0, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
+	    plen = add_pseudoheader(header, plen, (unsigned char *)(header + replylimit), daemon->edns_pktsz, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
 	  else
-	    plen = add_pseudoheader(header, plen, (unsigned char *)(header + replylimit), 0, 0, NULL, 0, do_bit, 0);
+	    plen = add_pseudoheader(header, plen, (unsigned char *)(header + replylimit), daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
 	}
       
 #if defined(HAVE_CONNTRACK) && defined(HAVE_UBUS)
@@ -828,7 +828,7 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
   if (pheader && ede != EDE_UNSET)
     {
       u16 swap = htons((u16)ede);
-      n = add_pseudoheader(header, n, limit, 0, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 1);
+      n = add_pseudoheader(header, n, limit, daemon->edns_pktsz, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 1);
     }
 
   if (RCODE(header) == NXDOMAIN)
@@ -1776,7 +1776,7 @@ void receive_query(struct listener *listen, time_t now)
       m = answer_disallowed(header, (size_t)n, (u32)mark, is_single_query ? daemon->namebuff : NULL);
       
       if (have_pseudoheader && m != 0)
-	m = add_pseudoheader(header,  m,  ((unsigned char *) header) + daemon->edns_pktsz, 0,
+	m = add_pseudoheader(header,  m,  ((unsigned char *) header) + daemon->edns_pktsz, daemon->edns_pktsz,
 			     EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
       
       if (m >= 1)
@@ -1793,10 +1793,13 @@ void receive_query(struct listener *listen, time_t now)
 #ifdef HAVE_AUTH
   else if (auth_dns)
     {
-      m = answer_auth(header, ((char *) header) + udp_size, (size_t)n, now, &source_addr, 
-		      local_auth, do_bit, have_pseudoheader);
+      m = answer_auth(header, ((char *) header) + udp_size, (size_t)n, now, &source_addr, local_auth);
       if (m >= 1)
 	{
+	  if (have_pseudoheader)
+	    m = add_pseudoheader(header,  m,  ((unsigned char *) header) + udp_size, daemon->edns_pktsz,
+				 0, NULL, 0, do_bit, 0);
+	  
 #ifdef HAVE_DUMPFILE
 	  dump_packet_udp(DUMP_REPLY, daemon->packet, m, NULL, &source_addr, listen->fd);
 #endif
@@ -1840,11 +1843,11 @@ void receive_query(struct listener *listen, time_t now)
 		{
 		  u16 swap = htons(ede);
 		  
-		  m = add_pseudoheader(header,  m,  ((unsigned char *) header) + daemon->edns_pktsz, 0,
+		  m = add_pseudoheader(header,  m,  ((unsigned char *) header) + daemon->edns_pktsz, daemon->edns_pktsz,
 				       EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
 		}
 	      else
-		m = add_pseudoheader(header,  m,  ((unsigned char *) header) + daemon->edns_pktsz, 0,
+		m = add_pseudoheader(header,  m,  ((unsigned char *) header) + daemon->edns_pktsz, daemon->edns_pktsz,
 				     0, NULL, 0, do_bit, 0);
 	    }
 	  
@@ -2400,14 +2403,18 @@ unsigned char *tcp_request(int confd, time_t now,
 	  m = answer_disallowed(header, size, (u32)mark, is_single_query ? daemon->namebuff : NULL);
 	  
 	  if (have_pseudoheader && m != 0)
-	    m = add_pseudoheader(header,  m, ((unsigned char *) header) + 65536, 0,
+	    m = add_pseudoheader(header,  m, ((unsigned char *) header) + 65536, daemon->edns_pktsz,
 				 EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
 	}
 #endif
 #ifdef HAVE_AUTH
       else if (auth_dns)
-	m = answer_auth(header, ((char *) header) + 65536, (size_t)size, now, &peer_addr, 
-			local_auth, do_bit, have_pseudoheader);
+	{
+	  m = answer_auth(header, ((char *) header) + 65536, (size_t)size, now, &peer_addr, local_auth);
+	  if (m >= 1 && have_pseudoheader)
+	    m = add_pseudoheader(header,  m,  ((unsigned char *) header) + 65536, daemon->edns_pktsz,
+				 0, NULL, 0, do_bit, 0);
+	}
 #endif
       else
 	{
@@ -2429,6 +2436,10 @@ unsigned char *tcp_request(int confd, time_t now,
 	       /* m > 0 if answered from cache */
 	       m = answer_request(header, ((char *) header) + 65536, (size_t)size, 
 				  dst_addr_4, netmask, now, ad_reqd, do_bit, &stale, &filtered);
+
+	       if (m >= 1 && have_pseudoheader)
+		 m = add_pseudoheader(header,  m,  ((unsigned char *) header) + 65536, daemon->edns_pktsz,
+				      0, NULL, 0, do_bit, 0);
 	     }
 	  /* Do this by steam now we're not in the select() loop */
 	  check_log_writer(1); 
@@ -2585,9 +2596,9 @@ unsigned char *tcp_request(int confd, time_t now,
 	  u16 swap = htons((u16)ede);
 	  
 	  if (ede != EDE_UNSET)
-	    m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, 0, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
+	    m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, EDNS0_OPTION_EDE, (unsigned char *)&swap, 2, do_bit, 0);
 	  else
-	    m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, 0, 0, NULL, 0, do_bit, 0);
+	    m = add_pseudoheader(header, m, ((unsigned char *) header) + 65536, daemon->edns_pktsz, 0, NULL, 0, do_bit, 0);
 	}
 		  
       check_log_writer(1);
