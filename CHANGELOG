@@ -15,6 +15,36 @@ version 2.91
 	is too long.
 	Thanks to Daniel Rhea for finding this one.
 
+	Improve behaviour in the face of non-responsive upstream TCP DNS
+	servers. Without shorter timeouts, clients are blocked for too long
+	and fail wuth their own timeouts.
+
+	Set --fast-dns-retries by default when doing DNSSEC. A single
+	downstream query can trigger many upstream queries. On an
+	unreliable network, there may not be enough downstream retries
+	to ensure that all these queries complete.
+
+	Improve behaviour in the face of truncated answers to queries
+	for DNSSEC records. Getting these answers by TCP doesn't now
+	involve a faked truncated answer to the downstream client to
+	force it to move to TCP. This improves performance and robustness
+	in the face of broken clients which can't fall back to TCP.
+
+	No longer remove data from truncated upstream answers. If an
+	upstream replies with a truncated answer, but the answer has some
+	RRs included, return those RRs, rather than returning and
+	empty answer.
+
+	Fix handling of EDNS0 UDP packet sizes.
+	When talking upstream we always add a pseudoheader, and set the
+        UDP packet size to --edns-packet-max. Answering queries from
+	downstream, we get the answer (either from upstream or local
+	data) If local data won't fit the advertised size (or 512 if
+	there's not an EDNS0 header) return truncated. If upstream
+        returns truncated, do likewise. If upstream is OK, but the
+	answer is too big for downstream, truncate the answer.
+
+	
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which
 	caused breakage if the prefix length is not exactly divisible
