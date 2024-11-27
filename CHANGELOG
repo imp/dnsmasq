@@ -44,6 +44,13 @@ version 2.91
         returns truncated, do likewise. If upstream is OK, but the
 	answer is too big for downstream, truncate the answer.
 
+	Modify the behaviour of --synth-domain for IPv6.
+	When deriving a domain name from an IPv6 address, an address
+	such as 1234:: would become 1234--.example.com, which is
+	not legal in IDNA2008. Stop using the :: compression method,
+	so 1234:: becomes
+	1234-0000-0000-0000-0000-0000-0000-0000.example.com
+	
 	
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which

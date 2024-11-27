@@ -769,12 +769,11 @@ results in the name internal-0.thekelleys.org.uk. returning 192.168.0.50, intern
 Second, 
 .B --synth-domain=thekelleys.org.uk,192.168.0.0/24,internal- (no *)
 will result in a query for internal-192-168-0-56.thekelleys.org.uk returning
-192.168.0.56 and a reverse query vice versa. The same applies to IPv6,
-but IPv6 addresses may start with '::'
-but DNS labels may not start with '-' so in this case if no prefix is
-configured a zero is added in front of the label. ::1 becomes 0--1.
-
-V4 mapped IPv6 addresses, which have a representation like ::ffff:1.2.3.4 are handled specially, and become like 0--ffff-1-2-3-4
+192.168.0.56 and a reverse query vice versa. The same applies to IPv6;
+the representation doesn't use the :: compression feature or
+the special representation of V4 mapped IPv6 addresses as these
+can generate illegal domain names, so all domains are of the form
+internal-1000-0000-0000-0000-0000-0000-0000-0008.example.com
 
 The address range can be of the form
 <start address>,<end address> or <ip address>/<prefix-length> in both forms of the option. For IPv6 the start and end addresses
