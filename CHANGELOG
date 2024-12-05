@@ -64,7 +64,14 @@ version 2.91
 	175 to iPXE. Thanks to Jason Berry for finding the requirement for
 	this.
 
-	
+	Support PXE proxy-DHCP and DHCP-relay at the same time.
+        When using PXE proxy-DHCP, dnsmasq supplies PXE information to
+        the client, which also talks to another "normal" DHCP server
+        for address allocation and similar. The normal DHCP server may
+        be on the local network, but it may also be remote, and accessed via
+        a DHCP relay. This change allows dnsmasq to act as both a
+        PXE proxy-DHCP server AND a DHCP relay for the same network.
+
 	
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which

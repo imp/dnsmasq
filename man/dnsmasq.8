@@ -1680,6 +1680,11 @@ to allow netbooting. This mode is enabled using the
 .B proxy
 keyword in
 .B --dhcp-range.
+If the "other" DHCP server is on a remote network, it is
+possible, and useful, to configure dnsmasq as both a PXE proxy-DHCP server
+and a DHCP relay to the remote DHCP server. See
+.B --dhcp-relay
+for details. PXE is only supported over IPv4 at this time.
 .TP
 .B --dhcp-pxe-vendor=<vendor>[,...]
 According to UEFI and PXE specifications, DHCP packets between PXE clients and
