@@ -1395,7 +1395,7 @@ Options may be encapsulated (IPv4 only) within other options: for instance
 will send option 175, within which is the option 190. If multiple
 options are given which are encapsulated with the same option number
 then they will be correctly combined into one encapsulated option.
-encap: and vendor: are may not both be set in the same \fB--dhcp-option\fP.
+encap: and vendor: may not both be set in the same \fB--dhcp-option\fP.
 
 The final variant on encapsulated options is "Vendor-Identifying
 Vendor Options" as specified by RFC3925. These are denoted like this: 
@@ -1413,6 +1413,10 @@ This works in exactly the same way as
 except that the option will always be sent, even if the client does
 not ask for it in the parameter request list. This is sometimes
 needed, for example when sending options to PXELinux.
+.TP
+.B --dhcp-option-pxe=[tag:<tag>,[tag:<tag>,]][encap:<opt>,][vi-encap:<enterprise>,]<opt>,[<value>[,<value>]]
+A variant of --dhcp-option which defines options only sent in reply to PXE clients. In addition, such options are
+sent in reply to PXE clients when dnsmasq is acting as a PXE proxy, unlike other options. A typical use-case is option 175, sent to iPXE.
 .TP
 .B --dhcp-no-override
 (IPv4 only) Disable re-use of the DHCP servername and filename fields as extra

@@ -54,6 +54,17 @@ version 2.91
 	Fix broken dhcp-relay on *BSD. Thanks to Harold for finding
 	this problem.
 
+	Add --dhcp-option-pxe config. This acts almost exactly like
+	--dhcp-option except that the defined option is only sent when
+	replying to PXE clients. More importantly, these options are sent
+	in reply PXE clients when dnsmasq in acting in PXE proxy mode. In
+	PXE proxy mode, the set of options sent is defined by the PXE standard
+	and the normal set of options is not sent. This config allows arbitrary
+	options in PXE-proxy replies. A typical use-case is to send option
+	175 to iPXE. Thanks to Jason Berry for finding the requirement for
+	this.
+
+	
 	
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which
