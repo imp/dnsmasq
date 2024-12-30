@@ -102,9 +102,7 @@ clean : mostly_clean
 	rm -f core */core
 	rm -f *~ contrib/*/*~ */*~
 
-install : install-common
-
-install-common : all
+install : all
 	$(INSTALL) -d $(DESTDIR)$(BINDIR)
 	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man8
 	$(INSTALL) -m 644 $(MAN)/dnsmasq.8 $(DESTDIR)$(MANDIR)/man8 
@@ -121,7 +119,11 @@ all-i18n : $(BUILDDIR)
 		cd $(top) && cd $(BUILDDIR) && $(MAKE) top="$(top)" -f $(top)/Makefile $${f%.po}.mo; \
 	done
 
-install-i18n : all-i18n install-common
+install-i18n : all-i18n
+	$(INSTALL) -d $(DESTDIR)$(BINDIR)
+	$(INSTALL) -d $(DESTDIR)$(MANDIR)/man8
+	$(INSTALL) -m 644 $(MAN)/dnsmasq.8 $(DESTDIR)$(MANDIR)/man8 
+	$(INSTALL) -m 755 $(BUILDDIR)/dnsmasq $(DESTDIR)$(BINDIR)
 	cd $(BUILDDIR); $(top)/bld/install-mo $(DESTDIR)$(LOCALEDIR) $(INSTALL)
 	cd $(MAN); ../bld/install-man $(DESTDIR)$(MANDIR) $(INSTALL)
 
