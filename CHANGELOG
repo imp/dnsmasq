@@ -75,7 +75,14 @@ version 2.91
 	Fix erroneous "DNSSEC validated" state with non-DNSSEC
 	upstream servers.  Thanks to Dominik Derigs for the bug report.
 
+	Handle queries with EDNS client subnet fields better. If dnsmasq
+	is configured to add an EDNS client subnet to a query, it is careful
+	to suppress use of the cache, since a cached answer may not be valid
+	for a query with a different client subnet. Extend this behaviour
+	to queries which arrive a dnsmasq already carrying an EDNS client
+	subnet.
 
+	
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which
 	caused breakage if the prefix length is not exactly divisible
