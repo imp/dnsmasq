@@ -780,7 +780,6 @@ static size_t process_reply(struct dns_header *header, time_t now, struct server
 	      header->ancount = htons(0);
 	      header->nscount = htons(0);
 	      header->arcount = htons(0);
-	      ede = EDE_DNSSEC_BOGUS;
 	    }
 	}
       else if (!(header->hb4 & HB4_CD) && ad_reqd && cache_secure)
@@ -1244,20 +1243,25 @@ void return_reply(time_t now, struct frec *forward, struct dns_header *header, s
 	  char *result, *domain = "result";
 	  union all_addr a;
 
-	  a.log.ede = ede = errflags_to_ede(status);
+	  ede = errflags_to_ede(status);
 	  
 	  if (STAT_ISEQUAL(status, STAT_ABANDONED))
 	    {
 	      result = "ABANDONED";
 	      status = STAT_BOGUS;
+	      if (ede == EDE_UNSET)
+		ede = EDE_OTHER;
 	    }
 	  else
 	    result = (STAT_ISEQUAL(status, STAT_SECURE) ? "SECURE" : (STAT_ISEQUAL(status, STAT_INSECURE) ? "INSECURE" : "BOGUS"));
+
 	  
 	  if (STAT_ISEQUAL(status, STAT_SECURE))
 	    cache_secure = 1;
 	  else if (STAT_ISEQUAL(status, STAT_BOGUS))
 	    {
+	      if (ede == EDE_UNSET)
+		ede = EDE_DNSSEC_BOGUS;
 	      no_cache_dnssec = 1;
 	      bogusanswer = 1;
 	      
@@ -1265,6 +1269,7 @@ void return_reply(time_t now, struct frec *forward, struct dns_header *header, s
 		domain = daemon->namebuff;
 	    }
       
+	  a.log.ede = ede;
 	  log_query(F_SECSTAT, domain, &a, result, 0);
 	}
     }
@@ -2457,12 +2462,14 @@ unsigned char *tcp_request(int confd, time_t now,
 			      char *result, *domain = "result";
 			      
 			      union all_addr a;
-			      a.log.ede = ede = errflags_to_ede(status);
+			      ede = errflags_to_ede(status);
 			      
 			      if (STAT_ISEQUAL(status, STAT_ABANDONED))
 				{
 				  result = "ABANDONED";
 				  status = STAT_BOGUS;
+				  if (ede == EDE_UNSET)
+				    ede = EDE_OTHER;
 				}
 			      else
 				result = (STAT_ISEQUAL(status, STAT_SECURE) ? "SECURE" : (STAT_ISEQUAL(status, STAT_INSECURE) ? "INSECURE" : "BOGUS"));
@@ -2471,6 +2478,8 @@ unsigned char *tcp_request(int confd, time_t now,
 				cache_secure = 1;
 			      else if (STAT_ISEQUAL(status, STAT_BOGUS))
 				{
+				  if (ede == EDE_UNSET)
+				    ede = EDE_DNSSEC_BOGUS;
 				  no_cache_dnssec = 1;
 				  bogusanswer = 1;
 				  
@@ -2478,6 +2487,7 @@ unsigned char *tcp_request(int confd, time_t now,
 				    domain = daemon->namebuff;
 				}
 			      
+			      a.log.ede = ede;
 			      log_query(F_SECSTAT, domain, &a, result, 0);
 			      
 			      if ((daemon->limit[LIMIT_CRYPTO] - validatecount) > (int)daemon->metrics[METRIC_CRYPTO_HWM])
