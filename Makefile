@@ -71,8 +71,8 @@ nft_cflags =    `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_NFTSET $(PKG_CONFIG
 nft_libs =      `echo $(COPTS) | $(top)/bld/pkg-wrapper HAVE_NFTSET $(PKG_CONFIG) --libs libnftables`
 version =       -DVERSION='\"`$(top)/bld/get-version $(top)`\"'
 
-sum?=$(shell $(CC) -DDNSMASQ_COMPILE_OPTS $(COPTS) -E $(top)/$(SRC)/dnsmasq.h | ( md5sum 2>/dev/null || md5 ) | cut -f 1 -d ' ')
-sum!=$(CC) -DDNSMASQ_COMPILE_OPTS $(COPTS) -E $(top)/$(SRC)/dnsmasq.h | ( md5sum 2>/dev/null || md5 ) | cut -f 1 -d ' '
+sum?=$(shell echo $(CC) -DDNSMASQ_COMPILE_FLAGS="$(CFLAGS)" -DDNSMASQ_COMPILE_OPTS $(COPTS) -E $(top)/$(SRC)/dnsmasq.h | ( md5sum 2>/dev/null || md5 ) | cut -f 1 -d ' ')
+sum!=echo $(CC) -DDNSMASQ_COMPILE_FLAGS="$(CFLAGS)" -DDNSMASQ_COMPILE_OPTS $(COPTS) -E $(top)/$(SRC)/dnsmasq.h | ( md5sum 2>/dev/null || md5 ) | cut -f 1 -d ' '
 copts_conf = .copts_$(sum)
 
 objs = cache.o rfc1035.o util.o option.o forward.o network.o \
