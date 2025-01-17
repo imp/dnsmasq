@@ -82,6 +82,21 @@ version 2.91
 	to queries which arrive a dnsmasq already carrying an EDNS client
 	subnet.
 
+	Handle DS queries to auth zones. When dnsmasq is configured to
+	act as an authoritative server and has an authoritative zone
+	configured, and recieves a query for that zone _as_forwarder_
+	it answers the query directly rather than forwarding it. This
+	doesn't affect the answer, but it saves dnsmasq forwarding the
+	query to the recusor upstream, whch then bounces it back to dnsmasq
+	in auth mode. The exception should be when the query is for the root
+	of zone, for a DS RR. The answer to that has to come from the parent,
+	via the recursor, and will typically be a proof-of-nonexistence
+	since dnsmasq doesn't support signed zones. This patch suppresses
+	local answers and forces forwarding to the upstream recursor for such
+	queries. It stops breakage when a DNSSEC validating client makes
+	queries to dnsmasq acting as forwarder for a zone for which it is
+	authoritative.
+
 	
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which
