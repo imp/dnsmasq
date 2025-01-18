@@ -1559,7 +1559,7 @@ static unsigned long crec_ttl(struct crec *crecp, time_t now)
     return daemon->max_ttl;
 }
 
-static int cache_validated(const struct crec *crecp)
+static int cache_not_validated(const struct crec *crecp)
 {
   return (option_bool(OPT_DNSSEC_VALID) && !(crecp->flags & F_DNSSECOK));
 }
@@ -1660,7 +1660,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 	
 	/* If the client asked for DNSSEC  don't use cached data. */
 	if ((crecp->flags & (F_HOSTS | F_DHCP | F_CONFIG)) ||
-	    (rd_bit && (!do_bit || cache_validated(crecp))))
+	    (rd_bit && (!do_bit || cache_not_validated(crecp))))
 	  {
 	    if (crecp->flags & F_CONFIG || qtype == T_CNAME)
 	      ans = 1;
@@ -1819,7 +1819,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 		 the zone is unsigned, which implies that we're doing
 		 validation. */
 	      if ((crecp->flags & (F_HOSTS | F_DHCP | F_CONFIG)) ||
-		  (rd_bit && (!do_bit || cache_validated(crecp)) ))
+		  (rd_bit && (!do_bit || cache_not_validated(crecp)) ))
 		{
 		  do 
 		    { 
@@ -1975,7 +1975,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 	      
 	      /* If the client asked for DNSSEC  don't use cached data. */
 	      if ((crecp->flags & (F_HOSTS | F_DHCP | F_CONFIG)) ||
-		  (rd_bit && (!do_bit || cache_validated(crecp)) ))
+		  (rd_bit && (!do_bit || cache_not_validated(crecp)) ))
 		do
 		  { 
 		    int stale_flag = 0;
@@ -2169,7 +2169,7 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 		  rrtype = crecp->addr.rrdata.rrtype;
 		
 		if (((flags & F_NXDOMAIN) || rrtype == qtype) &&
-		    (!do_bit || cache_validated(crecp)))
+		    (!do_bit || cache_not_validated(crecp)))
 		  {
 		    char *rrdata = NULL;
 		    unsigned short rrlen = 0;
