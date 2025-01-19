@@ -97,6 +97,20 @@ version 2.91
 	queries to dnsmasq acting as forwarder for a zone for which it is
 	authoritative.
 
+	Implement "DNS-0x20 encoding", for extra protection against
+	reply-spoof attacks. Since DNS queries are case-insensitive,
+	it's possible to randomly flip the case of letters in a query
+	and still get the correct answer back.
+	This adds an extra dimension for a cache-poisoning attacker
+	to guess when sending replies in-the-blind since it's expected
+	that the legitimate answer will have the same  pattern of upper
+	and lower case as the query, so any replies which don't can be
+	ignored as malicious. The amount of extra entropy clearly depends
+	on the number of a-z and A-Z characters in the query, and this
+	implementation puts a hard limit of 32 bits to make rescource
+	allocation easy. This about doubles entropy over the standard
+	random ID and random port combination. 
+
 	
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which
