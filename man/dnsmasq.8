@@ -882,7 +882,7 @@ ie capable of returning DNSSEC records with data. If they are not,
 then dnsmasq will not be able to determine the trusted status of
 answers and this means that DNS service will be entirely broken.
 .TP
-.B --trust-anchor=[<class>],<domain>,<key-tag>,<algorithm>,<digest-type>,<digest>
+.B --trust-anchor=<domain>,[<class>,]<key-tag>,<algorithm>,<digest-type>,<digest>
 Provide DS records to act a trust anchors for DNSSEC
 validation. Typically these will be the DS record(s) for Key Signing
 key(s) (KSK) of the root zone,
