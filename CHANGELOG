@@ -1,3 +1,19 @@
+version 2.92
+        Redesign the interaction between DNSSEC vaildation and per-domain
+	servers, specified as --server=/<domain>/<ip-address>. This should
+	just work in all cases now. If the normal chain-of-trust exists into
+	the delegated domain then whether the domain is signed or not, DNSSEC
+	validation will function normally. In the case the delgated domain
+	is an "overlay" on top of the global DNS and no NS and/or DS records
+	exist connecting it to the global dns, then if the domain is
+	unsigned the situation will be handled by synthesising a
+	proof-of-non-existance-of-DS for the domain and queries will be
+	answered unvalidated; this action will be logged. A signed domain
+	without chain-of-trust can be validated if a suitable trust-anchor
+	is provided using --trust-anchor. This change should be backwards
+	compatible for all existing working configurations; it extends the
+	space of possible configurations which are functional.
+
 version 2.91
 	Fix spurious "resource limit exceeded messages". Thanks to 
 	Dominik Derigs for the bug report.

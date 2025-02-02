@@ -498,10 +498,7 @@ xxx.internal.thekelleys.org.uk at 192.168.1.1 then giving  the flag
 .B --server=/internal.thekelleys.org.uk/192.168.1.1
 will send all queries for
 internal machines to that nameserver, everything else will go to the
-servers in /etc/resolv.conf. DNSSEC validation is turned off for such
-private nameservers, UNLESS a
-.B --trust-anchor
-is specified for the domain in question. An empty domain specification,
+servers in /etc/resolv.conf. An empty domain specification,
 .B // 
 has the special meaning of "unqualified names only" ie names without any
 dots in them. A non-standard port may be specified as 
@@ -894,12 +891,15 @@ ie capable of returning DNSSEC records with data. If they are not,
 then dnsmasq will not be able to determine the trusted status of
 answers and this means that DNS service will be entirely broken.
 .TP
-.B --trust-anchor=<domain>,[<class>,]<key-tag>,<algorithm>,<digest-type>,<digest>
+.B --trust-anchor=<domain>,[<class>,][<key-tag>,<algorithm>,<digest-type>,<digest>]
 Provide DS records to act a trust anchors for DNSSEC
-validation. Typically these will be the DS record(s) for Key Signing
+validation. The class defaults to IN. Typically these will be the DS record(s) for Key Signing
 key(s) (KSK) of the root zone,
-but trust anchors for limited domains are also possible. The current
-root-zone trust anchors may be downloaded from https://data.iana.org/root-anchors/root-anchors.xml 
+but trust anchors for limited domains are also possible.
+A negative trust anchor (ie. proof that a DS record doesn't exist) may be configured be specifying
+only the name or only the name and class. This can be useful for forcing dnsmasq to treat zones delegated
+using \fB--server=/<domain>/<ip-address>\fP as unsigned. The current
+root-zone trust anchors may be downloaded from https://data.iana.org/root-anchors/root-anchors.xml
 .TP
 .B --dnssec-check-unsigned[=no]
 As a default, dnsmasq checks that unsigned DNS replies are
