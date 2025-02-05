@@ -1934,7 +1934,7 @@ static ssize_t tcp_talk(int first, int last, int start, unsigned char *packet,  
 	    break;
 	}
       
-      serv = daemon->serverarray[start];
+      *servp = serv = daemon->serverarray[start];
       
     retry:
       blockdata_retrieve(saved_question, qsize, header);
@@ -1985,6 +1985,10 @@ static ssize_t tcp_talk(int first, int last, int start, unsigned char *packet,  
 	     trying again in non-FASTOPEN mode. */
 	  if (fatal || (!data_sent && connect(serv->tcpfd, &serv->addr.sa, sa_len(&serv->addr)) == -1))
 	    {
+	    failed:
+	      int port = prettyprint_addr(&serv->addr, daemon->addrbuff);
+	      my_syslog(LOG_DEBUG|MS_DEBUG, _("TCP connection failed to %s#%d"), daemon->addrbuff, port);
+
 	      close(serv->tcpfd);
 	      serv->tcpfd = -1;
 	      continue;
@@ -2000,15 +2004,17 @@ static ssize_t tcp_talk(int first, int last, int start, unsigned char *packet,  
 	  !read_write(serv->tcpfd, (unsigned char *)length, sizeof (*length), RW_READ_ONCE) ||
 	  !read_write(serv->tcpfd, payload, (rsize = ntohs(*length)), RW_READ_ONCE))
 	{
-	  close(serv->tcpfd);
-	  serv->tcpfd = -1;
 	  /* We get data then EOF, reopen connection to same server,
 	     else try next. This avoids DoS from a server which accepts
 	     connections and then closes them. */
 	  if (serv->flags & SERV_GOT_TCP)
-	    goto retry;
+	    {
+	      close(serv->tcpfd);
+	      serv->tcpfd = -1;
+	      goto retry;
+	    }
 	  else
-	    continue;
+	    goto failed;
 	}
 
       /* If the question section of the reply doesn't match the question we sent, then
