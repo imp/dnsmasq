@@ -7,9 +7,9 @@ version 2.91
 	Literal address records are smaller and don't have
 	this field and don't need to be ordered on it.
 	To actually provoke this bug seems to need the same server-literal
-	to be repeated twice, eg --address=/a/1.1.1.1 --address-/a/1.1.1.1
+	to be repeated twice, e.g., --address=/a/1.1.1.1 --address-/a/1.1.1.1
 	which is clearly rare in the wild, but if it did exist it could
-	provoke a SIGSEV. Thanks to Daniel Rhea for fuzzing this one.
+	provoke a SIGSEGV. Thanks to Daniel Rhea for fuzzing this one.
 
 	Fix buffer overflow when configured lease-change script name
 	is too long.
@@ -17,7 +17,7 @@ version 2.91
 
 	Improve behaviour in the face of non-responsive upstream TCP DNS
 	servers. Without shorter timeouts, clients are blocked for too long
-	and fail wuth their own timeouts.
+	and fail with their own timeouts.
 
 	Set --fast-dns-retries by default when doing DNSSEC. A single
 	downstream query can trigger many upstream queries. On an
@@ -36,7 +36,7 @@ version 2.91
 	empty answer.
 
 	Fix handling of EDNS0 UDP packet sizes.
-	When talking upstream we always add a pseudoheader, and set the
+	When talking upstream we always add a pseudo header, and set the
         UDP packet size to --edns-packet-max. Answering queries from
 	downstream, we get the answer (either from upstream or local
 	data) If local data won't fit the advertised size (or 512 if
@@ -84,13 +84,13 @@ version 2.91
 
 	Handle DS queries to auth zones. When dnsmasq is configured to
 	act as an authoritative server and has an authoritative zone
-	configured, and recieves a query for that zone _as_forwarder_
+	configured, and receives a query for that zone _as_forwarder_
 	it answers the query directly rather than forwarding it. This
 	doesn't affect the answer, but it saves dnsmasq forwarding the
-	query to the recusor upstream, whch then bounces it back to dnsmasq
+	query to the recursor upstream, which then bounces it back to dnsmasq
 	in auth mode. The exception should be when the query is for the root
 	of zone, for a DS RR. The answer to that has to come from the parent,
-	via the recursor, and will typically be a proof-of-nonexistence
+	via the recursor, and will typically be a proof-of-non-existence
 	since dnsmasq doesn't support signed zones. This patch suppresses
 	local answers and forces forwarding to the upstream recursor for such
 	queries. It stops breakage when a DNSSEC validating client makes
@@ -107,7 +107,7 @@ version 2.91
 	and lower case as the query, so any replies which don't can be
 	ignored as malicious. The amount of extra entropy clearly depends
 	on the number of a-z and A-Z characters in the query, and this
-	implementation puts a hard limit of 32 bits to make rescource
+	implementation puts a hard limit of 32 bits to make resource
 	allocation easy. This about doubles entropy over the standard
 	random ID and random port combination. This technique can interact
 	badly with rare broken DNS servers which don't preserve the case
@@ -1985,7 +1985,7 @@ version 2.61
 
 	Set the environment variable DNSMASQ_LOG_DHCP when running
 	the script id --log-dhcp is in effect, so that script can
-	taylor their logging verbosity. Suggestion from Malte
+	tailor their logging verbosity. Suggestion from Malte
 	Forkel.
 
 	Arrange that addresses specified with --listen-address
