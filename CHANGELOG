@@ -116,6 +116,14 @@ version 2.91
 	will be logged. If this coincides with DNS not functioning, it
 	is necessary to disable bit 0x20 encoding with --no-0x20-encode.
 
+	Fix a long-standing problem when two queries which are identical
+	in every repect _except_ case, get combined by dnsmasq. If
+	dnsmasq gets eg, two queries for example.com and Example.com
+	in quick succession it will get the answer for example.com from
+	upstream and send that answer to both requestors. This means that
+	the query for Example.com will get an answer for example.com, and
+	in the modern DNS, that answer may not be accepted.
+
 	
 version 2.90
 	Fix reversion in --rev-server introduced in 2.88 which
