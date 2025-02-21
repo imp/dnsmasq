@@ -1490,13 +1490,13 @@ void return_reply(time_t now, struct frec *forward, struct dns_header *header, s
 	  log_query(F_UPSTREAM, NULL, NULL, "truncated", 0);
 
 	  /* This gets the name back to the state it was in when we started. */
-	  flip_queryname(header, nn, prev, &forward->frec_src);
+	  flip_queryname(header, new, prev, &forward->frec_src);
 	  
 	  for (src = &forward->frec_src, prev = NULL; src; prev = src, src = src->next)
 	    {
 	      /* If you didn't undertand this above, you won't understand it here either. */
 	      if (prev)
-		flip_queryname(header, nn, prev, src);
+		flip_queryname(header, new, prev, src);
 	      
 	      if (src->fd != -1 && nn > src->udp_pkt_size)
 		{
