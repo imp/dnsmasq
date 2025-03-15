@@ -14,6 +14,12 @@ version 2.92
 	compatible for all existing working configurations; it extends the
 	space of possible configurations which are functional.
 
+	Fix a couple of problems with DNSSEC validation and DNAME. One
+	could cause validation failure on correct domains, and the other
+	would fail to spot an invalid domain. Thanks to Graham Clinch
+	for spotting the problem.
+
+	
 version 2.91
 	Fix spurious "resource limit exceeded messages". Thanks to 
 	Dominik Derigs for the bug report.
