@@ -51,7 +51,10 @@ version 2.92
 	server configured, queries are never sent upstream so they are never
 	validated and the new behaviour is moot.
 
+	Add support for leasequery to the dnsmasq DHCPv4 server.
+	This has to be specifically enabled with the --leasequery option.
 
+	
 version 2.91
 	Fix spurious "resource limit exceeded messages". Thanks to 
 	Dominik Derigs for the bug report.
