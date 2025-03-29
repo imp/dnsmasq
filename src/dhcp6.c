@@ -812,7 +812,7 @@ void dhcp_construct_contexts(time_t now)
 	{
 	  if ((context->flags & CONTEXT_RA) || option_bool(OPT_RA))
 	    {
-	      /* previously constructed context has gone. advertise it's demise */
+	      /* previously constructed context has gone; advertise its demise */
 	      context->flags |= CONTEXT_OLD;
 	      context->address_lost_time = now;
 	      /* Apply same ceiling of configured lease time as in radv.c */

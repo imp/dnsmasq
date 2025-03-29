@@ -1,13 +1,13 @@
 version 2.92
-        Redesign the interaction between DNSSEC vaildation and per-domain
+        Redesign the interaction between DNSSEC validation and per-domain
 	servers, specified as --server=/<domain>/<ip-address>. This should
 	just work in all cases now. If the normal chain-of-trust exists into
 	the delegated domain then whether the domain is signed or not, DNSSEC
-	validation will function normally. In the case the delgated domain
+	validation will function normally. In the case the delegated domain
 	is an "overlay" on top of the global DNS and no NS and/or DS records
 	exist connecting it to the global dns, then if the domain is
 	unsigned the situation will be handled by synthesising a
-	proof-of-non-existance-of-DS for the domain and queries will be
+	proof-of-non-existence-of-DS for the domain and queries will be
 	answered unvalidated; this action will be logged. A signed domain
 	without chain-of-trust can be validated if a suitable trust-anchor
 	is provided using --trust-anchor. This change should be backwards
@@ -141,7 +141,7 @@ version 2.91
 	changing the behaviour of an installation with --no-x20-encode.
 	
 	Fix a long-standing problem when two queries which are identical
-	in every repect _except_ case, get combined by dnsmasq. If
+	in every respect _except_ case, get combined by dnsmasq. If
 	dnsmasq gets eg, two queries for example.com and Example.com
 	in quick succession it will get the answer for example.com from
 	upstream and send that answer to both requestors. This means that
@@ -159,7 +159,7 @@ version 2.90
 	for a particular domain. Thanks to Daniel Danzberger for
 	spotting this bug.
 
-	Set the default maximum DNS UDP packet sice to 1232. This
+	Set the default maximum DNS UDP packet size to 1232. This
 	has been the recommended value since 2020 because it's the
 	largest value that avoid fragmentation, and fragmentation
 	is just not reliable on the modern internet, especially
@@ -167,14 +167,14 @@ version 2.90
 	--edns-packet-max for special circumstances.
 
 	Add --no-dhcpv4-interface and --no-dhcpv6-interface for
-	better control over which inetrfaces are providing DHCP service.
+	better control over which interfaces are providing DHCP service.
 
 	Fix issue with stale caching: After replying with stale data,
 	dnsmasq sends the query upstream to refresh the cache asynchronously
 	and sometimes sends the wrong packet: packet length can be wrong,
 	and if an EDE marking stale data is added to the answer that can
 	end up in the query also. This bug only seems to cause problems
-	when the usptream server is a DOH/DOT proxy. Thanks to Justin He
+	when the upstream server is a DOH/DOT proxy. Thanks to Justin He
 	for the bug report.
 
 	Add configurable caching for arbitrary RR-types.
@@ -212,7 +212,7 @@ version 2.90
 	Applied Cybersecurity ATHENE for finding this vulnerability.
 
 	CVE 2023-50387 and CVE 2023-50868 apply.
-	Note that the is a security vulnerablity only when DNSSEC validation
+	Note that this a security vulnerability only when DNSSEC validation
 	is enabled.
 	
 	Fix memory-leak when attempting to cache SRV records with zero TTL.
@@ -298,7 +298,7 @@ version 2.88
 	upstream servers from /etc/resolv.conf or other sources that
 	can change dnsmasq tries to avoid memory fragmentation by re-using
 	existing records that are being re-read unchanged. This involves
-	seaching all the server records for each new one installed.
+	searching all the server records for each new one installed.
 	During startup this search is pointless, and can cause long
 	start times with thousands of --server options because the work
 	needed is O(n^2). Handle this case more intelligently.
@@ -361,7 +361,7 @@ version 2.87
 
 	Enhance --domain to accept, for instance,
 	--domain=net2.thekelleys.org.uk,eth2 so that hosts get a domain
-	which relects the interface they are attached to in a way which
+	which reflects the interface they are attached to in a way which
 	doesn't require hard-coding addresses. Thanks to Sten Spans for
 	the idea.
 
@@ -735,22 +735,22 @@ version 2.80
         but those which used the default of no checking will need to be
         altered to explicitly select no checking. The new default is
         because switching off checking for unsigned replies is
-	inherently dangerous. Not only does it open the possiblity of forged
+	inherently dangerous. Not only does it open the possibility of forged
         replies, but it allows everything to appear to be working even
         when the upstream namesevers do not support DNSSEC, and in this
-        case no DNSSEC validation at all is occuring.
+        case no DNSSEC validation at all is occurring.
 
         Fix DHCP broken-ness when --no-ping AND --dhcp-sequential-ip
 	are set. Thanks to Daniel Miess for help with this.
 
-	Add a facilty to store DNS packets sent/recieved in a
+	Add a facility to store DNS packets sent/received in a
 	pcap-format file for later debugging. The file location
 	is given by the --dumpfile option, and a bitmap controlling
 	which packets should be dumped is given by the --dumpmask
 	option.
 
 	Handle the case of both standard and constructed dhcp-ranges on the
-	same interface better. We don't now contruct a dhcp-range if there's
+	same interface better. We don't now construct a dhcp-range if there's
 	already one specified. This allows the specified interface to
 	have different parameters and avoids advertising the same
 	prefix twice. Thanks to Luis Marsano for spotting this case.
@@ -1220,7 +1220,7 @@ version 2.73
 
 	Use inotify for checking on updates to /etc/resolv.conf and
 	friends under Linux. This fixes race conditions when the files are 
-	updated rapidly and saves CPU by noy polling. To build
+	updated rapidly and saves CPU by not polling. To build
 	a binary that runs on old Linux kernels without inotify,
 	use make COPTS=-DNO_INOTIFY
 
@@ -1560,7 +1560,7 @@ version 2.68
 	are dynamic and works much better than the previous
 	work-around which exempted constructed DHCP ranges from the
 	IP address filtering. As a consequence, that work-around
-	is removed. Under certain circumstances, this change wil
+	is removed. Under certain circumstances, this change will
 	break existing configuration: if you're relying on the
 	constructed-range exception, you need to change --auth-zone
 	to specify the same interface as is used to construct your
