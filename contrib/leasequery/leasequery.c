@@ -682,9 +682,12 @@ int main(int argc, char **argv)
 	  
 	  while (*p != OPTION_END)
 	    {
-	      char *optname = option_string(p[0], option_ptr(p, 0), option_len(p), buff, 500);
-	      
-	      printf("size:%3d option:%3d %s  %s\n", option_len(p), p[0], optname, buff);
+	      if (*p != OPTION_MESSAGE_TYPE)
+		{
+		  char *optname = option_string(p[0], option_ptr(p, 0), option_len(p), buff, 500);
+		  
+		  printf("size:%3d option:%3d %s  %s\n", option_len(p), p[0], optname, buff);
+		}
 	      p += p[1] + 2;
 	    }
 	}
