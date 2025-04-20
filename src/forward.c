@@ -1822,7 +1822,7 @@ void receive_query(struct listener *listen, time_t now)
 #ifdef HAVE_AUTH
       struct auth_zone *zone;
 #endif
-      log_query_mysockaddr(F_QUERY | F_FORWARD, daemon->namebuff,
+      log_query_mysockaddr((auth_dns ? F_NOERR : 0 ) | F_QUERY | F_FORWARD, daemon->namebuff,
 			   &source_addr, auth_dns ? "auth" : "query", type);
       
 #ifdef HAVE_AUTH
@@ -2488,7 +2488,7 @@ unsigned char *tcp_request(int confd, time_t now,
 	      saved_question = blockdata_alloc((char *)header, (size_t)size);
 	      saved_size = size;
 	      
-	      log_query_mysockaddr(F_QUERY | F_FORWARD, daemon->namebuff,
+	      log_query_mysockaddr((auth_dns ? F_NOERR : 0) | F_QUERY | F_FORWARD, daemon->namebuff,
 				   &peer_addr, auth_dns ? "auth" : "query", qtype);
 	      
 #ifdef HAVE_AUTH
