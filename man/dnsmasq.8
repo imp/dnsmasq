@@ -1438,10 +1438,11 @@ DHCP options. This make extra space available in the DHCP packet for
 options but can, rarely, confuse old or broken clients. This flag
 forces "simple and safe" behaviour to avoid problems in such a case.
 .TP
-.B --leasequery[=<addr>]
+.B --leasequery[=<addr>[/<prefix>]]
 Enable RFC 4388 leasequery. The dnsmasq DHCP server will answer LEASEQUERY messages from DHCP relays
-when this option is given. If an address is given, only queries from a relay at that address are allowed. Repeat
-the --leasequery option to specify multiple addresses. To correctly answer lease queries it is necessary to store extra data in
+when this option is given. If an address or subnet is given, only queries from a relay at that source are allowed. Repeat
+the --leasequery option to specify multiple allowed sources.
+To correctly answer lease queries it is necessary to store extra data in
 the lease database, and this is also enabled by the \fB--leasequery\fP option. The extra fields
 (agent-info and vendorclass) are stored in the leases file in a somewhat backwards compatible manner.
 Enabling and then disabling leasequery will not cause problems; the extra information will be aged
