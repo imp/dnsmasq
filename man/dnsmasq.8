@@ -346,6 +346,10 @@ Bogus private reverse lookups. All reverse lookups for private IP ranges (ie 192
 which are not found in /etc/hosts or the DHCP leases file are answered
 with "no such domain" rather than being forwarded upstream. The 
 set of prefixes affected is the list given in RFC6303, for IPv4 and IPv6.
+Enabling this also subtly alters DNSSEC validation for reverse lookups in the
+private ranges such that a non-secure DS record is accepted as proof that
+the range is not signed. This works around behaviour by the public DNS services
+which seem not to return validated proof-of-non-existence for DS records in these domains.
 .TP
 .B \-V, --alias=[<old-ip>]|[<start-ip>-<end-ip>],<new-ip>[,<mask>]
 Modify IPv4 addresses returned from upstream nameservers; old-ip is
