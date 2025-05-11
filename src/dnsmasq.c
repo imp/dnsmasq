@@ -38,7 +38,6 @@ static void async_event(int pipe, time_t now);
 static void fatal_event(struct event_desc *ev, char *msg);
 static int read_event(int fd, struct event_desc *evp, char **msg);
 static void poll_resolv(int force, int do_reload, time_t now);
-static void tcp_init(void);
 
 int main (int argc, char **argv)
 {
@@ -422,7 +421,11 @@ int main (int argc, char **argv)
       /* safe_malloc returns zero'd memory */
       daemon->randomsocks = safe_malloc(daemon->numrrand * sizeof(struct randfd));
 
-      tcp_init();
+      daemon->tcp_pids = safe_malloc(daemon->max_procs*sizeof(pid_t));
+      daemon->tcp_pipes = safe_malloc(daemon->max_procs*sizeof(int));
+
+      for (i = 0; i < daemon->max_procs; i++)
+	daemon->tcp_pipes[i] = -1;
     }
 
 #ifdef HAVE_INOTIFY
@@ -1071,10 +1074,6 @@ int main (int argc, char **argv)
 
   daemon->pipe_to_parent = -1;
 
-  if (daemon->port != 0)
-    for (i = 0; i < daemon->max_procs; i++)
-      daemon->tcp_pipes[i] = -1;
-  
 #ifdef HAVE_INOTIFY
   /* Using inotify, have to select a resolv file at startup */
   poll_resolv(1, 0, now);
@@ -2419,8 +2418,4 @@ int delay_dhcp(time_t start, int sec, int fd, uint32_t addr, unsigned short id)
 }
 #endif /* HAVE_DHCP */
 
-void tcp_init(void)
-{
-  daemon->tcp_pids = safe_malloc(daemon->max_procs*sizeof(pid_t));
-  daemon->tcp_pipes = safe_malloc(daemon->max_procs*sizeof(int));
-}
+
