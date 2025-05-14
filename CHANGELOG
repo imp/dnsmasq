@@ -53,6 +53,8 @@ version 2.92
 
 	Add support for leasequery to the dnsmasq DHCPv4 server.
 	This has to be specifically enabled with the --leasequery option.
+	Many thanks to JAXPORT, Jacksonville Port Authority for sponsoring
+	this enhancement to dnsmasq.
 
 	
 version 2.91
