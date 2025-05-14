@@ -19,7 +19,39 @@ version 2.92
 	would fail to spot an invalid domain. Thanks to Graham Clinch
 	for spotting the problem.
 
-	
+	Add --log-queries=auth option to only log replies from the auth DNS
+	facility.
+
+	Fix some edge-cases with domains and --address and --server. There
+	has been some regressions with this in previous releases. This change
+	fixes the priority order from loqwer to highest as:
+	--address with a IPv4 or IPv6 address (as long as the query matches the type)
+        --address with # for all-zeros, as long as the query is A or AAAA)
+        --address with no address, which returns NXDOMAIN or NOERROR for all types.
+        --server with address set to # to use the unqualified servers.
+        --server with matching domain.
+        --server without domain or from /etc/resolv.conf.
+
+	Fix problems with ipset or nftset and TCP DNS transport. Previously
+	this was racy, and insertion of addresses could fail on a busy server
+	when DNS-over-TCP transport was involved.
+
+	DNSSEC validation change for reverse lookups in RFC-1918 ranges and friends.
+    	The large public DNS services seem not to return proof-of-nonexistence
+	for DS records at the start of RFC-1918 in-addr.arpa domains and the their
+	IPv6 equivalents. 10.in-addr.arpa, 168.192.in-addr.arpa etc.
+	Since dnsmasq already has an option which instructs it not bother
+	upstream servers with pointless queries about these address ranges,
+	namely --bogus-priv, we extend that to enable behaviour which allows
+	dnsmasq to assume that insecure NXDOMAIN replies for these domains
+	are expected and to assume that the domains are legitimately unsigned.
+	This behaviour only matters when some address range is directed to
+	another upstream server using --rev-server. In that case it allows
+	replies from that server to pass DNSSEC validation. Without such a
+	server configured, queries are never sent upstream so they are never
+	validated and the new behaviour is moot.
+
+
 version 2.91
 	Fix spurious "resource limit exceeded messages". Thanks to 
 	Dominik Derigs for the bug report.
