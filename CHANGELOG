@@ -56,6 +56,9 @@ version 2.92
 	Many thanks to JAXPORT, Jacksonville Port Authority for sponsoring
 	this enhancement to dnsmasq.
 
+	Fix failure to cache PTR RRs when a reply contains more than one answer.
+	Thanks to Dmitry for spotting this.
+
 	
 version 2.91
 	Fix spurious "resource limit exceeded messages". Thanks to 
