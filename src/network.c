@@ -1568,6 +1568,8 @@ void check_servers(int no_loop_check)
   struct serverfd *sfd, *tmp, **up;
   int port = 0, count;
   int locals = 0;
+
+  (void)no_loop_check;
   
 #ifdef HAVE_LOOP
   if (!no_loop_check)
@@ -1775,8 +1777,10 @@ int reload_servers(char *fname)
 /* Called when addresses are added or deleted from an interface */
 void newaddress(time_t now)
 {
+#ifdef HAVE_DHCP
   struct dhcp_relay *relay;
-
+#endif
+  
   (void)now;
   
   if (option_bool(OPT_CLEVERBIND) || option_bool(OPT_LOCAL_SERVICE) ||
