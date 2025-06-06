@@ -2360,6 +2360,8 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, 
     source = "reply";
   else if (flags & F_AUTH)
     source = "auth";
+  else if (flags & F_QUERY)
+    source = "query";
   else if (flags & F_SECSTAT)
     {
       if (addr && addr->log.ede != EDE_UNSET && option_bool(OPT_EXTRALOG))
@@ -2400,8 +2402,8 @@ void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, 
 	  source = "non-query opcode";
 	  name = opcodestring;
 	}
-      else if (!(flags & F_AUTH))
-	source = "query";
+      else if (type > 0)
+	source = querystr(source, type);
       
       verb = "from";
     }
