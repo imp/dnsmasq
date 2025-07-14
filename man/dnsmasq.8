@@ -673,7 +673,7 @@ machine on which dnsmasq is running) for each
 local machine. Local machines are those in /etc/hosts or with DHCP
 leases.
 .TP
-.B \-W, --srv-host=<_service>.<_prot>.[<domain>],[<target>[,<port>[,<priority>[,<weight>]]]]
+.B \-W, --srv-host=<_service>.<_prot>[.<domain>],[<target>[,<port>[,<priority>[,<weight>]]]]
 Return a SRV DNS record. See RFC2782 for details. If not supplied, the
 domain defaults to that given by
 .B --domain.
