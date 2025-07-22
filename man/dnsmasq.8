@@ -1739,7 +1739,9 @@ For DHCPv4, it changes the behaviour from strict RFC compliance so that DHCP req
 unknown leases from unknown hosts are not ignored. This allows new hosts
 to get a lease without a tedious timeout under all circumstances. It also 
 allows dnsmasq to rebuild its lease database without each client needing to 
-reacquire a lease, if the database is lost. For DHCPv6 it sets the
+reacquire a lease, if the database is lost. For DHCPv6 it controls the same
+behaviour as DHCPv4 with missing leases (except for the RFC uncompliance - the
+DHCPv6 RFCs allow this behaviour if configured). It also sets the
 priority in replies to 255 (the maximum) instead of 0 (the minimum).
 .TP
 .B --dhcp-rapid-commit

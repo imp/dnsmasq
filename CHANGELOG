@@ -61,6 +61,11 @@ version 2.92
 
 	Add TFTP options windowsize (RFC 7440) and timeout (RFC 2349).
 	
+	Change the behaviour of the DHVPv6 server when a REBIND message
+	is received but no lease exists. Under these circumstances a new
+	lease is created _only_ when the --dhcp-authoritative option is
+	set. This matches the behavior of the DHCPv4 server.
+
 	
 version 2.91
 	Fix spurious "resource limit exceeded messages". Thanks to 
