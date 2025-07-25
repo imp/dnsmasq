@@ -1487,7 +1487,28 @@ DHCPv4 to a DHCPv6 server or vice-versa.
 The DHCP relay function for IPv6 includes the ability to snoop
 prefix-delegation from relayed DHCP transactions. See
 .B --dhcp-script
-for details. 
+for details.
+.TP
+.B --dhcp-split-relay=<local address>,[<server address>[#<server port>]],<server-facing-interface>
+A usefully enchanced version of DHCPv4 relay. IPv4 DHCP normally uses a single address
+for two functions; it is used by the DHCP server to determine which network to allocate
+an address on, and it is used as the address of the relay to which the server sends packets.
+
+This version of DHCP relay splits these functions. It uses the address of the server-facing relay
+interface as the address that the server talks to. The address of the client-facing interface
+(the first item in the config) is used as to determine the client's subnet. The
+local address is also used as server-ID override so that the client always sends requests
+via the relay. The effect of this is that server doesn't require
+a route to the client network and the clients don't require a route to the server.
+
+The interface parameter is mandatory and a cannot be a wildcard.
+
+If setting up a network where the client networks have limited routing, be careful
+about configuring the DHCP server. Dnsmasq, as DHCP server, will set the default route to the
+client-facing relay interface unless explicitly configured: that is a sensible default.
+The normal default DNS server (the same address as the DHCP server)
+will not be appropriate when there is no route bewteen the
+two, so this will have to be explicitly configured. 
 .TP
 .B \-U, --dhcp-vendorclass=set:<tag>,[enterprise:<IANA-enterprise number>,]<vendor-class>
 Map from a vendor-class string to a tag. Most DHCP clients provide a 
