@@ -1489,19 +1489,22 @@ prefix-delegation from relayed DHCP transactions. See
 .B --dhcp-script
 for details.
 .TP
-.B --dhcp-split-relay=<local address>,[<server address>[#<server port>]],<server-facing-interface>
+.B --dhcp-split-relay=<local address>,[<server address>[#<server port>]],<server-facing-interface>|<server-facing-address>
 A usefully enchanced version of DHCPv4 relay. IPv4 DHCP normally uses a single address
 for two functions; it is used by the DHCP server to determine which network to allocate
 an address on, and it is used as the address of the relay to which the server sends packets.
 
 This version of DHCP relay splits these functions. It uses the address of the server-facing relay
-interface as the address that the server talks to. The address of the client-facing interface
+interface or a directly-specified address as the address that the server talks to. The address of the client-facing interface
 (the first item in the config) is used as to determine the client's subnet. The
 local address is also used as server-ID override so that the client always sends requests
 via the relay. The effect of this is that server doesn't require
 a route to the client network and the clients don't require a route to the server.
 
-The interface parameter is mandatory and a cannot be a wildcard.
+The third parameter is mandatory. If it is an interface name it cannot be a wildcard and the same filtering as descibed in
+--dhcp-relay applies; answers from the server must arrve via the specified interface. If the third parameter
+is an IP address it must be an address of a local interface which is routable from the server; In this case no filtering
+is done, the reply packets can arrive via any route.
 
 If setting up a network where the client networks have limited routing, be careful
 about configuring the DHCP server. Dnsmasq, as DHCP server, will set the default route to the
