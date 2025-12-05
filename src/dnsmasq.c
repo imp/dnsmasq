@@ -1941,20 +1941,21 @@ static void check_dns_listeners(time_t now)
 
 static void do_tcp_connection(struct listener *listener, time_t now, int slot)
 {
-  int confd, client_ok = 1;
+  int confd;
   struct irec *iface = NULL;
   pid_t p;
   union mysockaddr tcp_addr;
   socklen_t tcp_len = sizeof(union mysockaddr);
   unsigned char *buff;
   struct server *s; 
-  int flags, auth_dns;
+  int flags, auth_dns = 0;
   struct in_addr netmask;
   int pipefd[2];
 #ifdef HAVE_LINUX_NETWORK
   unsigned char a = 0;
 #endif
-
+  netmask.s_addr = 0;
+  
   while ((confd = accept(listener->tcpfd, NULL, NULL)) == -1 && errno == EINTR);
   
   if (confd == -1)
@@ -1981,58 +1982,63 @@ static void do_tcp_connection(struct listener *listener, time_t now, int slot)
   
   enumerate_interfaces(0);
   
-  if (option_bool(OPT_NOWILD))
-    iface = listener->iface; /* May be NULL */
+  if (option_bool(OPT_NOWILD) || option_bool(OPT_CLEVERBIND))
+    {
+      if ((iface = listener->iface)) 
+	{
+	  netmask = iface->netmask;
+	  auth_dns = iface->dns_auth;
+	}
+    }
   else 
     {
-      int if_index;
+      int if_index, got_index = 0;
       char intr_name[IF_NAMESIZE];
       
-      /* if we can find the arrival interface, check it's one that's allowed */
+      /* if we can find the arrival interface, check it's one that's allowed
+	 tcp_interface() is not implemented on non-Linux platforms */
       if ((if_index = tcp_interface(confd, tcp_addr.sa.sa_family)) != 0 &&
 	  indextoname(listener->tcpfd, if_index, intr_name))
 	{
 	  union all_addr addr;
+
+	  got_index = 1;
 	  
 	  if (tcp_addr.sa.sa_family == AF_INET6)
 	    addr.addr6 = tcp_addr.in6.sin6_addr;
 	  else
 	    addr.addr4 = tcp_addr.in.sin_addr;
 	  
-	  for (iface = daemon->interfaces; iface; iface = iface->next)
-	    if (iface->index == if_index &&
-		iface->addr.sa.sa_family == tcp_addr.sa.sa_family)
-	      break;
-	  
-	  if (!iface && !loopback_exception(listener->tcpfd, tcp_addr.sa.sa_family, &addr, intr_name))
-	    client_ok = 0;
+	  if (!iface_check(tcp_addr.sa.sa_family, &addr, intr_name, &auth_dns) &&
+	      !loopback_exception(listener->tcpfd, tcp_addr.sa.sa_family, &addr, intr_name))
+	    goto closeconandreturn;
 	}
       
-      if (option_bool(OPT_CLEVERBIND))
-	iface = listener->iface; /* May be NULL */
-      else
+      /* When binding the wildcard address, try and get the
+	 netmask of the interface for localisation. */
+      for (iface = daemon->interfaces; iface; iface = iface->next)
+	if (sockaddr_isequal(&iface->addr, &tcp_addr))
+	  {
+	    netmask = iface->netmask;
+	    break;
+	  }
+
+      /* On platforms where tcp_interface() doesn't work, we rely
+	 of the presence of the local address of the connection in the
+	 interface list to check if we're accepting this connection and
+	 for its auth status. */
+      if (!got_index)
 	{
-	  /* Check for allowed interfaces when binding the wildcard address:
-	     we do this by looking for an interface with the same address as 
-	     the local address of the TCP connection, then looking to see if that's
-	     an allowed interface. As a side effect, we get the netmask of the
-	     interface too, for localisation. */
-	  
-	  for (iface = daemon->interfaces; iface; iface = iface->next)
-	    if (sockaddr_isequal(&iface->addr, &tcp_addr))
-	      break;
-	  
 	  if (!iface)
-	    client_ok = 0;
+	    goto closeconandreturn;
+
+	  auth_dns = iface->dns_auth;
 	}
     }
   
-  if (!client_ok)
-    goto closeconandreturn;
-  
   if (!option_bool(OPT_DEBUG))
     {
-      /* The code in edns0.c qthat decorates queries with the source MAC address depends
+      /* The code in edns0.c that decorates queries with the source MAC address depends
 	 on the code in arp.c, which populates a cache with the contents of the ARP table
 	 using netlink. Since the child process can't use netlink, we pre-populate
 	 the cache with the ARP table entry for our source here, including a negative entry
@@ -2100,23 +2106,9 @@ static void do_tcp_connection(struct listener *listener, time_t now, int slot)
 	  
 	  return;
 	}
-    }
-         
-  if (iface)
-    {
-      netmask = iface->netmask;
-      auth_dns = iface->dns_auth;
-    }
-  else
-    {
-      netmask.s_addr = 0;
-      auth_dns = 0;
-    }
-  
-  /* Arrange for SIGALRM after CHILD_LIFETIME seconds to
-     terminate the process. */
-  if (!option_bool(OPT_DEBUG))
-    {
+      
+      /* Arrange for SIGALRM after CHILD_LIFETIME seconds to
+	 terminate the process. */
 #ifdef HAVE_LINUX_NETWORK
       /* See comment above re: netlink socket. */
       close(daemon->netlinkfd);
