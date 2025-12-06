@@ -549,6 +549,7 @@ struct crec {
 #define PIPE_OP_STATS   3  /* Update parent's stats */
 #define PIPE_OP_IPSET   4  /* Update IPset */
 #define PIPE_OP_NFTSET  5  /* Update NFTset */
+#define PIPE_OP_KILLED  6  /* child killed by SIGALARM */
 
 /* struct sockaddr is not large enough to hold any address,
    and specifically not big enough to hold an IPv6 address.
@@ -1271,6 +1272,9 @@ extern struct daemon {
   int dnssec_no_time_check;
   int back_to_the_future;
   int limit[LIMIT_MAX];
+  struct frec *forward_to_tcp;
+  struct dns_header *header_to_tcp;
+  ssize_t plen_to_tcp;
 #endif
   struct frec *frec_list;
   struct frec_src *free_frec_src;

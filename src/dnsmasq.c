@@ -1335,11 +1335,42 @@ static void sig_handler(int sig)
       if (sig == SIGTERM || sig == SIGINT)
 	exit(EC_MISC);
     }
-  else if (pid != getpid())
+  else if (daemon->pipe_to_parent != -1)
     {
       /* alarm is used to kill TCP children after a fixed time. */
       if (sig == SIGALRM)
-	_exit(0);
+	{
+#ifdef HAVE_DNSSEC
+	  if (!daemon->forward_to_tcp)
+#endif
+	    _exit(0); /* Normal TCP child */
+#ifdef HAVE_DNSSEC
+	  else
+	    {
+	      /* udp_to_tcp transfer.
+		 If daemon->header_to_tcp is NULL the waiting is over and
+		 we can let things take their course, otherwise, send a failure
+		 return down the pipe to unblock the UDP transaction and kill
+		 the process. */
+	      if (daemon->header_to_tcp)
+		{
+		  unsigned char op = PIPE_OP_KILLED;
+		  int status = STAT_ABANDONED;
+		  
+		  read_write(daemon->pipe_to_parent, &op, sizeof(op), RW_WRITE);
+		  read_write(daemon->pipe_to_parent, (unsigned char *)&status, sizeof(status), RW_WRITE);
+		  read_write(daemon->pipe_to_parent, (unsigned char *)(&daemon->plen_to_tcp), sizeof(daemon->plen_to_tcp), RW_WRITE);
+		  read_write(daemon->pipe_to_parent, (unsigned char *)(daemon->header_to_tcp), daemon->plen_to_tcp, RW_WRITE);
+		  read_write(daemon->pipe_to_parent, (unsigned char *)(&daemon->forward_to_tcp), sizeof(daemon->forward_to_tcp), RW_WRITE);
+		  read_write(daemon->pipe_to_parent, (unsigned char *)(&daemon->forward_to_tcp->uid), sizeof(daemon->forward_to_tcp->uid), RW_WRITE);
+
+		  my_syslog(LOG_INFO, _("TCP process for DNSSEC validation timed out"));
+
+		  _exit(0);
+		}
+	    }
+#endif
+	}
     }
   else
     {
@@ -2231,8 +2262,12 @@ int swap_to_tcp(struct frec *forward, time_t now, int status, struct dns_header 
 	  close(daemon->netlinkfd);
 	  read_write(pipefd[1], &a, 1, RW_WRITE);
 #endif		  
+	  alarm(CHILD_LIFETIME);
 	  close(pipefd[0]); /* close read end in child. */
-	  daemon->pipe_to_parent = pipefd[1];	  
+	  daemon->pipe_to_parent = pipefd[1];
+	  daemon->forward_to_tcp = forward;
+	  daemon->header_to_tcp = header;
+	  daemon->plen_to_tcp = *plen;
 	}
     }
   

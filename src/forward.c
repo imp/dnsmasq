@@ -2223,7 +2223,7 @@ int tcp_from_udp(time_t now, int status, struct dns_header *header, ssize_t *ple
 	      
 	      if (n >= daemon->edns_pktsz)
 		{
-		  /* still too bIg, strip optional sections and try again. */
+		  /* still too big, strip optional sections and try again. */
 		  new_header->nscount = htons(0);
 		  new_header->arcount = htons(0);
 		  n = resize_packet(new_header, n, NULL, 0);
@@ -2237,6 +2237,10 @@ int tcp_from_udp(time_t now, int status, struct dns_header *header, ssize_t *ple
 		    }
 		}
 	      
+	      /* we have succeeded and are no longer blocked talking
+		 on a TCP connection, so if the watchdog alarm goes off,
+		 ignore it. */
+	      daemon->forward_to_tcp = NULL;
 	      /* return the stripped or truncated reply. */
 	      memcpy(header, new_header, n);
 	      *plenp = n;
