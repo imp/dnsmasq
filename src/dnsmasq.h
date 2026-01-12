@@ -761,10 +761,9 @@ struct dyndir {
 #define STAT_NEED_DS            0x40000
 #define STAT_NEED_KEY           0x50000
 #define STAT_TRUNCATED          0x60000
-#define STAT_SECURE_WILDCARD    0x70000
-#define STAT_OK                 0x80000
-#define STAT_ABANDONED          0x90000
-#define STAT_ASYNC              0xa0000
+#define STAT_OK                 0x70000
+#define STAT_ABANDONED          0x80000
+#define STAT_ASYNC              0x90000
 
 #define DNSSEC_FAIL_NYV         0x0001 /* key not yet valid */
 #define DNSSEC_FAIL_EXP         0x0002 /* key expired */

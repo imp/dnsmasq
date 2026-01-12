@@ -1,3 +1,13 @@
+version 2.93
+	Fix a corner-case in DNSSEC validation with wildcards. If we have
+	a wildcard record *.example.com and recieve a query for
+	a.example.com then that's OK, but we have to check that there isn't
+	an actual a.example.com record. The corner case is when we get a
+	query for *.example.com in that case the non-existence check
+	is not required, was being done. Thanks to Jan Breig for
+	spotting this.
+
+
 version 2.92
         Redesign the interaction between DNSSEC validation and per-domain
 	servers, specified as --server=/<domain>/<ip-address>. This should
