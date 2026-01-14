@@ -7,6 +7,9 @@ version 2.93
 	is not required, was being done. Thanks to Jan Breig for
 	spotting this.
 
+	Enable support for inotify on FreeBSD 15.0-RELEASE, which added
+	Linux-compatible inotify support.
+
 
 version 2.92
         Redesign the interaction between DNSSEC validation and per-domain
