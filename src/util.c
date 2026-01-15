@@ -443,8 +443,8 @@ int hostname_issubdomain(char *a, char *b)
   for (ap = a; *ap; ap++); 
   for (bp = b; *bp; bp++);
 
-  /* a shorter than b or a empty. */
-  if ((bp - b) < (ap - a) || ap == a)
+  /* a shorter than b */
+  if ((ap - a) < (bp - b))
     return 0;
 
   do
@@ -459,12 +459,12 @@ int hostname_issubdomain(char *a, char *b)
 
        if (c1 != c2)
 	 return 0;
-    } while (ap != a);
+    } while (bp != b);
 
-  if (bp == b)
+  if (ap == a)
     return 2;
 
-  if (*(--bp) == '.')
+  if (*(--ap) == '.')
     return 1;
 
   return 0;

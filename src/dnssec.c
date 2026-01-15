@@ -370,45 +370,42 @@ static int explore_rrset(struct dns_header *header, size_t plen, int class, int 
 	      
 	      GETSHORT(type_covered, p);
 	      p += 16; /* algo, labels, orig_ttl, sig_expiration, sig_inception, key_tag */
-	      
-	      if (gotkey)
+
+	      if (type_covered == type)
 		{
-		  /* If there's more than one SIG, ensure they all have same keyname */
-		  if (extract_name(header, plen, &p, keyname, EXTR_NAME_COMPARE, 0) != 1)
+		  if (!extract_name(header, plen, &p, daemon->workspacename, EXTR_NAME_EXTRACT, 0))
 		    return 0;
-		}
-	      else
-		{
-		  gotkey = 1;
-		  
-		  if (!extract_name(header, plen, &p, keyname, EXTR_NAME_EXTRACT, 0))
-		    return 0;
-		  
+
 		  /* RFC 4035 5.3.1 says that the Signer's Name field MUST equal
 		     the name of the zone containing the RRset. We can't tell that
 		     for certain, but we can check that  the RRset name is equal to
 		     or encloses the signers name, which should be enough to stop 
 		     an attacker using signatures made with the key of an unrelated 
-		     zone he controls. Note that the root key is always allowed. */
-		  if (*keyname != 0)
+		     zone he controls. Note that the root key is always allowed.
+		     Ignore sigs which aren't valid */
+		  if (*daemon->workspacename == 0 || hostname_issubdomain(name, daemon->workspacename) != 0)
 		    {
-		      char *name_start;
-		      for (name_start = name; !hostname_isequal(name_start, keyname); )
-			if ((name_start = strchr(name_start, '.')))
-			  name_start++; /* chop a label off and try again */
-			else
-			  return 0;
+		      if (gotkey)
+			{
+			  /* If there's more than one valid SIG, they must all have same keyname */
+			  if (!hostname_isequal(keyname, daemon->workspacename))
+			    return 0;
+			}
+		      else
+			{
+			  strcpy(keyname, daemon->workspacename);
+			  gotkey = 1;
+			}
+		      
+		      if (gotkey)
+			{
+			  if (!expand_workspace(&sigs, &sig_sz, sigidx))
+			    return 0; 
+		      
+			  sigs[sigidx++] = pdata;
+			}
 		    }
 		}
-		  
-	      
-	      if (type_covered == type)
-		{
-		  if (!expand_workspace(&sigs, &sig_sz, sigidx))
-		    return 0; 
-		  
-		  sigs[sigidx++] = pdata;
-		} 
 	      
 	      p = pdata + 6; /* restore for ADD_RDLEN */
 	    }
@@ -461,11 +458,13 @@ static int validate_rrset(time_t now, struct dns_header *header, size_t plen, in
   struct crec *crecp = NULL;
   short *rr_desc = rrfilter_desc(type);
   u32 sig_expiration, sig_inception;
-  int failflags = DNSSEC_FAIL_NOSIG | DNSSEC_FAIL_NYV | DNSSEC_FAIL_EXP | DNSSEC_FAIL_NOKEYSUP;
-  
-  unsigned long curtime = time(0);
+    unsigned long curtime = time(0);
   int time_check = is_check_date(curtime);
+  int failflags = DNSSEC_FAIL_NOSIG;
   
+  if (sigidx != 0)
+    failflags |= DNSSEC_FAIL_NYV | DNSSEC_FAIL_EXP | DNSSEC_FAIL_NOKEYSUP;
+
   if (wildcard_offset_out)
     *wildcard_offset_out = 0;
   
@@ -2103,8 +2102,8 @@ int dnssec_validate_reply(time_t now, struct dns_header *header, size_t plen, ch
 		       CNAME must be <subdomain>.<dname>
 		       CNAME target must be <subdomain>.<dname_target>
 		       <subdomain>s must match for name and target. */ 
-		    if (hostname_issubdomain(name, daemon->cname) == 1 &&
-			hostname_issubdomain(keyname, daemon->workspacename) == 1 &&
+		    if (hostname_issubdomain(daemon->cname, name) == 1 &&
+			hostname_issubdomain(daemon->workspacename, keyname) == 1 &&
 			name_prefix_len == strlen(daemon->workspacename) - strlen(keyname))
 		      {
 			char save = daemon->cname[name_prefix_len];
@@ -2188,41 +2187,27 @@ int dnssec_validate_reply(time_t now, struct dns_header *header, size_t plen, ch
 	  if (!explore_rrset(header, plen, class1, type1, name, keyname, &sigcnt, &rrcnt))
 	    return STAT_BOGUS;
 	  
-	  /* No signatures for RRset. We can be configured to assume this is OK and return an INSECURE result. */
-	  if (sigcnt == 0)
-	    {
-	      /* NSEC and NSEC3 records must be signed. We make this assumption elsewhere. */
-	      if (type1 == T_NSEC || type1 == T_NSEC3)
-		return STAT_BOGUS | DNSSEC_FAIL_NOSIG;
-	      else if (nons && i >= ntohs(header->ancount))
-		/* If we're validating a DS reply, rather than looking for the value of AD bit,
-		   we only care that NSEC and NSEC3 RRs in the auth section are signed. 
-		   Return SECURE even if others (SOA....) are not. */
-		rc = STAT_SECURE;
-	      else
-		{
-		  /* unsigned RRsets in auth section are not BOGUS, but do make reply insecure. */
-		  if (check_unsigned && i < ntohs(header->ancount))
-		    {
-		      rc = zone_status(name, class1, keyname, now);
-		      if (STAT_ISEQUAL(rc, STAT_SECURE))
-			rc = STAT_BOGUS | DNSSEC_FAIL_NOSIG;
-		      
-		      if (class)
-			*class = class1; /* Class for NEED_DS or NEED_KEY */
-		    }
-		  else 
-		    rc = STAT_INSECURE; 
-		  
-		  if (!STAT_ISEQUAL(rc, STAT_INSECURE))
-		    return rc;
-		}
-	    }
+	  /* NSEC and NSEC3 records must be signed. We make this assumption elsewhere. */
+	  if (sigcnt == 0 && (type1 == T_NSEC || type1 == T_NSEC3))
+	    return STAT_BOGUS | DNSSEC_FAIL_NOSIG;
+	  else if (sigcnt == 0 && nons && i >= ntohs(header->ancount))
+	    /* If we're validating a DS reply, rather than looking for the value of AD bit,
+	       we only care that NSEC and NSEC3 RRs in the auth section are signed. 
+	       Return SECURE even if others (SOA....) are not. */
+	    rc = STAT_SECURE;
+	  else if (sigcnt == 0 && (!check_unsigned || i >= ntohs(header->ancount)))
+	    /* unsigned RRsets in auth section are not BOGUS, but do make reply insecure. */
+	    rc = STAT_INSECURE;
 	  else
 	    {
-	      /* explore_rrset() gives us key name from sigs in keyname.
+	      /* explore_rrset() gives us zone name from sigs in keyname, if
+		 it didn't find a key, use the name we're validating.
 		 Can't overwrite name here. */
-	      strcpy(daemon->workspacename, keyname);
+	      if (sigcnt == 0)
+		strcpy(daemon->workspacename, name);
+	      else
+		strcpy(daemon->workspacename, keyname);
+	      
 	      rc = zone_status(daemon->workspacename, class1, keyname, now);
 	      
 	      if (STAT_ISEQUAL(rc, STAT_BOGUS) || STAT_ISEQUAL(rc, STAT_NEED_KEY) || STAT_ISEQUAL(rc, STAT_NEED_DS))
@@ -2232,7 +2217,7 @@ int dnssec_validate_reply(time_t now, struct dns_header *header, size_t plen, ch
 		  return rc;
 		}
 	      
-	      /* Zone is insecure, don't need to validate RRset */
+	      /* If zone is insecure, don't need to validate RRset, and rc remains as STAT_INSECURE*/
 	      if (STAT_ISEQUAL(rc, STAT_SECURE))
 		{
 		  unsigned long sig_ttl;

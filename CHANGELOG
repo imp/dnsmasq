@@ -10,7 +10,16 @@ version 2.93
 	Enable support for inotify on FreeBSD 15.0-RELEASE, which added
 	Linux-compatible inotify support.
 
+	Fix DNSSEC failure with spurious RRSIGs. The presence of wrong
+	RRSIG RRs in replies caused DNSSEC validation to fail even
+	when the RRs do not require validation because the zone is
+	unsigned. Note that, at the time of this commit, Google
+	DNS appears to have the same bug, so if you're using 8.8.8.8
+	or friends as upstream, resolving the broken zones
+	(eg rivcoed.org) will still fail. Thanks to Petr Menšík
+	for the bug report.
 
+	
 version 2.92
         Redesign the interaction between DNSSEC validation and per-domain
 	servers, specified as --server=/<domain>/<ip-address>. This should
