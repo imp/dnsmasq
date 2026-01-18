@@ -960,7 +960,7 @@ static void dnssec_validate(struct frec *forward, struct dns_header *header,
 	    status = dnssec_validate_ds(now, header, plen, daemon->namebuff, daemon->keyname, forward->class, &orig->validate_counter);
 	  else
 	    status = dnssec_validate_reply(now, header, plen, daemon->namebuff, daemon->keyname, &forward->class, 
-					   !option_bool(OPT_DNSSEC_IGN_NS), NULL, NULL, NULL, &orig->validate_counter);
+					   !option_bool(OPT_DNSSEC_IGN_NS), NULL, NULL, NULL, NULL, &orig->validate_counter);
 	  
 	  if (STAT_ISEQUAL(status, STAT_ABANDONED))
 	    log_resource = 1;
@@ -2277,7 +2277,7 @@ static int tcp_key_recurse(time_t now, int status, struct dns_header *header, si
 	new_status = dnssec_validate_ds(now, header, n, name, keyname, class, validatecount);
       else
 	new_status = dnssec_validate_reply(now, header, n, name, keyname, &class,
-					   !option_bool(OPT_DNSSEC_IGN_NS), NULL, NULL, NULL, validatecount);
+					   !option_bool(OPT_DNSSEC_IGN_NS), NULL, NULL, NULL, NULL, validatecount);
       
       if (!STAT_ISEQUAL(new_status, STAT_NEED_DS) && !STAT_ISEQUAL(new_status, STAT_NEED_KEY) && !STAT_ISEQUAL(new_status, STAT_ABANDONED))
 	break;

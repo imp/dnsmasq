@@ -19,6 +19,11 @@ version 2.93
 	(eg rivcoed.org) will still fail. Thanks to Petr Menšík
 	for the bug report.
 
+	Fix DNSSEC fail with CNAME replies to DS queries. As CNAME reply
+	to a DNSSEC query was confusing the validation logic. It now
+	accepts a signed CNAME reply to a DS query as proof that no DS
+	exists at the domain. This fixes the DS/zone break detection logic.
+
 	
 version 2.92
         Redesign the interaction between DNSSEC validation and per-domain

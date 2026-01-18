@@ -991,7 +991,7 @@ int dnssec_validate_ds(time_t now, struct dns_header *header, size_t plen, char 
 		       char *keyname, int class, int *validate_counter)
 {
   unsigned char *p = (unsigned char *)(header+1);
-  int qtype, qclass, rc, i, neganswer = 0, nons = 0, servfail = 0, neg_ttl = 0, found_supported = 0;
+  int qtype, qclass, rc, i, neganswer = 0, prim_ok = 0, nons = 0, servfail = 0, neg_ttl = 0, found_supported = 0;
   int aclass, atype, rdlen, flags;
   unsigned long ttl;
   union all_addr a;
@@ -1002,7 +1002,7 @@ int dnssec_validate_ds(time_t now, struct dns_header *header, size_t plen, char 
   if (RCODE(header) == SERVFAIL)
     servfail = neganswer = nons = 1;
   else
-    rc = dnssec_validate_reply(now, header, plen, name, keyname, NULL, 0, &neganswer, &nons, &neg_ttl, validate_counter);
+    rc = dnssec_validate_reply(now, header, plen, name, keyname, NULL, 0, &neganswer, &prim_ok, &nons, &neg_ttl, validate_counter);
   
   p = (unsigned char *)(header+1);
   if (ntohs(header->qdcount) != 1 ||
@@ -1019,27 +1019,32 @@ int dnssec_validate_ds(time_t now, struct dns_header *header, size_t plen, char 
     {
       if (STAT_ISEQUAL(rc, STAT_INSECURE))
 	{
-	  if (option_bool(OPT_BOGUSPRIV) &&
-	      (flags = in_arpa_name_2_addr(name, &a)) &&
-	      ((flags == F_IPV6 && private_net6(&a.addr6, 0)) || (flags == F_IPV4 && private_net(a.addr4, 0))))
+	  /* A INSECURE DS answer is OK if it's negative and there's a CNAME answer to the DS answer which is
+	     signed, since that's enough to prove that the DS record doesn't exist. */
+	  if (!neganswer || !prim_ok)
 	    {
-	      my_syslog(LOG_INFO, _("Insecure reply received for DS %s, assuming that's OK for a RFC-1918 address."), name);
-	      neganswer = 1;
-	      nons = 0; /* If we're faking a DS, fake one with an NS. */
-	      neg_ttl = DNSSEC_ASSUMED_DS_TTL;
-	    }
-	  else if (lookup_domain(name, F_DOMAINSRV, NULL, NULL))
-	    {
-	      my_syslog(LOG_INFO, _("Insecure reply received for DS %s, assuming non-DNSSEC domain-specific server."), name);
-	      neganswer = 1;
-	      nons = 0; /* If we're faking a DS, fake one with an NS. */
-	      neg_ttl = DNSSEC_ASSUMED_DS_TTL;
-	    }
-	  else
-	    {
-	      my_syslog(LOG_WARNING, _("Insecure DS reply received for %s, check domain configuration and upstream DNS server DNSSEC support"), name);
-	      log_query(F_NOEXTRA | F_UPSTREAM, name, NULL, "BOGUS DS - not secure", 0);
-	      return STAT_BOGUS | DNSSEC_FAIL_INDET;
+	      if (option_bool(OPT_BOGUSPRIV) &&
+		  (flags = in_arpa_name_2_addr(name, &a)) &&
+		  ((flags == F_IPV6 && private_net6(&a.addr6, 0)) || (flags == F_IPV4 && private_net(a.addr4, 0))))
+		{
+		  my_syslog(LOG_INFO, _("Insecure reply received for DS %s, assuming that's OK for a RFC-1918 address."), name);
+		  neganswer = 1;
+		  nons = 0; /* If we're faking a DS, fake one with an NS. */
+		  neg_ttl = DNSSEC_ASSUMED_DS_TTL;
+		}
+	      else if (lookup_domain(name, F_DOMAINSRV, NULL, NULL))
+		{
+		  my_syslog(LOG_INFO, _("Insecure reply received for DS %s, assuming non-DNSSEC domain-specific server."), name);
+		  neganswer = 1;
+		  nons = 0; /* If we're faking a DS, fake one with an NS. */
+		  neg_ttl = DNSSEC_ASSUMED_DS_TTL;
+		}
+	      else
+		{
+		  my_syslog(LOG_WARNING, _("Insecure DS reply received for %s, check domain configuration and upstream DNS server DNSSEC support"), name);
+		  log_query(F_NOEXTRA | F_UPSTREAM, name, NULL, "BOGUS DS - not secure", 0);
+		  return STAT_BOGUS | DNSSEC_FAIL_INDET; 
+		}
 	    }
 	}
       else
@@ -1964,7 +1969,7 @@ static int zone_status(char *name, int class, char *keyname, time_t now)
    if the nons argument is non-NULL.
 */
 int dnssec_validate_reply(time_t now, struct dns_header *header, size_t plen, char *name, char *keyname, 
-			  int *class, int check_unsigned, int *neganswer, int *nons, int *nsec_ttl, int *validate_counter)
+			  int *class, int check_unsigned, int *neganswer, int *prim_ok, int *nons, int *nsec_ttl, int *validate_counter)
 {
   static unsigned char **targets = NULL;
   static int target_sz = 0;
@@ -2273,6 +2278,20 @@ int dnssec_validate_reply(time_t now, struct dns_header *header, size_t plen, ch
 	secure = STAT_INSECURE;
     }
 
+
+  /* For a DS record, we are interested also in if the answer to the DS query was
+     a CNAME RRset which validated. That's proof that the DS doesn't exist,
+     even if it's  a CNAME which is not signed, and therefore we have no proof
+     of what it actually _is_. This return tells us that the answer to
+     primary query is secure, even is the whole answer is insecure, because
+     something down the CNAME list doesn't validate or doesn't exist.
+     Note that prim_ok is only valid when neganswer is true, ie either
+     the answer is the requested record or it's a CNAME that ends
+     in a missing answer or an unsigned zone.
+  */
+  if (prim_ok)
+    *prim_ok = !targets[0];
+    
   /* OK, all the RRsets validate, now see if we have a missing answer or CNAME target. */
   for (j = 0; j <targetidx; j++)
     if ((p2 = targets[j]))
@@ -2283,20 +2302,12 @@ int dnssec_validate_reply(time_t now, struct dns_header *header, size_t plen, ch
 	if (!extract_name(header, plen, &p2, name, EXTR_NAME_EXTRACT, 10))
 	  return STAT_BOGUS; /* bad packet */
 	
-	/* NXDOMAIN or NODATA reply, unanswered question is (name, qclass, qtype) */
-	
-	/* For anything other than a DS record, this situation is OK if either
-	   the answer is in an unsigned zone, or there's NSEC records.
-	   For a DS record, we return INSECURE, which almost always turns
-	   into BOGUS in the caller. */
+	/* NXDOMAIN or NODATA reply, unanswered question is (name, qclass, qtype)
+	   This situation is OK if either the answer is in an unsigned zone, or there's NSEC records. */
 	if ((rc_nsec = prove_non_existence(header, plen, keyname, name, qtype, qclass, 0, nons, nsec_ttl, validate_counter)) != 0)
 	  {
 	    if (rc_nsec & DNSSEC_FAIL_WORK)
 	      return STAT_ABANDONED;
-
-	    /* Empty DS without NSECS */
-	    if (qtype == T_DS)
-	      return STAT_INSECURE;
 	    
 	    if ((rc_nsec & (DNSSEC_FAIL_NONSEC | DNSSEC_FAIL_NSEC3_ITERS)) &&
 		!STAT_ISEQUAL((rc = zone_status(name, qclass, keyname, now)), STAT_SECURE))
