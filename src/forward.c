@@ -1399,6 +1399,9 @@ void return_reply(time_t now, struct frec *forward, struct dns_header *header, s
       
 	  a.log.ede = ede;
 	  log_query(F_SECSTAT, domain, &a, result, 0);
+
+	  if (ede == EDE_US_SERVFAIL)
+	    ede = EDE_DNSSEC_BOGUS;
 	}
     }
   
@@ -2665,6 +2668,8 @@ unsigned char *tcp_request(int confd, time_t now,
 			      
 			      a.log.ede = ede;
 			      log_query(F_SECSTAT, domain, &a, result, 0);
+			      if (ede == EDE_US_SERVFAIL)
+				ede = EDE_DNSSEC_BOGUS;
 			      
 			      if ((daemon->limit[LIMIT_CRYPTO] - validatecount) > (int)daemon->metrics[METRIC_CRYPTO_HWM])
 				daemon->metrics[METRIC_CRYPTO_HWM] = daemon->limit[LIMIT_CRYPTO] - validatecount;

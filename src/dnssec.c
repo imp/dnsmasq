@@ -1993,8 +1993,11 @@ int dnssec_validate_reply(time_t now, struct dns_header *header, size_t plen, ch
   
   if (neganswer)
     *neganswer = 0;
+
+  if (RCODE(header) == SERVFAIL)
+    return STAT_BOGUS | DNSSEC_FAIL_UPSTREAM;
   
-  if (RCODE(header) == SERVFAIL || ntohs(header->qdcount) != 1)
+  if (ntohs(header->qdcount) != 1)
     return STAT_BOGUS;
   
   if (RCODE(header) != NXDOMAIN && RCODE(header) != NOERROR)
@@ -2365,8 +2368,9 @@ int errflags_to_ede(int status)
   /* We can end up with more than one flag set for some errors,
      so this encodes a rough priority so the (eg) No sig is reported
      before no-unexpired-sig. */
-
-  if (status & DNSSEC_FAIL_NYV)
+  if (status & DNSSEC_FAIL_UPSTREAM)
+    return EDE_US_SERVFAIL;
+  else if (status & DNSSEC_FAIL_NYV)
     return EDE_SIG_NYV;
   else if (status & DNSSEC_FAIL_EXP)
     return EDE_SIG_EXP;
