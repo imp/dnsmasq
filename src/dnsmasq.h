@@ -890,6 +890,8 @@ struct dhcp_lease {
 };
 
 struct dhcp_netid {
+  #define LOCAL_DHCP_NETID 1
+  unsigned int flags;
   char *net;
   struct dhcp_netid *next;
 };
