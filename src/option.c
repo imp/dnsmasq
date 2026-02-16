@@ -1350,6 +1350,9 @@ static void dhcp_netid_free(struct dhcp_netid *nid)
     {
       struct dhcp_netid *tmp = nid;
       nid = nid->next;
+	  if (tmp->flags & LOCAL_DHCP_NETID) {
+		  continue;
+	  }
       free(tmp->net);
       free(tmp);
     }
